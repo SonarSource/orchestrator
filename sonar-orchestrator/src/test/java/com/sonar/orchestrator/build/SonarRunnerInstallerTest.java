@@ -1,0 +1,156 @@
+/*
+ * Orchestrator
+ * Copyright (C) 2011 SonarSource
+ * sonarqube@googlegroups.com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ */
+package com.sonar.orchestrator.build;
+
+import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.junit.PropertyFilterRunner;
+import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.version.Version;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * NOTE FOR IDE
+ * Check that zip files are correctly loaded in IDE classpath during execution of tests
+ */
+@RunWith(PropertyFilterRunner.class)
+public class SonarRunnerInstallerTest {
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
+
+  private FileSystem fileSystem;
+  private SonarRunnerInstaller installer;
+
+  @Before
+  public void init() {
+    fileSystem = mock(FileSystem.class);
+    installer = spy(new SonarRunnerInstaller(fileSystem));
+  }
+
+  @Test
+  public void unsupported_version() throws Exception {
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Unsupported sonar-runner version: 1.0");
+    installer.install(Version.create("1.0"), temp.newFolder());
+  }
+
+  @Test
+  public void install_embedded_version() throws Exception {
+    File toDir = temp.newFolder();
+    File script = installer.install(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("sonar-runner");
+    assertThat(script.getParentFile().getName()).isEqualTo("bin");
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-runner-" + SonarRunner.DEFAULT_RUNNER_VERSION);
+
+    verify(fileSystem, never()).locate(any(MavenLocation.class));
+  }
+
+  @Test
+  public void find_version_available_in_maven_repositories() throws Exception {
+    File toDir = temp.newFolder();
+    when(fileSystem.locate(SonarRunnerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
+
+    // we're sure that SNAPSHOT versions are not embedded in sonar-runner
+    File script = installer.install(Version.create("1.4-SNAPSHOT"), toDir);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("sonar-runner");
+    assertThat(script.getParentFile().getName()).isEqualTo("bin");
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-runner-1.4-SNAPSHOT");
+  }
+
+  @Test
+  public void do_not_install_twice() throws Exception {
+    File toDir = temp.newFolder();
+
+    installer.install(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+    installer.install(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+
+    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+  }
+
+  @Test
+  public void should_not_keep_cache_of_snapshot_versions() throws Exception {
+    File toDir = temp.newFolder();
+    when(fileSystem.locate(SonarRunnerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
+
+    installer.install(Version.create("1.4-SNAPSHOT"), toDir);
+    installer.install(Version.create("1.4-SNAPSHOT"), toDir);
+
+    verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), toDir);
+  }
+
+  @Test
+  public void maven_location_before_2_1() {
+    MavenLocation location = SonarRunnerInstaller.mavenLocation(Version.create("1.2.3"));
+    assertThat(location.getPackaging()).isEqualTo("zip");
+    assertThat(location.version()).isEqualTo(Version.create("1.2.3"));
+    assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar-plugins");
+    assertThat(location.getArtifactId()).isEqualTo("sonar-runner");
+  }
+
+  @Test
+  public void maven_location() {
+    MavenLocation location = SonarRunnerInstaller.mavenLocation(Version.create("2.1-SNAPSHOT"));
+    assertThat(location.getPackaging()).isEqualTo("zip");
+    assertThat(location.version()).isEqualTo(Version.create("2.1-SNAPSHOT"));
+    assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar.runner");
+    assertThat(location.getArtifactId()).isEqualTo("sonar-runner-dist");
+  }
+
+  @Test
+  public void maven_location_of_2_5() {
+    MavenLocation location = SonarRunnerInstaller.mavenLocation(Version.create("2.5"));
+    assertThat(location.getPackaging()).isEqualTo("zip");
+    assertThat(location.version()).isEqualTo(Version.create("2.5"));
+    assertThat(location.getGroupId()).isEqualTo("org.sonarsource.sonar-runner");
+    assertThat(location.getArtifactId()).isEqualTo("sonar-runner-dist");
+  }
+
+  @Test
+  public void corrupted_zip() throws Exception {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Fail to unzip sonar-runner");
+    installer.install(Version.create("corrupted"), temp.newFolder());
+  }
+}

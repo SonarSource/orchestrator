@@ -1,0 +1,32 @@
+# ---- Orchestrator
+sonar-orchestrator/derby.log
+sonar-orchestrator/projects/sample/.sonar
+
+# ---- Maven
+target/
+
+# ---- Eclipse
+.classpath
+.project
+.settings
+
+# ---- IntelliJ IDEA
+*.iws
+*.iml
+*.ipr
+.idea/
+
+# ---- Mac OS X
+.DS_Store
+Icon?
+# Thumbnails
+._*
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# ---- Windows
+# Windows image file caches
+Thumbs.db 
+# Folder config file
+Desktop.ini

@@ -1,0 +1,15 @@
+start server
+  with plugin cobol 1.12
+  and plugin php 2.14
+  and property key value
+cd /path/to/project
+sonar-runner
+  property sonar.jacoco.path=/path
+  and property sonar.sources src/main/java
+verify org.apache.struts:struts
+  measure ncloc is 123
+  measure coverage is 34
+verify org.apache.struts:struts:Action.java
+  measure ncloc is 123
+  measure coverage is 34
+stop server

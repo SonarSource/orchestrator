@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.sonarsource.orchestrator</groupId>
+  <artifactId>sonar-reset-data-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>sonar-plugin</packaging>
+  <name>Orchestrator :: Reset data</name>
+  <description>Add a web service in order to reset data</description>
+
+  <!--
+
+
+  IMPORTANT : the JAR artifact of this plugin must be copied to src/main/resources/com/sonar/orchestrator
+
+
+  -->
+
+  <properties>
+    <sq.version>5.0</sq.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-plugin-api</artifactId>
+      <version>${sq.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-server</artifactId>
+      <version>${sq.version}</version>
+      <!-- sonar-server is not deployed on Maven repositories -->
+      <scope>system</scope>
+      <systemPath>${env.HOME}/.m2/repository/org/codehaus/sonar/sonar-server/${sq.version}/sonar-server-${sq.version}.jar</systemPath>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.sonar</groupId>
+        <artifactId>sonar-packaging-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <pluginClass>com.sonar.orchestrator.resetdataplugin.ResetDataPlugin</pluginClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

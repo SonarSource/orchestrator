@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Ant Modules" default="all" basedir="." xmlns:sonar="antlib:org.sonar.ant">
+
+  <echo>Root Project</echo>
+
+  <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
+
+    <!--
+PATH MUST BE REPLACED :
+-->
+    <classpath path="PATH/TO/sonar-ant-task.jar"/>
+  </taskdef>
+
+  <target name="clean">
+    <delete dir=".sonar"/>
+    <ant dir="module-one" target="clean"/>
+    <ant dir="module-two" target="clean"/>
+  </target>
+
+  <target name="compile">
+    <ant dir="module-one" target="compile"/>
+    <ant dir="module-two" target="compile"/>
+  </target>
+
+  <property name="sonar.modules" value="module-one/build.xml,module-two/build.xml"/>
+
+  <target name="sonar">
+    <sonar:sonar key="my:project" version="0.1-SNAPSHOT">
+    </sonar:sonar>
+  </target>
+
+  <target name="all"
+          depends="clean,compile,sonar"/>
+
+</project>
