@@ -19,22 +19,41 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class ZipUtilsTest {
+  File zip = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/util/ZipUtilsTest/shouldUnzipFile.zip"));
+
   @Test
   public void shouldUnzipFile() {
-    File zip = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/util/ZipUtilsTest/shouldUnzipFile.zip"));
     File toDir = new File("target/tmp/shouldUnzipFile/");
+
     ZipUtils.unzip(zip, toDir);
+
+    assertThat(toDir.list()).hasSize(3);
+  }
+
+  @Test
+  public void shouldUnzipTwice() {
+    File toDir = new File("target/tmp/shouldUnzipFileTwice/");
+
+    ZipUtils.unzip(zip, toDir);
+    ZipUtils.unzip(zip, toDir);
+
+    assertThat(toDir.list()).hasSize(3);
+  }
+
+  @Test
+  public void shouldUnzipJava() {
+    File toDir = new File("target/tmp/shouldUnzipFileJava/");
+
+    ZipUtils.javaUnzip(zip, toDir);
+
     assertThat(toDir.list()).hasSize(3);
   }
 }

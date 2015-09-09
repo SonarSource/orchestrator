@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.util;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closeables;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -52,7 +53,8 @@ public final class ZipUtils {
     }
   }
 
-  private static void javaUnzip(File zip, File toDir) {
+  @VisibleForTesting
+  static void javaUnzip(File zip, File toDir) {
     try {
       ZipFile zipFile = new ZipFile(zip);
       try {
@@ -84,7 +86,8 @@ public final class ZipUtils {
     }
   }
 
-  private static void nativeUnzip(File zip, File toDir) {
+  @VisibleForTesting
+  static void nativeUnzip(File zip, File toDir) {
     Command command = Command.create("unzip");
     command.addArgument("-o");
     command.addArgument("-q");
