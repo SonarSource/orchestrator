@@ -116,7 +116,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-
       <!-- use the same version than in sonar -->
       <version>${guava.version}</version>
     </dependency>
@@ -224,13 +223,6 @@
       <groupId>org.jacoco</groupId>
       <artifactId>org.jacoco.core</artifactId>
       <version>${jacoco.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>sonar-orchestrator-test-plugin</artifactId>
-      <type>sonar-plugin</type>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -108,9 +108,9 @@ public class CommandExecutorTest {
   }
 
   @Test
-  public void should_fail_null_command_not_allowed (){
+  public void should_fail_null_command_not_allowed() {
     thrown.expect(NullPointerException.class);
-    CommandExecutor.create().execute(null,1000L);
+    CommandExecutor.create().execute(null, 1000L);
   }
 
   @Test
@@ -125,7 +125,7 @@ public class CommandExecutorTest {
   public void escape_arguments() throws Exception {
     File outputDir = tempFolder.newFolder();
     String separator = System.getProperty("file.separator");
-    File javaExec = new File(new File(System.getProperty("java.home")), "bin" + separator + "java");
+    File javaExec = new File(System.getProperty("java.home"), "bin" + separator + "java");
 
     Command command = Command.create(javaExec.getCanonicalPath());
     // system properties
