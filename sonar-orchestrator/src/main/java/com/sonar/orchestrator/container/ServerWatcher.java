@@ -35,6 +35,8 @@ import org.sonar.wsclient.services.ServerQuery;
 
 import java.io.IOException;
 
+import static com.google.common.base.Preconditions.checkState;
+
 class ServerWatcher {
   private static final Logger LOG = LoggerFactory.getLogger(ServerWatcher.class);
   static final int RETRY_TIMEOUT_MS = 200;
@@ -71,9 +73,7 @@ class ServerWatcher {
   }
 
   private ExecuteResultHandler newResultHandler() {
-    if (resultHandler != null) {
-      throw new IllegalStateException("An existing server watcher is already running");
-    }
+    checkState(resultHandler == null, "An existing server watcher is already running");
     resultHandler = commonsExec.newResultHandler();
     return resultHandler;
   }

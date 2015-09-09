@@ -175,4 +175,28 @@ public class ServerWrapperTest {
     ServerWrapper wrapper = new ServerWrapper(server, Configuration.create(), temp.newFolder(), executor, watcher);
     wrapper.start();
   }
+
+  @Test
+  public void build_command_line_with_unknown_javaHome() throws IOException {
+    distribution.setVersion(Version.create("4.5"));
+    FileUtils.touch(new File(homeDir, "lib/sonar-application-4.5.jar"));
+
+    ServerWrapper wrapper = new ServerWrapper(server, Configuration.create(), null, executor, watcher);
+    CommandLine commandLine = wrapper.buildCommandLine();
+
+    assertThat(commandLine.getExecutable()).isEqualTo("java");
+  }
+
+  @Test
+  public void build_command_line_with_valid_javaHome_and_additional_jvm_arguments() throws IOException {
+    distribution.setVersion(Version.create("4.5"));
+    distribution.serverAdditionalJvmArguments().add("-additionalArgument");
+    FileUtils.touch(new File(homeDir, "lib/sonar-application-4.5.jar"));
+
+    ServerWrapper wrapper = new ServerWrapper(server, Configuration.create(), homeDir, executor, watcher);
+    CommandLine commandLine = wrapper.buildCommandLine();
+
+    assertThat(commandLine.getExecutable()).isEqualTo(homeDir.getAbsolutePath() + "/bin/java");
+    assertThat(commandLine.getArguments()).contains("-additionalArgument");
+  }
 }

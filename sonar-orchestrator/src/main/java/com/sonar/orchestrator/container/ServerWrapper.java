@@ -86,7 +86,7 @@ public class ServerWrapper {
       throw new IllegalStateException("Minimum supported version of SonarQube is 4.5. Got " + server.version());
     }
 
-    CommandLine command = buildCommandLineAfter45();
+    CommandLine command = buildCommandLine();
 
     executor.setWorkingDirectory(workingDir);
     try {
@@ -98,7 +98,8 @@ public class ServerWrapper {
     }
   }
 
-  private CommandLine buildCommandLineAfter45() {
+  @VisibleForTesting
+  CommandLine buildCommandLine() {
     CommandLine command;
     if (javaHome == null) {
       command = new CommandLine("java");
