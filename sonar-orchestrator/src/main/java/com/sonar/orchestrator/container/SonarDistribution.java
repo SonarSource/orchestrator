@@ -43,6 +43,7 @@ public final class SonarDistribution {
   private boolean removeDistributedPlugins = true;
 
   public SonarDistribution() {
+    // A distribution without a version yet
   }
 
   public SonarDistribution(Version version) {
