@@ -10,4 +10,4 @@ function installTravisTools {
 
 installTravisTools
 
-mvn verify -B -e -V
+mvn verify -B -e -V -Dmaven.test.redirectTestOutputToFile=false
