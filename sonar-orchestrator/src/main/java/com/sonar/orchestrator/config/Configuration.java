@@ -217,7 +217,7 @@ public final class Configuration {
         return this;
       }
 
-       try {
+      try {
         fileUrl = interpolate(fileUrl, props);
         String fileContent = IOUtils.toString(new URI(fileUrl), "UTF-8");
         Properties fileProps = new Properties();

@@ -24,7 +24,6 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -33,8 +32,9 @@ import org.sonar.wsclient.connectors.ConnectionException;
 import org.sonar.wsclient.services.Server;
 import org.sonar.wsclient.services.ServerQuery;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -47,92 +47,71 @@ public class ServerWatcherTest {
   ServerWatcher.CommonsExec commonsExec = mock(ServerWatcher.CommonsExec.class);
   ServerWatcher watcher = new ServerWatcher(wsClient, 2, commonsExec);
 
-  @Before
-  public void before() {
-    when(commonsExec.newResultHandler()).thenReturn(resultHandler);
-  }
-
   @Test
-  public void wait_for_startup() throws Exception {
+  public void wait_for_startup() throws IOException {
     when(wsClient.find(any(ServerQuery.class))).thenReturn(
-      migratingServer(), upServer());
+      migratingServer(),
+      upServer()
+    );
+
     watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
   }
 
-  @Test
-  public void exceed_max_duration() throws Exception {
+  @Test(expected = RuntimeException.class)
+  public void exceed_max_duration() throws IOException {
     when(wsClient.find(any(ServerQuery.class))).thenReturn(
-      migratingServer(), migratingServer(), migratingServer());
-    try {
-      watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
-      fail();
-    } catch (RuntimeException e) {
-      // ok
-    }
+      migratingServer(),
+      migratingServer(),
+      migratingServer()
+    );
+
+    watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
   }
 
-  @Test
-  public void server_startup_failure_1() throws Exception {
+  @Test(expected = RuntimeException.class)
+  public void server_startup_failure_1() throws IOException {
     when(wsClient.find(any(ServerQuery.class))).thenThrow(new ConnectionException());
     when(resultHandler.hasResult()).thenReturn(true);
     when(resultHandler.getException()).thenReturn(new ExecuteException("error", 1));
 
-    try {
-      watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
-      fail();
-    } catch (RuntimeException e) {
-      // ok
-    }
+    watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
   }
 
-  @Test
-  public void server_startup_failure_2() throws Exception {
+  @Test(expected = RuntimeException.class)
+  public void server_startup_failure_2() throws IOException {
     when(wsClient.find(any(ServerQuery.class))).thenThrow(new ConnectionException());
     when(resultHandler.hasResult()).thenReturn(true);
     when(resultHandler.getExitValue()).thenReturn(1);
 
-    try {
-      watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
-      fail();
-    } catch (RuntimeException e) {
-      // ok
-    }
+    watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
   }
 
-  @Test
-  public void server_startup_failure_500_http_code() throws Exception {
+  @Test(expected = RuntimeException.class)
+  public void server_startup_failure_500_http_code() throws IOException {
     when(wsClient.find(any(ServerQuery.class))).thenThrow(new ConnectionException("HTTP error: 500 Nuclear Failure"));
 
-    try {
-      watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
-      fail();
-    } catch (RuntimeException e) {
-      // ok
-    }
+    watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
   }
 
   @Test
-  public void wait_until_ws_is_available() throws Exception {
+  public void wait_until_ws_is_available() throws IOException {
     when(wsClient.find(any(ServerQuery.class)))
       // not started
       .thenThrow(new ConnectionException())
-
-    // ok
+      // ok
       .thenReturn(upServer());
+    when(commonsExec.newResultHandler()).thenReturn(resultHandler);
     when(resultHandler.hasResult()).thenReturn(false);
 
     watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
-    // no error
   }
 
   @Test
-  public void ready_if_db_migration_is_required() throws Exception {
-    when(wsClient.find(any(ServerQuery.class)))
-      .thenReturn(needMigrationServer());
+  public void ready_if_db_migration_is_required() throws IOException {
+    when(wsClient.find(any(ServerQuery.class))).thenReturn(needMigrationServer());
     when(resultHandler.hasResult()).thenReturn(false);
 
     watcher.execute(mock(DefaultExecutor.class), mock(CommandLine.class));
-    // no error
   }
 
   @Test
@@ -145,15 +124,15 @@ public class ServerWatcherTest {
     assertThat(watcher.retries() * ServerWatcher.RETRY_TIMEOUT_MS).isEqualTo(ServerWatcher.MAX_TIMEOUT_MS);
   }
 
-  private Server upServer() {
+  private static Server upServer() {
     return new Server().setStatus(Server.Status.UP);
   }
 
-  private Server migratingServer() {
+  private static Server migratingServer() {
     return new Server().setStatus(Server.Status.MIGRATION_RUNNING);
   }
 
-  private Server needMigrationServer() {
+  private static Server needMigrationServer() {
     return new Server().setStatus(Server.Status.SETUP);
   }
 }

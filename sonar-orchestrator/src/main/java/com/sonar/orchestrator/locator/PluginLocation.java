@@ -22,9 +22,8 @@ package com.sonar.orchestrator.locator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 
-public final class PluginLocation extends MavenLocation {
-
-  private String key;
+public class PluginLocation extends MavenLocation {
+  private final String key;
 
   public PluginLocation(Builder builder) {
     super(builder);

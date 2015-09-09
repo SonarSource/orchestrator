@@ -31,7 +31,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.NoSuchElementException;
 
-public final class PluginLocator implements Locator<PluginLocation> {
+public class PluginLocator implements Locator<PluginLocation> {
   private static final Logger LOG = LoggerFactory.getLogger(PluginLocator.class);
   private MavenLocator mavenLocator;
   private URLLocator urlLocator;

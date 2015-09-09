@@ -108,7 +108,16 @@ public class SonarDownloaderTest {
   public void shouldFailDownload() {
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("java.io.FileNotFoundException:");
+
     downloader.downloadZip(new SonarDistribution(Version.create("dummy")));
+  }
+
+  @Test
+  public void shouldFailDownloadOfSnapshot() {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Can not find sonarqube-dummy-SNAPSHOT.zip");
+
+    downloader.downloadZip(new SonarDistribution(Version.create("dummy-SNAPSHOT")));
   }
 
   @Test
@@ -144,13 +153,22 @@ public class SonarDownloaderTest {
   @Test
   public void shouldDownload() {
     // The file may have already been downloaded, so first
-    SonarDistribution sonar37 = new SonarDistribution(Version.create("4.5"));
-    File zip = downloader.downloadZip(sonar37);
+    SonarDistribution sonar = new SonarDistribution(Version.create("5.1.2"));
+    File zip = downloader.downloadZip(sonar);
     zip.delete();
     assertThat(zip).doesNotExist();
-    zip = downloader.downloadZip(sonar37);
+    zip = downloader.downloadZip(sonar);
     // Let's say that download time is at worst 5min
     assertThat(zip.lastModified() >= System.currentTimeMillis() - 300000L).isTrue();
+  }
+
+  @Test
+  public void shouldDownloadAndUnzip() {
+    SonarDistribution sonar = new SonarDistribution(Version.create("5.1.2"));
+
+    File folder = downloader.downloadAndUnzip(sonar);
+
+    assertThat(folder).isDirectory();
   }
 
   @Test

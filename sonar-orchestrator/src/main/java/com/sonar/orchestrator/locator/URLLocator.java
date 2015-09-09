@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-final class URLLocator implements Locator<URLLocation> {
+class URLLocator implements Locator<URLLocation> {
 
   private static final Logger LOG = LoggerFactory.getLogger(URLLocator.class);
 

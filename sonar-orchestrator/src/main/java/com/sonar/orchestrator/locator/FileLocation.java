@@ -26,11 +26,11 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.net.URL;
 
-public final class FileLocation implements Location {
+public class FileLocation implements Location {
   private static final String ENV_SHARED_DIR = "SONAR_IT_SOURCES";
   private static final String PROP_SHARED_DIR = "orchestrator.it_sources";
 
-  private File file;
+  private final File file;
 
   private FileLocation(File file) {
     this.file = file;

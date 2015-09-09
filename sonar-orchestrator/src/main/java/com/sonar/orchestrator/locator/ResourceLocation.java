@@ -24,9 +24,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.net.URL;
 
-public final class ResourceLocation implements Location {
+public class ResourceLocation implements Location {
 
-  private String path;
+  private final String path;
 
   private ResourceLocation(String path) {
     Preconditions.checkNotNull(path);

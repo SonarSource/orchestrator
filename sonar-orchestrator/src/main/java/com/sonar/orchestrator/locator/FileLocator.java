@@ -27,7 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-final class FileLocator implements Locator<FileLocation> {
+class FileLocator implements Locator<FileLocation> {
   @Override
   public File locate(FileLocation location) {
     return location.getFile();

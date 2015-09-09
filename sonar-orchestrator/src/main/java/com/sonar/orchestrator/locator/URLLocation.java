@@ -25,10 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public final class URLLocation implements Location {
+public class URLLocation implements Location {
 
-  private URL url;
-  private String filename;
+  private final URL url;
+  private final String filename;
 
   private URLLocation(URL url, String filename) {
     Preconditions.checkNotNull(url);

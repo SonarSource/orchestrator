@@ -82,10 +82,10 @@ public class SonarDownloader {
 
   private File downloadZipToFile(SonarDistribution distrib, File toFile) {
     File zip = searchInMavenRepositories(distrib, toFile);
-    if (zip == null || !zip.exists()) {
+    if (zip == null || !zip.isFile()) {
       zip = downloadFromDist(distrib, toFile);
     }
-    if (zip == null || !zip.exists() || !zip.isFile()) {
+    if (zip == null || !zip.isFile()) {
       throw new IllegalStateException("Can not find " + distrib.zipFilename());
     }
     return zip;
@@ -138,20 +138,16 @@ public class SonarDownloader {
         Files.move(tempFile, toFile);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Unable to create a temporary file", e);
+      throw new IllegalStateException("Unable to download distribution", e);
     } finally {
       FileUtils.deleteQuietly (tempFile);
     }
     return toFile;
   }
 
-  private static boolean checkMD5(File fromFile, String url) {
-    try {
-      return Files.hash(fromFile, com.google.common.hash.Hashing.md5()).toString()
-        .equals(Resources.toString(new URL(url), Charset.forName("UTF-8")).trim());
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
+  private static boolean checkMD5(File fromFile, String url) throws IOException {
+    return Files.hash(fromFile, com.google.common.hash.Hashing.md5()).toString()
+      .equals(Resources.toString(new URL(url), Charset.forName("UTF-8")).trim());
   }
 
   private static File downloadUrl(String url, File toFile) {

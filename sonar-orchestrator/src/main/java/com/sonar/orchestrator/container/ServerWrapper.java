@@ -46,7 +46,6 @@ public class ServerWrapper {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerWrapper.class);
   private static final int STOP_TIMEOUT_MS = 300000;
-  static final String SHUTDOWN_TOKEN = "orchestrator";
 
   private final File workingDir;
   private final Configuration config;
@@ -54,8 +53,7 @@ public class ServerWrapper {
   private final DefaultExecutor executor;
   private final ServerWatcher watcher;
   private final AtomicBoolean started = new AtomicBoolean(false);
-
-  private Server server;
+  private final Server server;
 
   public ServerWrapper(Server server, Configuration config, File javaHome) {
     this.server = server;
@@ -84,12 +82,11 @@ public class ServerWrapper {
     }
 
     LOG.info("Start server " + server.getUrl() + " in " + workingDir);
-    CommandLine command;
-    if (server.version().isGreaterThanOrEquals("4.5")) {
-      command = buildCommandLineAfter45();
-    } else {
+    if (!server.version().isGreaterThanOrEquals("4.5")) {
       throw new IllegalStateException("Minimum supported version of SonarQube is 4.5. Got " + server.version());
     }
+
+    CommandLine command = buildCommandLineAfter45();
 
     executor.setWorkingDirectory(workingDir);
     try {

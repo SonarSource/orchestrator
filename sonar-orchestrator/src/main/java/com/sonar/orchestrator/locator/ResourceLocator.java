@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-final class ResourceLocator implements Locator<ResourceLocation> {
+class ResourceLocator implements Locator<ResourceLocation> {
 
   @Override
   public File locate(ResourceLocation location) {

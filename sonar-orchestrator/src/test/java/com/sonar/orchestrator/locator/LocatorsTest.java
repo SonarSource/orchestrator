@@ -21,68 +21,282 @@ package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.junit.PropertyFilterRunner;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.File;
+import java.io.InputStream;
 
-/**
- * Created by erichirlemann on 06.02.15.
- */
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @RunWith(PropertyFilterRunner.class)
 public class LocatorsTest {
+  FileLocator fileLocator = mock(FileLocator.class);
+  MavenLocator mavenLocator = mock(MavenLocator.class);
+  ResourceLocator resourceLocator = mock(ResourceLocator.class);
+  URLLocator urlLocator = mock(URLLocator.class);
+  PluginLocator pluginLocator = mock(PluginLocator.class);
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  Locators locators = new Locators(fileLocator, mavenLocator, resourceLocator, urlLocator, pluginLocator);
+
+  // Locate
 
   @Test
-  public void shouldFailLocateUrlLocation() throws MalformedURLException {
-    thrown.expect(UnsupportedOperationException.class);
+  public void should_locate_with_plugin_locator() {
+    PluginLocation location = mock(PluginLocation.class);
+    File expectedFile = new File("found");
+    when(pluginLocator.locate(location)).thenReturn(expectedFile);
 
-    Configuration config = Configuration.createEnv();
-    Locators locators = new Locators(config);
+    File actualFile = locators.locate(location);
 
-    URLLocation urlLocation = URLLocation.create(new URL("http://this.is.a.valid.url.com/"));
-    locators.locate(urlLocation);
+    assertThat(actualFile).isSameAs(expectedFile);
   }
 
   @Test
-  public void shouldFailLocateResourceLocation() {
-    thrown.expect(UnsupportedOperationException.class);
+  public void should_locate_with_file_locator() {
+    FileLocation location = mock(FileLocation.class);
+    File expectedFile = new File("found");
+    when(fileLocator.locate(location)).thenReturn(expectedFile);
 
-    Configuration config = Configuration.createEnv();
-    Locators locators = new Locators(config);
+    File actualFile = locators.locate(location);
 
-    ResourceLocation location = ResourceLocation.create("/");
-    locators.locate(location);
+    assertThat(actualFile).isSameAs(expectedFile);
   }
 
   @Test
-  public void shouldFailLocatePluginLocation() {
-    thrown.expect(UnsupportedOperationException.class);
+  public void should_locate_with_maven_locator() {
+    MavenLocation location = mock(MavenLocation.class);
+    File expectedFile = new File("found");
+    when(mavenLocator.locate(location)).thenReturn(expectedFile);
 
-    Configuration config = Configuration.createEnv();
-    Locators locators = new Locators(config);
+    File actualFile = locators.locate(location);
 
-    PluginLocation location = PluginLocation.create("clirr", "1.1", "groupId", "artifactId");
-    locators.locate(location);
-  }
-
-  private class UnsupportedLocation implements  Location {
-
+    assertThat(actualFile).isSameAs(expectedFile);
   }
 
   @Test
-  public void shouldFailLocateUnsupportedLocation() {
-    thrown.expect(IllegalArgumentException.class);
+  public void should_locate_with_resource_locator() {
+    ResourceLocation location = mock(ResourceLocation.class);
+    File expectedFile = new File("found");
+    when(resourceLocator.locate(location)).thenReturn(expectedFile);
 
-    Configuration config = Configuration.createEnv();
-    Locators locators = new Locators(config);
+    File actualFile = locators.locate(location);
 
-    UnsupportedLocation location = new UnsupportedLocation();
-    locators.locate(location);
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_locate_with_url_locator() {
+    URLLocation location = mock(URLLocation.class);
+    File expectedFile = new File("found");
+    when(urlLocator.locate(location)).thenReturn(expectedFile);
+
+    File actualFile = locators.locate(location);
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void should_fail_to_locate_unsupported_location() {
+    Locators locators = new Locators(Configuration.createEnv());
+
+    locators.locate(new UnsupportedLocation());
+  }
+
+  // Copy to file
+
+  @Test
+  public void should_copy_to_file_with_plugin_locator() {
+    PluginLocation location = mock(PluginLocation.class);
+    File expectedFile = new File("found");
+    when(pluginLocator.copyToFile(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToFile(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_file_with_file_locator() {
+    FileLocation location = mock(FileLocation.class);
+    File expectedFile = new File("found");
+    when(fileLocator.copyToFile(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToFile(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_file_with_maven_locator() {
+    MavenLocation location = mock(MavenLocation.class);
+    File expectedFile = new File("found");
+    when(mavenLocator.copyToFile(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToFile(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_file_with_resource_locator() {
+    ResourceLocation location = mock(ResourceLocation.class);
+    File expectedFile = new File("found");
+    when(resourceLocator.copyToFile(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToFile(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_file_with_url_locator() {
+    URLLocation location = mock(URLLocation.class);
+    File expectedFile = new File("found");
+    when(urlLocator.copyToFile(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToFile(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void should_fail_to_copy_to_file_unsupported_location() {
+    Locators locators = new Locators(Configuration.createEnv());
+
+    locators.copyToFile(new UnsupportedLocation(), new File("destination"));
+  }
+
+  // Copy to directory
+
+  @Test
+  public void should_copy_to_directory_with_plugin_locator() {
+    PluginLocation location = mock(PluginLocation.class);
+    File expectedFile = new File("found");
+    when(pluginLocator.copyToDirectory(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToDirectory(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_directory_with_file_locator() {
+    FileLocation location = mock(FileLocation.class);
+    File expectedFile = new File("found");
+    when(fileLocator.copyToDirectory(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToDirectory(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_directory_with_maven_locator() {
+    MavenLocation location = mock(MavenLocation.class);
+    File expectedFile = new File("found");
+    when(mavenLocator.copyToDirectory(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToDirectory(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_directory_with_resource_locator() {
+    ResourceLocation location = mock(ResourceLocation.class);
+    File expectedFile = new File("found");
+    when(resourceLocator.copyToDirectory(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToDirectory(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test
+  public void should_copy_to_directory_with_url_locator() {
+    URLLocation location = mock(URLLocation.class);
+    File expectedFile = new File("found");
+    when(urlLocator.copyToDirectory(location, new File("destination"))).thenReturn(expectedFile);
+
+    File actualFile = locators.copyToDirectory(location, new File("destination"));
+
+    assertThat(actualFile).isSameAs(expectedFile);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void should_fail_to_copy_to_directory_unsupported_location() {
+    Locators locators = new Locators(Configuration.createEnv());
+
+    locators.copyToDirectory(new UnsupportedLocation(), new File("destination"));
+  }
+
+  // Open Stream
+
+  @Test
+  public void should_open_stream_with_plugin_locator() {
+    PluginLocation location = mock(PluginLocation.class);
+    InputStream expectedStream = mock(InputStream.class);
+    when(pluginLocator.openInputStream(location)).thenReturn(expectedStream);
+
+    InputStream actualStream = locators.openInputStream(location);
+
+    assertThat(actualStream).isSameAs(expectedStream);
+  }
+
+  @Test
+  public void should_open_stream_with_file_locator() {
+    FileLocation location = mock(FileLocation.class);
+    InputStream expectedStream = mock(InputStream.class);
+    when(fileLocator.openInputStream(location)).thenReturn(expectedStream);
+
+    InputStream actualStream = locators.openInputStream(location);
+
+    assertThat(actualStream).isSameAs(expectedStream);
+  }
+
+  @Test
+  public void should_open_stream_with_maven_locator() {
+    MavenLocation location = mock(MavenLocation.class);
+    InputStream expectedStream = mock(InputStream.class);
+    when(mavenLocator.openInputStream(location)).thenReturn(expectedStream);
+
+    InputStream actualStream = locators.openInputStream(location);
+
+    assertThat(actualStream).isSameAs(expectedStream);
+  }
+
+  @Test
+  public void should_open_stream_with_resource_locator() {
+    ResourceLocation location = mock(ResourceLocation.class);
+    InputStream expectedStream = mock(InputStream.class);
+    when(resourceLocator.openInputStream(location)).thenReturn(expectedStream);
+
+    InputStream actualStream = locators.openInputStream(location);
+
+    assertThat(actualStream).isSameAs(expectedStream);
+  }
+
+  @Test
+  public void should_open_stream_with_url_locator() {
+    URLLocation location = mock(URLLocation.class);
+    InputStream expectedStream = mock(InputStream.class);
+    when(urlLocator.openInputStream(location)).thenReturn(expectedStream);
+
+    InputStream actualStream = locators.openInputStream(location);
+
+    assertThat(actualStream).isSameAs(expectedStream);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void should_fail_to_open_stream_unsupported_location() {
+    Locators locators = new Locators(Configuration.createEnv());
+
+    locators.openInputStream(new UnsupportedLocation());
+  }
+
+  private static class UnsupportedLocation implements Location {
   }
 }
