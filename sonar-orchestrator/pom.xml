@@ -226,6 +226,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.agent</artifactId>
+      <version>${jacoco.version}</version>
+      <classifier>runtime</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>echo</artifactId>
       <version>${project.version}</version>
