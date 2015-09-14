@@ -76,7 +76,7 @@ public class MavenLocatorTest {
     Configuration config = Configuration.create(new Properties());
     MavenLocator locator = new MavenLocator(config);
 
-    assertThat(config.fileSystem().mavenLocalRepository()).isEqualTo(new File(System.getProperty("user.home"), ".m2/repository"));
+    assertThat(config.fileSystem().mavenLocalRepository().getAbsolutePath()).isNotEmpty();
     assertThat(locator.locate(MavenLocation.builder().setKey("group", "other", "1.1").build())).isNull();
   }
 
