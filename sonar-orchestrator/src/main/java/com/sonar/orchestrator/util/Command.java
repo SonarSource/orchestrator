@@ -73,7 +73,7 @@ public class Command {
     return this;
   }
 
-  public Command addArguments(String[] args) {
+  public Command addArguments(String... args) {
     arguments.addAll(Arrays.asList(args));
     return this;
   }

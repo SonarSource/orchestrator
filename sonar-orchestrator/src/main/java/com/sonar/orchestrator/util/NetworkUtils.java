@@ -52,8 +52,9 @@ public final class NetworkUtils {
     // Check that the port is really available.
     // On Travis, if the build is single threaded, so it should always be available.
     try {
-      Process process = new ProcessBuilder("nc", "-z", "localhost", Integer.toString(port)).start();
-      if (process.waitFor() == 1) {
+      Command command = Command.create("nc").addArguments("-z", "localhost", Integer.toString(port));
+      int exitCode = CommandExecutor.create().execute(command, 10000);
+      if (exitCode == 1) {
         return port;
       }
     } catch (Exception e) {
