@@ -25,6 +25,7 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.MavenLocator;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.util.Properties;
 
 public class JaCoCoArgumentsBuilder {
@@ -70,23 +71,28 @@ public class JaCoCoArgumentsBuilder {
    * @param config
    * @return null if code coverage is not enabled
    */
-  public static String getJaCoCoArgument(final Configuration config) {
-    String value = config.getString("orchestrator.computeCoverage", "false");
-    boolean computeCoverage = "true".equals(value);
-    if (computeCoverage) {
-      String destFile = config.getString("orchestrator.coverageReportPath", "target/jacoco.exec");
-      destFile = FilenameUtils.separatorsToUnix(destFile);
-      String agentPath = new MavenLocator(config).locate(agentLocation).getAbsolutePath();
-      agentPath = FilenameUtils.separatorsToUnix(agentPath);
-      StringBuilder jacocoArgument = new StringBuilder("-javaagent:")
-          .append(agentPath)
-          .append("=destfile=").append(destFile).append(",")
-          .append("append=true,")
-          .append("excludes=").append(EXCLUDES).append(",")
-          .append("includes=").append(INCLUDES);
-      return jacocoArgument.toString();
+  public static String getJaCoCoArgument(Configuration config) {
+    String computeCoverage = config.getString("orchestrator.computeCoverage", "false");
+    if (!"true".equals(computeCoverage)) {
+      return null;
     }
-    return null;
-  }
 
+    String destFile = config.getString("orchestrator.coverageReportPath", "target/jacoco.exec");
+    destFile = FilenameUtils.separatorsToUnix(destFile);
+
+    File jacocoLocation = new MavenLocator(config).locate(agentLocation);
+    if (jacocoLocation == null) {
+      throw new RuntimeException("Unable to locate jacoco: " + agentLocation);
+    }
+
+    String agentPath = FilenameUtils.separatorsToUnix(jacocoLocation.getAbsolutePath());
+
+    return new StringBuilder("-javaagent:")
+        .append(agentPath)
+        .append("=destfile=").append(destFile).append(",")
+        .append("append=true,")
+        .append("excludes=").append(EXCLUDES).append(",")
+        .append("includes=").append(INCLUDES)
+      .toString();
+  }
 }
