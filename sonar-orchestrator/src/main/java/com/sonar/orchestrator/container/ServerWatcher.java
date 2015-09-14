@@ -34,6 +34,8 @@ import org.sonar.wsclient.connectors.HttpClient4Connector;
 import org.sonar.wsclient.services.ServerQuery;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -68,7 +70,13 @@ class ServerWatcher {
   }
 
   void execute(DefaultExecutor executor, CommandLine command) throws IOException {
-    executor.execute(command, newResultHandler());
+    Map<String, String> env = new HashMap<>();
+    env.putAll(System.getenv());
+    env.remove("GEM_PATH");
+    env.remove("GEM_HOME");
+    env.remove("RAILS_ENV");
+
+    executor.execute(command, env, newResultHandler());
     waitForStartup();
   }
 
