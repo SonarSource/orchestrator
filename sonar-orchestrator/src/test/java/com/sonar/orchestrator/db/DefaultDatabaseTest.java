@@ -19,14 +19,12 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -35,7 +33,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class DefaultDatabaseTest {
 
   private static DefaultDatabase db;

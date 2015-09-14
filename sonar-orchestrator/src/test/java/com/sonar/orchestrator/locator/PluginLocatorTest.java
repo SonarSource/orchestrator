@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -28,7 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.sonar.updatecenter.common.Plugin;
 import org.sonar.updatecenter.common.PluginReferential;
 import org.sonar.updatecenter.common.Release;
@@ -47,17 +45,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class PluginLocatorTest {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
   private PluginLocator pluginLocator;
   private MavenLocator mavenLocator;
   private PluginReferential pluginReferential;
   private File fakeArtifact;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
 
   @Before
   public void prepare() throws IOException {

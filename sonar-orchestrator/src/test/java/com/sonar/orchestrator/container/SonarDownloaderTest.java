@@ -23,7 +23,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
 import org.apache.commons.io.FileUtils;
@@ -32,7 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -47,7 +45,6 @@ import static org.mockito.Mockito.spy;
  * Note for executing these tests in IDE: be sure that zip files are included in classpath (see Preferences>Compiler
  * in Intellij Idea)
  */
-@RunWith(PropertyFilterRunner.class)
 public class SonarDownloaderTest {
 
   private SonarDownloader downloader;

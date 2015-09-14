@@ -21,14 +21,12 @@ package com.sonar.orchestrator.dsl;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SonarRunner;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +39,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PropertyFilterRunner.class)
 public class SonarRunnerCommandTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();

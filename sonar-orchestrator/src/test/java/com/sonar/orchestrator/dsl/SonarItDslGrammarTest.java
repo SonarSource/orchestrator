@@ -20,16 +20,13 @@
 package com.sonar.orchestrator.dsl;
 
 import com.google.common.base.Charsets;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.sslr.api.AstNode;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.sonar.sslr.parser.LexerlessGrammar;
 import org.sonar.sslr.parser.ParserAdapter;
 
 import static org.sonar.sslr.tests.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class SonarItDslGrammarTest {
 
   private LexerlessGrammar g = SonarItDslGrammar.createGrammar();

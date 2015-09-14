@@ -25,7 +25,6 @@ import com.sonar.orchestrator.config.Licenses;
 import com.sonar.orchestrator.db.H2;
 import com.sonar.orchestrator.db.MySql;
 import com.sonar.orchestrator.db.Oracle;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
@@ -37,13 +36,11 @@ import java.io.OutputStream;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class ServerInstallerTest {
   @Test
   public void shouldConfigureDatabaseSettings() throws IOException {

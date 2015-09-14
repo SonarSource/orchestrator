@@ -19,18 +19,15 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class CommandTest {
 
   private static final Command.Os WINDOWS = new Command.Os() {

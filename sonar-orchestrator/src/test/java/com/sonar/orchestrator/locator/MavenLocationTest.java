@@ -19,14 +19,11 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.version.Version;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class MavenLocationTest {
 
   @Test

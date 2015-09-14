@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import org.junit.Before;
@@ -28,7 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 
@@ -45,7 +43,6 @@ import static org.mockito.Mockito.when;
  * NOTE FOR IDE
  * Check that zip files are correctly loaded in IDE classpath during execution of tests
  */
-@RunWith(PropertyFilterRunner.class)
 public class SonarRunnerInstallerTest {
 
   @Rule

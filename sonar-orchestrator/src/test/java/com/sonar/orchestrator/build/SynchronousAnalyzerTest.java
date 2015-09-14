@@ -20,12 +20,10 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.version.Version;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
-import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +37,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class SynchronousAnalyzerTest {
 
   @Rule

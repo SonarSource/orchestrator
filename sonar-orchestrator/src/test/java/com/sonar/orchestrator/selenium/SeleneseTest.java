@@ -19,17 +19,14 @@
  */
 package com.sonar.orchestrator.selenium;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class SeleneseTest {
 
   @Test(expected = IllegalArgumentException.class)

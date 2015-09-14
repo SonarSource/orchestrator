@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.util;
 
 import com.sonar.orchestrator.TestModules;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Before;
@@ -29,7 +28,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.FileReader;
@@ -40,7 +38,6 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith(PropertyFilterRunner.class)
 public class CommandExecutorTest {
 
   @Rule

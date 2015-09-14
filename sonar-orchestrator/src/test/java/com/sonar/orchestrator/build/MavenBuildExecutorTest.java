@@ -21,7 +21,6 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.Command;
@@ -31,7 +30,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +38,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-@RunWith(PropertyFilterRunner.class)
 public class MavenBuildExecutorTest {
 
   @Test

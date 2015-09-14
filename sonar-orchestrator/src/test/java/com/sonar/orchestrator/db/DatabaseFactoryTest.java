@@ -21,22 +21,18 @@ package com.sonar.orchestrator.db;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.MavenLocation;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class DatabaseFactoryTest {
 
   @Rule

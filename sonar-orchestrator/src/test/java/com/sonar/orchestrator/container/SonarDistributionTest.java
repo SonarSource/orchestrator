@@ -19,16 +19,13 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.util.Properties;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class SonarDistributionTest {
   @Test
   public void shouldCreate() {

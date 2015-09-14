@@ -21,18 +21,15 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class AbstractBuildExecutorTest {
 
   @Rule

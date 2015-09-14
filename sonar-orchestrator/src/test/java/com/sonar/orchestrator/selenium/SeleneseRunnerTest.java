@@ -20,16 +20,13 @@
 package com.sonar.orchestrator.selenium;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class SeleneseRunnerTest {
 
   @Test

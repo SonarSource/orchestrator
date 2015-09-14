@@ -19,15 +19,12 @@
  */
 package com.sonar.orchestrator.dsl;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class SonarItDslInterpreterTest {
 
   SonarItDslInterpreter interpreter = new SonarItDslInterpreter();

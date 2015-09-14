@@ -19,18 +19,15 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import com.sonar.orchestrator.util.NetworkUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class LicensesTest {
 
   @Rule

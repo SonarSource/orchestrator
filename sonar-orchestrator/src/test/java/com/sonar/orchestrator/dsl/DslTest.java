@@ -21,9 +21,7 @@ package com.sonar.orchestrator.dsl;
 
 import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -36,7 +34,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class DslTest {
   @Test
   public void should_compile_and_execute_commands() {

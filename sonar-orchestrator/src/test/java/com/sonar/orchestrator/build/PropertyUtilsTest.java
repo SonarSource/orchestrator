@@ -19,17 +19,14 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class PropertyUtilsTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();

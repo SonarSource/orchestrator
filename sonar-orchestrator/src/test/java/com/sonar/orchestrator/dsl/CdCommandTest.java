@@ -19,19 +19,16 @@
  */
 package com.sonar.orchestrator.dsl;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class CdCommandTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();

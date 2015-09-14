@@ -21,13 +21,11 @@ package com.sonar.orchestrator.dsl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.services.Measure;
 import org.sonar.wsclient.services.Model;
@@ -43,7 +41,6 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class VerifyCommandTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();

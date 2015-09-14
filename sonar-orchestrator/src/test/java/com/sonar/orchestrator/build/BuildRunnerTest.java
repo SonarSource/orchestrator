@@ -23,13 +23,11 @@ import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.db.Database;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.util.Map;
 
@@ -42,7 +40,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class BuildRunnerTest {
 
   @Rule

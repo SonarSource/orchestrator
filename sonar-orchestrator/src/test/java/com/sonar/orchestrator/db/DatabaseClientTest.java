@@ -19,15 +19,12 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class DatabaseClientTest {
   @Test
   public void testGetProperties() {
@@ -51,7 +48,6 @@ public class DatabaseClientTest {
     // checks
     assertThat(h2.isDropAndCreate()).isTrue();
   }
-
 
   @Test
   public void testGetDbMetatdata() {

@@ -20,14 +20,11 @@
 package com.sonar.orchestrator.dsl;
 
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PropertyFilterRunner.class)
 public class StopServerCommandTest {
   @Test
   public void should_stop_orchestrator() {

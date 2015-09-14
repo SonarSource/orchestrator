@@ -36,7 +36,6 @@ import java.util.regex.Matcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class JaCoCoArgumentsBuilderTest {
 
   @Rule
@@ -59,7 +58,7 @@ public class JaCoCoArgumentsBuilderTest {
 
   @Test(expected = IllegalStateException.class)
   public void shouldFailIfNoJacocoPropertyFile() {
-    JaCoCoArgumentsBuilder.readProperties("unextisting.properties");
+    JaCoCoArgumentsBuilder.readProperties("unexisting.properties");
   }
 
   @Test

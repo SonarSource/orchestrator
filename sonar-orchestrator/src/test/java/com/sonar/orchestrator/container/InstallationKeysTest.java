@@ -19,16 +19,13 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class InstallationKeysTest {
   @Test
   public void generate_unique_key() {

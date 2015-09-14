@@ -19,15 +19,12 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class ResourceLocationTest {
 
   @Rule

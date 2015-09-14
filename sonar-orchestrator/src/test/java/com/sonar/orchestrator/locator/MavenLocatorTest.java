@@ -20,15 +20,11 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
-import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +35,6 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class MavenLocatorTest {
 
   private File localRepository = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/locator/MavenLocatorTest/repository"));

@@ -21,7 +21,6 @@ package com.sonar.orchestrator.config;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.test.MockHttpServer;
 import org.apache.commons.io.FilenameUtils;
@@ -29,7 +28,6 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.net.InetAddress;
 import java.net.URL;
@@ -41,7 +39,6 @@ import java.util.Properties;
 import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class ConfigurationTest extends PropertyAndEnvTest {
 
   @Rule

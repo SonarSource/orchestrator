@@ -19,13 +19,11 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.connectors.ConnectionException;
@@ -39,7 +37,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class ServerWatcherTest {
 
   Sonar wsClient = mock(Sonar.class, Mockito.RETURNS_DEEP_STUBS);

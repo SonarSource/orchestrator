@@ -21,16 +21,13 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import java.util.Arrays;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class BuildTest {
 
   @Test

@@ -21,7 +21,6 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -29,7 +28,6 @@ import com.sonar.orchestrator.util.StreamConsumer;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.Map;
 
@@ -41,7 +39,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class AntBuildExecutorTest {
   @Test
   public void execute_command() {

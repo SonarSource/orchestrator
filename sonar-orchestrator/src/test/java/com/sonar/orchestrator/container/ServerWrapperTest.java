@@ -21,7 +21,6 @@ package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +42,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
-@RunWith(PropertyFilterRunner.class)
 public class ServerWrapperTest {
 
   DefaultExecutor executor = mock(DefaultExecutor.class, Mockito.RETURNS_DEEP_STUBS);

@@ -19,13 +19,10 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class MySqlTest {
 
   @Test

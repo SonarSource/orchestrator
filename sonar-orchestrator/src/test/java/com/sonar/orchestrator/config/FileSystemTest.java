@@ -19,18 +19,15 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class FileSystemTest {
 
   @Rule

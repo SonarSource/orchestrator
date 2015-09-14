@@ -19,21 +19,18 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.InputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class ResourceLocatorTest {
 
   private ResourceLocator resourceLocator = new ResourceLocator();

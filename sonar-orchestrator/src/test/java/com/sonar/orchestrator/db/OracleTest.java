@@ -19,15 +19,12 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class OracleTest {
 
   private final File driverFile = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/db/OracleTest/oracle-driver.jar"));

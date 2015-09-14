@@ -21,12 +21,10 @@ package com.sonar.orchestrator.locator;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.net.URL;
@@ -36,7 +34,6 @@ import java.util.Map;
 import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class FileLocationTest extends PropertyAndEnvTest {
 
   @Rule

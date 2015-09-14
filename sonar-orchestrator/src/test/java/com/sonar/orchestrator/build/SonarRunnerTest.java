@@ -20,19 +20,16 @@
 package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.version.Version;
 import org.assertj.core.data.MapEntry;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class SonarRunnerTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();

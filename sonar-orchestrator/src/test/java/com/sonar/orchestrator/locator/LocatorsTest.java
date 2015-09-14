@@ -20,9 +20,7 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.InputStream;
@@ -31,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PropertyFilterRunner.class)
 public class LocatorsTest {
   FileLocator fileLocator = mock(FileLocator.class);
   MavenLocator mavenLocator = mock(MavenLocator.class);

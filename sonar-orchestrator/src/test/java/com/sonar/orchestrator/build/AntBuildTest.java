@@ -19,16 +19,13 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.junit.PropertyFilterRunner;
 import com.sonar.orchestrator.locator.FileLocation;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(PropertyFilterRunner.class)
 public class AntBuildTest {
   @Test
   public void test_builder() {
