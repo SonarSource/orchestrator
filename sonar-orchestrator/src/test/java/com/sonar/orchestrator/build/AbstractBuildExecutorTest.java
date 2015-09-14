@@ -28,6 +28,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractBuildExecutorTest {
@@ -39,7 +40,9 @@ public class AbstractBuildExecutorTest {
   public void shouldNotAppendCoverageArgumentToOptsByDefault() {
     Map<String, String> env = ImmutableMap.of();
 
-    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, Configuration.create(), "SONAR_OPTS");
+    Configuration config = Configuration.create(new HashMap<String, String>());
+
+    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
   }
 
   @Test
@@ -47,9 +50,7 @@ public class AbstractBuildExecutorTest {
     Map<String, String> env = new HashMap<>();
     env.put("SONAR_OPTS", "foo");
 
-    Configuration config = Configuration.builder()
-        .setProperty("orchestrator.computeCoverage", "true")
-        .build();
+    Configuration config = Configuration.create(singletonMap("orchestrator.computeCoverage", "true"));
 
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
 
@@ -60,9 +61,7 @@ public class AbstractBuildExecutorTest {
   public void shouldCreateEnvironmentVariableIfNeeded() {
     Map<String, String> env = new HashMap<>();
 
-    Configuration config = Configuration.builder()
-        .setProperty("orchestrator.computeCoverage", "true")
-        .build();
+    Configuration config = Configuration.create(singletonMap("orchestrator.computeCoverage", "true"));
 
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
 
