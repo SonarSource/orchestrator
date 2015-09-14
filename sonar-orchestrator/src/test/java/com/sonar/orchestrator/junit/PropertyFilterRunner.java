@@ -25,12 +25,6 @@ import org.junit.runners.model.InitializationError;
 
 import java.util.Arrays;
 
-/**
- * Created by IntelliJ IDEA.
- * User: eric
- * Date: 03/02/15
- * Time: 11:09
- */
 public class PropertyFilterRunner extends BlockJUnit4ClassRunner {
   private static final String EMBEDDED = "embedded";
 
@@ -52,23 +46,24 @@ public class PropertyFilterRunner extends BlockJUnit4ClassRunner {
   private boolean shouldIgnoreMethod(FrameworkMethod method) {
     if (System.getProperty("database") == null || System.getProperty("database").equals(EMBEDDED)) {
       return false;
-    } else {
-      TestOnlyIf annotation = method.getAnnotation(TestOnlyIf.class);
-      if (annotation == null) {
-        // Look at the annotation on the class if it does exist on the method
-        annotation = method.getDeclaringClass().getAnnotation(TestOnlyIf.class);
-      }
-      if (annotation != null) {
-        boolean result = true;
-        if (annotation.os().length > 0) {
-          result &= ! Arrays.asList(annotation.os()).contains(System.getProperty("operatingsystem"));
-        }
-        if (annotation.database().length > 0) {
-          result &= ! Arrays.asList(annotation.database()).contains(System.getProperty("database"));
-        }
-        return result;
-      }
+    }
+
+    TestOnlyIf annotation = method.getAnnotation(TestOnlyIf.class);
+    if (annotation == null) {
+      // Look at the annotation on the class if it does exist on the method
+      annotation = method.getDeclaringClass().getAnnotation(TestOnlyIf.class);
+    }
+    if (annotation == null) {
       return true;
     }
+
+    boolean result = true;
+    if (annotation.os().length > 0) {
+      result &= ! Arrays.asList(annotation.os()).contains(System.getProperty("operatingsystem"));
+    }
+    if (annotation.database().length > 0) {
+      result &= ! Arrays.asList(annotation.database()).contains(System.getProperty("database"));
+    }
+    return result;
   }
 }
