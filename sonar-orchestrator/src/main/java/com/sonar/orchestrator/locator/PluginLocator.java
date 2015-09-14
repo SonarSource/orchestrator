@@ -33,9 +33,10 @@ import java.util.NoSuchElementException;
 
 public class PluginLocator implements Locator<PluginLocation> {
   private static final Logger LOG = LoggerFactory.getLogger(PluginLocator.class);
-  private MavenLocator mavenLocator;
-  private URLLocator urlLocator;
-  private Configuration config;
+
+  private final Configuration config;
+  private final MavenLocator mavenLocator;
+  private final URLLocator urlLocator;
 
   public PluginLocator(Configuration config, MavenLocator mavenLocator, URLLocator urlLocator) {
     this.config = config;
@@ -89,12 +90,14 @@ public class PluginLocator implements Locator<PluginLocation> {
     } catch (NoSuchElementException e) {
       throw new IllegalStateException(String.format("Plugin with key %s not found in update center", location.key()), e);
     }
+
     Release release;
     try {
       release = findPlugin.getRelease(location.version().toString());
     } catch (NoSuchElementException e) {
       throw new IllegalStateException(String.format("Unable to find version %s in update center for plugin with key %s", location.version().toString(), location.key()), e);
     }
+
     try {
       return URLLocation.create(new URL(release.getDownloadUrl()),
         "sonar-" + release.getKey() + "-plugin-" + release.getVersion() + ".jar");

@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.UpdateCenter;
 
-public final class Configuration {
+public class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
   public static final String SONAR_VERSION_PROPERTY = "sonar.runtimeVersion";

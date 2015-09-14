@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.container;
 
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.config.Licenses;
 import com.sonar.orchestrator.db.DatabaseClient;
@@ -40,11 +41,11 @@ public final class ServerInstaller {
   private final Licenses licenses;
   private final SonarDownloader downloader;
 
-  public ServerInstaller(FileSystem fileSystem, DatabaseClient databaseClient, Licenses licenses) {
+  public ServerInstaller(FileSystem fileSystem, DatabaseClient databaseClient, Licenses licenses, Configuration configuration) {
     this.fileSystem = fileSystem;
     this.databaseClient = databaseClient;
     this.licenses = licenses;
-    this.downloader = new SonarDownloader(fileSystem);
+    this.downloader = new SonarDownloader(fileSystem, configuration);
   }
 
   public Server install(SonarDistribution distribution) {

@@ -19,8 +19,10 @@
  */
 package com.sonar.orchestrator.container;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
@@ -31,20 +33,19 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.updatecenter.common.Release;
 
 public class SonarDownloader {
   private static final Logger LOG = LoggerFactory.getLogger(SonarDownloader.class);
 
   private final FileSystem fileSystem;
+  private final Configuration configuration;
   private final Zips zips;
 
-  public SonarDownloader(FileSystem fileSystem) {
+  public SonarDownloader(FileSystem fileSystem, Configuration configuration) {
     this.fileSystem = fileSystem;
+    this.configuration = configuration;
     this.zips = new Zips(fileSystem);
-  }
-
-  public String distUrl() {
-    return "http://downloads.sonarsource.com/sonarqube/";
   }
 
   public synchronized File downloadAndUnzip(SonarDistribution distrib) {
@@ -116,12 +117,22 @@ public class SonarDownloader {
     return result;
   }
 
+  @VisibleForTesting
+  String getDownloadUrl(SonarDistribution distribution) {
+    for (Release release : configuration.updateCenter().getSonar().getReleases()) {
+      if (release.getVersion().getName().equals(distribution.version().toString()))
+        return release.getDownloadUrl();
+    }
+
+    throw new IllegalArgumentException("This version is not listed on update center: " + distribution.version());
+  }
+
   private File downloadFromDist(SonarDistribution distribution, File toFile) {
     if (!distribution.isRelease()) {
       return null;
     }
 
-    String fileUrl = distUrl() + distribution.zipFilename();
+    String fileUrl = getDownloadUrl(distribution);
     File tempFile = null;
     try {
       FileUtils.forceMkdir(toFile.getParentFile());

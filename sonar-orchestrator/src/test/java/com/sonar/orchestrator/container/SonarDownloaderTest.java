@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.container;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.junit.PropertyFilterRunner;
@@ -32,14 +33,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 /**
  * Note for executing these tests in IDE: be sure that zip files are included in classpath (see Preferences>Compiler
@@ -70,7 +72,7 @@ public class SonarDownloaderTest {
       .setProperty("orchestrator.sonarInstallsDir", new File(root, "user"))
       .setProperty("orchestrator.workspaceDir", workspace)
       .build());
-    downloader = new SonarDownloader(fileSystem);
+    downloader = new SonarDownloader(fileSystem, Orchestrator.builderEnv().setSonarVersion("DEV").build().getConfiguration());
     Zips.upToDateSnapshots.clear();
   }
 
@@ -103,11 +105,11 @@ public class SonarDownloaderTest {
     assertThat(zip.getName()).isEqualTo("sonarqube-5.0.zip");
     assertThat(zip.getParentFile()).isEqualTo(fileSystem.sonarInstallsDir());
   }
-  
+
   @Test
   public void shouldFailDownload() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("java.io.FileNotFoundException:");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("This version is not listed on update center: dummy");
 
     downloader.downloadZip(new SonarDistribution(Version.create("dummy")));
   }
@@ -173,14 +175,14 @@ public class SonarDownloaderTest {
 
   @Test
   public void shouldNotDownloadWithIncorrectMD5() {
-    downloader = spy(downloader);
-    when(downloader.distUrl()).thenReturn(String.format("http://localhost:%d/", wireMockRule.port()));
-
     SonarDistribution sonar45999 = new SonarDistribution(Version.create("4.5.999"));
-    stubFor(get(urlEqualTo("/" + sonar45999.zipFilename()))
-      .willReturn(aResponse().withBody("A")));
-    stubFor(get(urlEqualTo("/" + sonar45999.zipFilename() + ".md5"))
-      .willReturn(aResponse().withBody("aa")));
+
+    downloader = spy(downloader);
+    int port = wireMockRule.port();
+    doReturn(String.format("http://localhost:%d/%s", port, sonar45999.zipFilename())).when(downloader).getDownloadUrl(Mockito.any(SonarDistribution.class));
+
+    stubFor(get(urlEqualTo("/" + sonar45999.zipFilename())).willReturn(aResponse().withBody("A")));
+    stubFor(get(urlEqualTo("/" + sonar45999.zipFilename() + ".md5")).willReturn(aResponse().withBody("aa")));
 
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("File downloaded has an incorrect MD5 checksum.");

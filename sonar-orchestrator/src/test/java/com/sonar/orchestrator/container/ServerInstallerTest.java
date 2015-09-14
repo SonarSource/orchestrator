@@ -47,13 +47,14 @@ import static org.mockito.Mockito.when;
 public class ServerInstallerTest {
   @Test
   public void shouldConfigureDatabaseSettings() throws IOException {
-    FileSystem fileSystem = new FileSystem(Configuration.create());
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
     File propertiesFile = new File("target/tmp-test/ServerInstallerTest/shouldConfigureDatabaseSettings.properties");
     FileUtils.forceMkdir(propertiesFile.getParentFile());
 
     ServerInstaller installer = new ServerInstaller(fileSystem, MySql.builder()
       .setUrl("jdbc:mysql://localhost:1234/sonar")
-      .build(), mock(Licenses.class));
+      .build(), mock(Licenses.class), config);
     installer.configureProperties(new SonarDistribution(Version.create("3.0")), propertiesFile);
 
     Properties after = new Properties();
@@ -67,7 +68,8 @@ public class ServerInstallerTest {
 
   @Test
   public void shouldConfigureLicenses() throws IOException {
-    FileSystem fileSystem = new FileSystem(Configuration.create());
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
     Properties before = new Properties();
     File propertiesFile = new File("target/tmp-test/ServerInstallerTest/shouldConfigureLicenses.properties");
     FileUtils.forceMkdir(propertiesFile.getParentFile());
@@ -79,7 +81,7 @@ public class ServerInstallerTest {
     when(licenses.get("abap")).thenReturn("ABCD1234");
     when(licenses.licensePropertyKey("abap")).thenReturn("sonar.abap.license.secured");
 
-    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), licenses);
+    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), licenses, config);
     SonarDistribution distribution = new SonarDistribution(Version.create("3.0"));
     distribution.activateLicense("abap");
     installer.configureProperties(distribution, propertiesFile);
@@ -96,8 +98,9 @@ public class ServerInstallerTest {
 
   @Test
   public void shouldDefineServerProperties() throws IOException {
-    FileSystem fileSystem = new FileSystem(Configuration.create());
-    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class));
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
+    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class), config);
 
     File propertiesFile = new File("target/tmp-test/ServerInstallerTest/shouldDefineServerProperties.properties");
     FileUtils.forceMkdir(propertiesFile.getParentFile());
@@ -119,8 +122,9 @@ public class ServerInstallerTest {
 
   @Test
   public void shouldCopyPlugins() throws IOException {
-    FileSystem fileSystem = new FileSystem(Configuration.create());
-    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class));
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
+    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class), config);
     SonarDistribution distribution = new SonarDistribution(Version.create("3.0"))
       .addPluginLocation(getFileLocation("/com/sonar/orchestrator/container/ServerInstallerTest/plugin1.jar"))
       .addPluginLocation(getFileLocation("/com/sonar/orchestrator/container/ServerInstallerTest/plugin2.jar"));
@@ -148,8 +152,9 @@ public class ServerInstallerTest {
     File distributedPlugin = new File(bundledDir, "plugin.jar");
     distributedPlugin.createNewFile();
 
-    FileSystem fileSystem = new FileSystem(Configuration.create());
-    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class));
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
+    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class), config);
     SonarDistribution distribution = new SonarDistribution(Version.create("5.0"))
       .addPluginLocation(getFileLocation("/com/sonar/orchestrator/container/ServerInstallerTest/plugin1.jar"))
       .addPluginLocation(getFileLocation("/com/sonar/orchestrator/container/ServerInstallerTest/plugin2.jar"));
@@ -176,9 +181,10 @@ public class ServerInstallerTest {
 
   @Test
   public void shouldCopyJdbcDriver() throws IOException {
-    FileSystem fileSystem = new FileSystem(Configuration.create());
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
     Oracle oracle = Oracle.builder().setDriverFile(getFile("/com/sonar/orchestrator/container/ServerInstallerTest/driver.jar")).build();
-    ServerInstaller installer = new ServerInstaller(fileSystem, oracle, mock(Licenses.class));
+    ServerInstaller installer = new ServerInstaller(fileSystem, oracle, mock(Licenses.class), config);
     SonarDistribution distribution = new SonarDistribution(Version.create("2.8"));
 
     File home = new File("target/tmp-test/ServerInstallerTest/shouldCopyJdbcDriver");
@@ -193,8 +199,9 @@ public class ServerInstallerTest {
 
   @Test
   public void shouldConfigureLogging() throws IOException {
-    FileSystem fileSystem = new FileSystem(Configuration.create());
-    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class));
+    Configuration config = Configuration.create();
+    FileSystem fileSystem = new FileSystem(config);
+    ServerInstaller installer = new ServerInstaller(fileSystem, H2.create(), mock(Licenses.class), config);
     SonarDistribution distribution = new SonarDistribution(Version.create("4.5"));
 
     File home = new File("target/tmp-test/ServerInstallerTest/shouldConfigureLogbackAfter41");

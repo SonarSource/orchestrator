@@ -128,7 +128,7 @@ public class Orchestrator extends SingleStartExternalResource {
     }
     distribution.setPort(port);
     FileSystem fileSystem = config.fileSystem();
-    ServerInstaller serverInstaller = new ServerInstaller(fileSystem, database.getClient(), licenses);
+    ServerInstaller serverInstaller = new ServerInstaller(fileSystem, database.getClient(), licenses, config);
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d%s", port, StringUtils.removeEnd(distribution.getContext(), "/")));
     server.setPort(port);
