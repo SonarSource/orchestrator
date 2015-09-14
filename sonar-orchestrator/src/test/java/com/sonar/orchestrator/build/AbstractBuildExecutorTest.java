@@ -52,12 +52,11 @@ public class AbstractBuildExecutorTest {
 
     Configuration config = Configuration.builder()
         .setProperty("orchestrator.computeCoverage", "true")
-        .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-        .setProperty("maven.nexusRepository", "ss-repo")
         .build();
+
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
 
-    assertThat(env.get("SONAR_OPTS")).matches("foo -javaagent:.*");
+    assertThat(env.get("SONAR_OPTS")).startsWith("foo -javaagent:");
   }
 
   @Test
@@ -66,11 +65,10 @@ public class AbstractBuildExecutorTest {
 
     Configuration config = Configuration.builder()
         .setProperty("orchestrator.computeCoverage", "true")
-        .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-        .setProperty("maven.nexusRepository", "ss-repo")
         .build();
+
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
 
-    assertThat(env.get("SONAR_OPTS")).matches("-javaagent:.*");
+    assertThat(env.get("SONAR_OPTS")).startsWith("-javaagent:");
   }
 }

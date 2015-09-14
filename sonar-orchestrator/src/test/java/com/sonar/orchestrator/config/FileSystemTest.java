@@ -83,15 +83,4 @@ public class FileSystemTest {
     Configuration config = Configuration.builder().setProperty("maven.localRepository", "/invalid/path").build();
     new FileSystem(config);
   }
-
-  @Test
-  public void shouldOverrideMavenRemoteRepository() {
-    String url = "https://192.168.0.70/nexus";
-    Configuration config = Configuration.builder()
-        .setProperty("maven.nexusUrl", url)
-        .setProperty("maven.nexusRepository", "ss-repo").build();
-    FileSystem fileSystem = new FileSystem(config);
-
-    assertThat(fileSystem.mavenNexusUrl().toString()).isEqualTo(url);
-  }
 }

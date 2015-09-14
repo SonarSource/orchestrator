@@ -45,13 +45,7 @@ public class MavenLocatorTest {
   private File localRepository = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/locator/MavenLocatorTest/repository"));
 
   @Rule
-  public MockHttpServerInterceptor httpServer = new MockHttpServerInterceptor();
-
-  @Rule
   public TemporaryFolder temp = new TemporaryFolder();
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void shouldFindInLocalRepository() {
@@ -62,13 +56,12 @@ public class MavenLocatorTest {
 
     File file = locator.locate(MavenLocation.builder().setKey("group", "artifact", "1.0").build());
 
-    assertThat(file).exists();
-    assertThat(file.getName()).isEqualTo("artifact-1.0.jar");
+    assertThat(file).exists().hasName("artifact-1.0.jar");
 
     Locators locators = new Locators(config);
     locators.locate(MavenLocation.builder().setKey("group", "artifact", "1.0").build());
-    assertThat(file).exists();
-    assertThat(file.getName()).isEqualTo("artifact-1.0.jar");
+
+    assertThat(file).exists().hasName("artifact-1.0.jar");
   }
 
   @Test
@@ -90,23 +83,6 @@ public class MavenLocatorTest {
 
     assertThat(config.fileSystem().mavenLocalRepository()).isEqualTo(new File(System.getProperty("user.home"), ".m2/repository"));
     assertThat(locator.locate(MavenLocation.builder().setKey("group", "other", "1.1").build())).isNull();
-  }
-
-  @Test
-  public void shouldDownloadFileFromRemoteRepository() {
-    httpServer.setMockResponseData("This is a jar");
-
-    Configuration config = Configuration.builder()
-      .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-      .setProperty("maven.nexusRepository", "ss-repo")
-      .build();
-    MavenLocator locator = new MavenLocator(config);
-
-    File file = locator.locate(MavenLocation.builder().setKey("org.codehaus.sonar", "sonar-java-api", "2.8").build());
-
-    assertThat(file).isNotNull();
-    assertThat(file.getName()).isEqualTo("sonar-java-api-2.8.jar");
-    assertThat(file.length()).isEqualTo(13);
   }
 
   @Test
@@ -149,42 +125,6 @@ public class MavenLocatorTest {
   }
 
   @Test
-  public void copy_remote_file_to_directory() throws Exception {
-    httpServer.setMockResponseData("This is a jar");
-    File toDir = temp.newFolder();
-
-    Configuration config = Configuration.builder()
-      .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-      .setProperty("maven.nexusRepository", "ss-repo")
-      .build();
-    MavenLocator locator = new MavenLocator(config);
-
-    File file = locator.copyToDirectory(MavenLocation.builder().setKey("org.codehaus.sonar", "sonar-java-api", "2.8").build(), toDir);
-
-    assertThat(file).exists();
-    assertThat(file.getName()).isEqualTo("sonar-java-api-2.8.jar");
-    assertThat(file.length()).isEqualTo(13);
-  }
-
-  @Test
-  public void copy_remote_file_to_file() throws Exception {
-    httpServer.setMockResponseData("This is a jar");
-    File toDir = temp.newFolder();
-
-    Configuration config = Configuration.builder()
-      .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-      .setProperty("maven.nexusRepository", "ss-repo")
-      .build();
-    MavenLocator locator = new MavenLocator(config);
-
-    File file = locator.copyToFile(MavenLocation.builder().setKey("org.codehaus.sonar", "sonar-java-api", "2.8").build(), new File(toDir, "foo.jar"));
-
-    assertThat(file).exists();
-    assertThat(file.getName()).isEqualTo("foo.jar");
-    assertThat(file.length()).isEqualTo(13);
-  }
-
-  @Test
   public void open_local_input_stream() throws Exception {
     Configuration config = Configuration.builder()
       .setProperty("maven.localRepository", localRepository)
@@ -194,50 +134,5 @@ public class MavenLocatorTest {
     InputStream input = locator.openInputStream(MavenLocation.builder().setKey("group", "artifact", "1.0").build());
 
     assertThat(IOUtils.toByteArray(input).length).isGreaterThan(0);
-  }
-
-  @Test
-  public void open_remote_input_stream() throws Exception {
-    httpServer.setMockResponseData("This is a jar");
-
-    Configuration config = Configuration.builder()
-      .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-      .setProperty("maven.nexusRepository", "ss-repo")
-      .build();
-    MavenLocator locator = new MavenLocator(config);
-
-    InputStream input = locator.openInputStream(MavenLocation.builder().setKey("org.codehaus.sonar", "sonar-java-api", "2.8").build());
-
-    assertThat(IOUtils.toByteArray(input).length).isGreaterThan(0);
-  }
-
-  @Test
-  public void throw_when_error_opening_remote_stream() {
-    httpServer.setMockResponseStatus(500);
-
-    thrown.expect(IllegalStateException.class);
-    Configuration config = Configuration.builder()
-      .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-      .setProperty("maven.nexusRepository", "ss-repo")
-      .build();
-    MavenLocator locator = new MavenLocator(config);
-
-    // Create an error 500 on Nexus by injecting URL parameter in groupId
-    locator.openInputStream(MavenLocation.builder().setKey("unknow&v=", "xxx", "2.8").build());
-  }
-
-  @Test
-  public void shouldReturnNullIfRemoteFileDoesNotExist() {
-    httpServer.setMockResponseStatus(404);
-
-    Configuration config = Configuration.builder()
-      .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-      .setProperty("maven.nexusRepository", "ss-repo")
-      .build();
-    MavenLocator locator = new MavenLocator(config);
-
-    File file = locator.locate(MavenLocation.builder().setKey("unknown", "xxx", "1.2.3").build());
-
-    assertThat(file).isNull();
   }
 }

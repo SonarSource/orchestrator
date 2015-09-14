@@ -53,6 +53,7 @@ public class JaCoCoArgumentsBuilderTest {
   @Test
   public void shouldReturnNullByDefault() {
     Configuration config = Configuration.create();
+
     assertThat(JaCoCoArgumentsBuilder.getJaCoCoArgument(config)).isNull();
   }
 
@@ -67,11 +68,10 @@ public class JaCoCoArgumentsBuilderTest {
     Map<String, String> props = new HashMap<>();
     props.put("orchestrator.computeCoverage", "true");
     props.put("orchestrator.coverageReportPath", output.getAbsolutePath());
-    Configuration config = Configuration.builder().addProperties(props)
-        .setProperty("maven.nexusUrl", "http://localhost:" + httpServer.getPort() + "/")
-        .setProperty("maven.nexusRepository", "ss-repo")
-        .build();
+    Configuration config = Configuration.builder().addProperties(props).build();
+
     String argument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
+
     assertThat(argument).matches("-javaagent:.*=destfile=" +
       Matcher.quoteReplacement(FilenameUtils.separatorsToUnix(output.getAbsolutePath())) +
       ",append=true,excludes=\\*_javassist_\\*,includes=\\*sonar\\*");

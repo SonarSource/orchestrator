@@ -22,28 +22,20 @@ package com.sonar.orchestrator.config;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class FileSystem {
-
-  private static final Logger LOG = LoggerFactory.getLogger(FileSystem.class);
-
+  private final Configuration config;
+  private final Locators locators;
   private File mavenLocalRepository;
-  private URL nexusUrl;
-  private String nexusRepository;
   private File mavenHome;
   private File antHome;
   private File javaHome;
   private File workspace;
   private File sonarInstallsDir;
-  private final Configuration config;
-  private final Locators locators;
 
   public FileSystem(Configuration config) {
     this.config = config;
@@ -54,7 +46,6 @@ public class FileSystem {
     initUserHome();
     initJavaHome();
     initMavenLocalRepository();
-    initMavenRemoteRepository();
   }
 
   private void initWorkspace() {
@@ -69,23 +60,6 @@ public class FileSystem {
       if (!mavenLocalRepository.isDirectory() || !mavenLocalRepository.exists()) {
         throw new IllegalArgumentException("Maven local repository is not valid: " + value);
       }
-    }
-  }
-
-  private void initMavenRemoteRepository() {
-    String value = config.getStringByKeys("maven.nexusUrl", "MAVEN_NEXUS_URL");
-    if (StringUtils.isBlank(value)) {
-      LOG.warn("Nexus remote repository url is not set. Please define " + "maven.nexusUrl");
-      return;
-    }
-    try {
-      nexusUrl = new URL(value);
-    } catch (MalformedURLException e) {
-      throw new IllegalArgumentException("Maven remote repository is not valid: " + value, e);
-    }
-    nexusRepository = config.getStringByKeys("maven.nexusRepository", "MAVEN_NEXUS_REPOSITORY");
-    if (StringUtils.isBlank(nexusRepository)) {
-      LOG.warn("Nexus remote repository name is not set. Please define " + "maven.nexusRepository");
     }
   }
 
@@ -142,14 +116,6 @@ public class FileSystem {
 
   public File mavenLocalRepository() {
     return mavenLocalRepository;
-  }
-
-  public URL mavenNexusUrl() {
-    return nexusUrl;
-  }
-
-  public String mavenNexusRepository() {
-    return nexusRepository;
   }
 
   public File mavenHome() {
