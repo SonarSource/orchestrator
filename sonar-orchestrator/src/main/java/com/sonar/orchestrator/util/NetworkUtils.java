@@ -29,51 +29,52 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class NetworkUtils {
   private static final int MAX_TRY = 10;
   private static final AtomicInteger nextPort = new AtomicInteger(20000);
+  // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
+  private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
 
   private NetworkUtils() {
   }
 
   public static int getNextAvailablePort() {
     for (int i = 0; i < MAX_TRY; i++) {
-      if (isOnTravisCI()) {
-        int port = nextPort.getAndIncrement();
-        if (!isValidPort(port)) {
-          continue;
-        }
-
-        // Check that the port is really available.
-        // On Travis, if the build is single threaded, it should be.
-        //
-        try {
-          Process process = new ProcessBuilder("nc", "-z", "localhost", Integer.toString(port)).start();
-          if (process.waitFor() == 1) {
-            return port;
-          }
-        } catch (Exception e) {
-          throw new IllegalStateException("Can't test that a network port is available", e);
-        }
-      } else {
-        try (ServerSocket socket = new ServerSocket()) {
-          socket.bind(new InetSocketAddress("localhost", 0));
-          int unusedPort = socket.getLocalPort();
-          if (isValidPort(unusedPort)) {
-            return unusedPort;
-          }
-        } catch (IOException e) {
-          throw new IllegalStateException("Can not find a free network port", e);
-        }
+      int port = isOnTravisCI() ? getNextAvailablePortOnTravis() : getRandomUnusedPort();
+      if (isValidPort(port)) {
+        return port;
       }
     }
 
     throw new IllegalStateException("Can not find an open network port");
   }
 
+  private static int getNextAvailablePortOnTravis() {
+    int port = nextPort.getAndIncrement();
+
+    // Check that the port is really available.
+    // On Travis, if the build is single threaded, so it should always be available.
+    try {
+      Process process = new ProcessBuilder("nc", "-z", "localhost", Integer.toString(port)).start();
+      if (process.waitFor() == 1) {
+        return port;
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Can't test that a network port is available", e);
+    }
+
+    return -1;
+  }
+
+  private static int getRandomUnusedPort() {
+    try (ServerSocket socket = new ServerSocket()) {
+      socket.bind(new InetSocketAddress("localhost", 0));
+      return socket.getLocalPort();
+    } catch (IOException e) {
+      throw new IllegalStateException("Can't find a free network port", e);
+    }
+  }
+
   private static boolean isOnTravisCI() {
     return "true".equals(System.getenv("TRAVIS"));
   }
-
-  // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
-  private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
 
   static boolean isValidPort(int port) {
     return port > 1023 && !ArrayUtils.contains(BLOCKED_PORTS, port);
