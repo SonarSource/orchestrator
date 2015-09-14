@@ -49,7 +49,7 @@ public class JaCoCoArgumentsBuilderTest {
 
   @Test
   public void shouldReturnNullByDefault() {
-    Configuration config = Configuration.create();
+    Configuration config = Configuration.create(new HashMap<String, String>());
 
     assertThat(JaCoCoArgumentsBuilder.getJaCoCoArgument(config)).isNull();
   }
@@ -65,7 +65,7 @@ public class JaCoCoArgumentsBuilderTest {
     Map<String, String> props = new HashMap<>();
     props.put("orchestrator.computeCoverage", "true");
     props.put("orchestrator.coverageReportPath", output.getAbsolutePath());
-    Configuration config = Configuration.builder().addProperties(props).build();
+    Configuration config = Configuration.create(props);
 
     String argument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
 
