@@ -2,8 +2,8 @@ language: java
 sudo: false
 jdk: oraclejdk7
 
-install: true
-script: mvn install -B -e -V -Dmaven.test.redirectTestOutputToFile=false
+install: mvn install -DskipTests=true
+script: mvn test -Dmaven.test.redirectTestOutputToFile=false
 
 cache:
   directories:
