@@ -82,7 +82,7 @@ public class JaCoCoArgumentsBuilder {
 
     File jacocoLocation = new MavenLocator(config).locate(agentLocation);
     if (jacocoLocation == null) {
-      throw new RuntimeException("Unable to locate jacoco: " + agentLocation + " in " + config.fileSystem().mavenLocalRepository());
+      throw new IllegalStateException("Unable to locate jacoco: " + agentLocation + " in " + config.fileSystem().mavenLocalRepository());
     }
 
     String agentPath = FilenameUtils.separatorsToUnix(jacocoLocation.getAbsolutePath());

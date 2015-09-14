@@ -120,8 +120,9 @@ public class SonarDownloader {
   @VisibleForTesting
   String getDownloadUrl(SonarDistribution distribution) {
     for (Release release : configuration.updateCenter().getSonar().getReleases()) {
-      if (release.getVersion().getName().equals(distribution.version().toString()))
+      if (release.getVersion().getName().equals(distribution.version().toString())) {
         return release.getDownloadUrl();
+      }
     }
 
     throw new IllegalArgumentException("This version is not listed on update center: " + distribution.version());
