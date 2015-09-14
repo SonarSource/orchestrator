@@ -212,7 +212,12 @@ public class Configuration {
         // Use default values
         setPropertyIfAbsent("sonar.jdbc.dialect", "embedded");
         setPropertyIfAbsent("orchestrator.updateCenterUrl", "http://update.sonarsource.org/update-center-dev.properties");
-        setPropertyIfAbsent("maven.localRepository", System.getProperty("user.home") + "/.m2/repository");
+        if (System.getenv("SONAR_MAVEN_REPOSITORY") != null) {
+          // For Jenkins
+          setPropertyIfAbsent("maven.localRepository", System.getenv("SONAR_MAVEN_REPOSITORY"));
+        } else {
+          setPropertyIfAbsent("maven.localRepository", System.getProperty("user.home") + "/.m2/repository");
+        }
 
         return this;
       }
