@@ -173,14 +173,6 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   /**
-   * @deprecated since 3.1, should be replaced by restartServer()
-   */
-  @Deprecated
-  public void restartSonar() {
-    restartServer();
-  }
-
-  /**
    * restart of the sonarQube server
    */
   public void restartServer() {
