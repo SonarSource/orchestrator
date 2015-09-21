@@ -37,11 +37,11 @@ public class BuildRunner {
     this.database = database;
   }
 
-  public BuildResult runQuietly(Server server, Build build) {
+  public BuildResult runQuietly(Server server, Build<?> build) {
     return build.execute(config, adjustProperties(server, build));
   }
 
-  public BuildResult run(Server server, Build build) {
+  public BuildResult run(Server server, Build<?> build) {
     BuildResult result = runQuietly(server, build);
     if (!result.isSuccess()) {
       throw new BuildFailureException(build, result);
@@ -50,7 +50,7 @@ public class BuildRunner {
   }
 
   @VisibleForTesting
-  Map<String, String> adjustProperties(Server server, Build build) {
+  Map<String, String> adjustProperties(Server server, Build<?> build) {
     Map<String, String> adjustedProperties = Maps.newHashMap();
     if (server != null) {
       adjustedProperties.put("sonar.host.url", server.getUrl());

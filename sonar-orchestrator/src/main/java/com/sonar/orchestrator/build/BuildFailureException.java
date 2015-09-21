@@ -25,7 +25,7 @@ public class BuildFailureException extends RuntimeException {
   private final Build build;
   private final BuildResult result;
 
-  public BuildFailureException(Build build, BuildResult result) {
+  public BuildFailureException(Build<?> build, BuildResult result) {
     this.build = checkNotNull(build, "build is null");
     this.result = checkNotNull(result, "result is null");
   }
