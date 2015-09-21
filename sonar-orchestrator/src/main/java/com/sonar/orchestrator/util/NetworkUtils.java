@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.util;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -73,9 +74,15 @@ public final class NetworkUtils {
     }
 
     public int getRandomUnusedPort() throws IOException {
-      try (ServerSocket socket = new ServerSocket()) {
+      ServerSocket socket = null;
+      try {
+        socket = new ServerSocket();
         socket.bind(new InetSocketAddress("localhost", 0));
         return socket.getLocalPort();
+      } catch (IOException e) {
+        throw new IllegalStateException("Can not find a free network port", e);
+      } finally {
+        IOUtils.closeQuietly(socket);
       }
     }
 
