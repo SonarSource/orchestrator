@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.util;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -28,37 +29,48 @@ import java.util.HashSet;
 import java.util.Set;
 
 public final class NetworkUtils {
-  private static final int MAX_TRY = 10;
-  // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
-  private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
-  private static final Set<Integer> ALREADY_DISTRIBUTED_PORTS = new HashSet<>();
+  private static final RandomPortFinder RANDOM_PORT_FINDER = new RandomPortFinder();
 
   private NetworkUtils() {
   }
 
   public static int getNextAvailablePort() {
-    synchronized (ALREADY_DISTRIBUTED_PORTS) {
-      for (int i = 0; i < MAX_TRY; i++) {
-        int port = getRandomUnusedPort();
-        if (isValidPort(port) && ALREADY_DISTRIBUTED_PORTS.add(port)) {
-          return port;
+    return RANDOM_PORT_FINDER.getNextAvailablePort();
+  }
+
+  @VisibleForTesting
+  static class RandomPortFinder {
+    private static final int MAX_TRY = 10;
+    // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
+    private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
+    private static final Set<Integer> ALREADY_DISTRIBUTED_PORTS = new HashSet<>();
+
+    public int getNextAvailablePort() {
+      synchronized (ALREADY_DISTRIBUTED_PORTS) {
+        for (int i = 0; i < MAX_TRY; i++) {
+          try {
+            int port = getRandomUnusedPort();
+            if (isValidPort(port) && ALREADY_DISTRIBUTED_PORTS.add(port)) {
+              return port;
+            }
+          } catch (IOException e) {
+            throw new IllegalStateException("Can't find an open network port", e);
+          }
         }
+      }
+
+      throw new IllegalStateException("Can't find an open network port");
+    }
+
+    public int getRandomUnusedPort() throws IOException {
+      try (ServerSocket socket = new ServerSocket()) {
+        socket.bind(new InetSocketAddress("localhost", 0));
+        return socket.getLocalPort();
       }
     }
 
-    throw new IllegalStateException("Can't find an open network port");
-  }
-
-  private static int getRandomUnusedPort() {
-    try (ServerSocket socket = new ServerSocket()) {
-      socket.bind(new InetSocketAddress("localhost", 0));
-      return socket.getLocalPort();
-    } catch (IOException e) {
-      throw new IllegalStateException("Can't find an open network port", e);
+    static boolean isValidPort(int port) {
+      return port > 1023 && !ArrayUtils.contains(BLOCKED_PORTS, port);
     }
-  }
-
-  static boolean isValidPort(int port) {
-    return port > 1023 && !ArrayUtils.contains(BLOCKED_PORTS, port);
   }
 }

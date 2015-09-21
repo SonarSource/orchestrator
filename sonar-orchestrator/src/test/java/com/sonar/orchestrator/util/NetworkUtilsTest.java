@@ -19,9 +19,15 @@
  */
 package com.sonar.orchestrator.util;
 
+import com.sonar.orchestrator.util.NetworkUtils.RandomPortFinder;
 import org.junit.Test;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 public class NetworkUtilsTest {
 
@@ -43,15 +49,31 @@ public class NetworkUtilsTest {
 
   @Test
   public void shouldNotBeValidPorts() {
-    assertThat(NetworkUtils.isValidPort(0)).isFalse();// <=1023
-    assertThat(NetworkUtils.isValidPort(50)).isFalse();// <=1023
-    assertThat(NetworkUtils.isValidPort(1023)).isFalse();// <=1023
-    assertThat(NetworkUtils.isValidPort(2049)).isFalse();// NFS
-    assertThat(NetworkUtils.isValidPort(4045)).isFalse();// lockd
+    assertThat(RandomPortFinder.isValidPort(0)).isFalse();// <=1023
+    assertThat(RandomPortFinder.isValidPort(50)).isFalse();// <=1023
+    assertThat(RandomPortFinder.isValidPort(1023)).isFalse();// <=1023
+    assertThat(RandomPortFinder.isValidPort(2049)).isFalse();// NFS
+    assertThat(RandomPortFinder.isValidPort(4045)).isFalse();// lockd
   }
 
   @Test
   public void shouldBeValidPorts() {
-    assertThat(NetworkUtils.isValidPort(1059)).isTrue();
+    assertThat(RandomPortFinder.isValidPort(1059)).isTrue();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void shouldFailWhenNoValidPortIsAvailable() throws IOException {
+    RandomPortFinder randomPortFinder = spy(new RandomPortFinder());
+    doReturn(0).when(randomPortFinder).getRandomUnusedPort();
+
+    randomPortFinder.getNextAvailablePort();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void shouldFailWhenItsNotPossibleToOpenASocket() throws IOException {
+    RandomPortFinder randomPortFinder = spy(new RandomPortFinder());
+    doThrow(new IOException("Not possible")).when(randomPortFinder).getRandomUnusedPort();
+
+    randomPortFinder.getNextAvailablePort();
   }
 }
