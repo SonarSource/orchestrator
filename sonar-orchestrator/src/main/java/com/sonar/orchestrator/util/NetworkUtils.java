@@ -19,62 +19,45 @@
  */
 package com.sonar.orchestrator.util;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class NetworkUtils {
   private static final int MAX_TRY = 10;
-  private static final AtomicInteger nextPort = new AtomicInteger(20000);
   // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
   private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
+  private static final Set<Integer> ALREADY_DISTRIBUTED_PORTS = new HashSet<>();
 
   private NetworkUtils() {
   }
 
   public static int getNextAvailablePort() {
-    for (int i = 0; i < MAX_TRY; i++) {
-      int port = isOnTravisCI() ? getNextAvailablePortOnTravis() : getRandomUnusedPort();
-      if (isValidPort(port)) {
-        return port;
+    synchronized (ALREADY_DISTRIBUTED_PORTS) {
+      for (int i = 0; i < MAX_TRY; i++) {
+        int port = getRandomUnusedPort();
+        if (isValidPort(port) && ALREADY_DISTRIBUTED_PORTS.add(port)) {
+          return port;
+        }
       }
     }
 
-    throw new IllegalStateException("Can not find an open network port");
+    throw new IllegalStateException("Can't find an open network port");
   }
 
-  private static int getNextAvailablePortOnTravis() {
-    int port = nextPort.getAndIncrement();
-
-    // Check that the port is really available.
-    // On Travis, if the build is single threaded, so it should always be available.
-    try {
-      Command command = Command.create("nc").addArguments("-z", "localhost", Integer.toString(port));
-      int exitCode = CommandExecutor.create().execute(command, 10000);
-      if (exitCode == 1) {
-        return port;
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Can't test that a network port is available", e);
-    }
-
-    return -1;
-  }
-
-  private static int getRandomUnusedPort() {
+  @VisibleForTesting
+  static int getRandomUnusedPort() {
     try (ServerSocket socket = new ServerSocket()) {
       socket.bind(new InetSocketAddress("localhost", 0));
       return socket.getLocalPort();
     } catch (IOException e) {
-      throw new IllegalStateException("Can't find a free network port", e);
+      throw new IllegalStateException("Can't find an open network port", e);
     }
-  }
-
-  private static boolean isOnTravisCI() {
-    return "true".equals(System.getenv("TRAVIS"));
   }
 
   static boolean isValidPort(int port) {
