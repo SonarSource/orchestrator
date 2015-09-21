@@ -19,14 +19,15 @@
  */
 package com.sonar.orchestrator.build;
 
-public class BuildFailureException extends RuntimeException {
+import static com.google.common.base.Preconditions.checkNotNull;
 
+public class BuildFailureException extends RuntimeException {
   private final Build build;
   private final BuildResult result;
 
   public BuildFailureException(Build build, BuildResult result) {
-    this.build = build;
-    this.result = result;
+    this.build = checkNotNull(build, "build is null");
+    this.result = checkNotNull(result, "result is null");
   }
 
   public Build getBuild() {
@@ -39,13 +40,6 @@ public class BuildFailureException extends RuntimeException {
 
   @Override
   public String getMessage() {
-    StringBuilder message = new StringBuilder();
-    if (result != null) {
-      message.append("status=").append(result.getStatus()).append(" ");
-    }
-    if (build != null) {
-      message.append("build=[").append(build).append("]");
-    }
-    return message.toString();
+    return "status=" + result.getStatus() + " " + "build=[" + build + "]";
   }
 }
