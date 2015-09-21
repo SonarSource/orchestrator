@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -50,8 +49,7 @@ public final class NetworkUtils {
     throw new IllegalStateException("Can't find an open network port");
   }
 
-  @VisibleForTesting
-  static int getRandomUnusedPort() {
+  private static int getRandomUnusedPort() {
     try (ServerSocket socket = new ServerSocket()) {
       socket.bind(new InetSocketAddress("localhost", 0));
       return socket.getLocalPort();
