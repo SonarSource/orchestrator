@@ -20,14 +20,13 @@
 package com.sonar.orchestrator.util;
 
 import com.sonar.orchestrator.util.NetworkUtils.RandomPortFinder;
+import com.sonar.orchestrator.util.NetworkUtils.TravisIncrementalPortFinder;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.*;
 
 public class NetworkUtilsTest {
 
@@ -75,5 +74,15 @@ public class NetworkUtilsTest {
     doThrow(new IOException("Not possible")).when(randomPortFinder).getRandomUnusedPort();
 
     randomPortFinder.getNextAvailablePort();
+  }
+
+  @Test
+  public void shouldIncrementPortOnTravis() {
+    TravisIncrementalPortFinder travisIncrementalPortFinder = new TravisIncrementalPortFinder();
+
+    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20000);
+    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20001);
+    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20002);
+    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20003);
   }
 }

@@ -25,17 +25,30 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class NetworkUtils {
+  private static final TravisIncrementalPortFinder TRAVIS_INCREMENTAL_PORT_FINDER = new TravisIncrementalPortFinder();
   private static final RandomPortFinder RANDOM_PORT_FINDER = new RandomPortFinder();
 
   private NetworkUtils() {
   }
 
   public static int getNextAvailablePort() {
-    return RANDOM_PORT_FINDER.getNextAvailablePort();
+    return isOnTravisCI() ? TRAVIS_INCREMENTAL_PORT_FINDER.getNextAvailablePort() : RANDOM_PORT_FINDER.getNextAvailablePort();
+  }
+
+  private static boolean isOnTravisCI() {
+    return "true".equals(System.getenv("TRAVIS"));
+  }
+
+  @VisibleForTesting
+  static class TravisIncrementalPortFinder {
+    private final AtomicInteger nextPort = new AtomicInteger(20000);
+
+    public int getNextAvailablePort() {
+      return nextPort.getAndIncrement();
+    }
   }
 
   @VisibleForTesting
@@ -43,19 +56,16 @@ public final class NetworkUtils {
     private static final int MAX_TRY = 10;
     // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
     private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
-    private final Set<Integer> alreadyDistributedPorts = new HashSet<>();
 
     public int getNextAvailablePort() {
-      synchronized (alreadyDistributedPorts) {
-        for (int i = 0; i < MAX_TRY; i++) {
-          try {
-            int port = getRandomUnusedPort();
-            if (isValidPort(port) && alreadyDistributedPorts.add(port)) {
-              return port;
-            }
-          } catch (IOException e) {
-            throw new IllegalStateException("Can't find an open network port", e);
+      for (int i = 0; i < MAX_TRY; i++) {
+        try {
+          int port = getRandomUnusedPort();
+          if (isValidPort(port)) {
+            return port;
           }
+        } catch (Exception e) {
+          throw new IllegalStateException("Can't find an open network port", e);
         }
       }
 
@@ -69,7 +79,7 @@ public final class NetworkUtils {
       }
     }
 
-    static boolean isValidPort(int port) {
+    public static boolean isValidPort(int port) {
       return port > 1023 && !ArrayUtils.contains(BLOCKED_PORTS, port);
     }
   }
