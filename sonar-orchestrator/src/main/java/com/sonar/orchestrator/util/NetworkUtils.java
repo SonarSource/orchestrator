@@ -43,14 +43,14 @@ public final class NetworkUtils {
     private static final int MAX_TRY = 10;
     // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
     private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
-    private static final Set<Integer> ALREADY_DISTRIBUTED_PORTS = new HashSet<>();
+    private final Set<Integer> alreadyDistributedPorts = new HashSet<>();
 
     public int getNextAvailablePort() {
-      synchronized (ALREADY_DISTRIBUTED_PORTS) {
+      synchronized (alreadyDistributedPorts) {
         for (int i = 0; i < MAX_TRY; i++) {
           try {
             int port = getRandomUnusedPort();
-            if (isValidPort(port) && ALREADY_DISTRIBUTED_PORTS.add(port)) {
+            if (isValidPort(port) && alreadyDistributedPorts.add(port)) {
               return port;
             }
           } catch (IOException e) {
