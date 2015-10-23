@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
@@ -35,7 +34,6 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
-import com.sonar.orchestrator.junit.Verifier;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.selenium.Selenese;
@@ -45,8 +43,6 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang.StringUtils;
 import org.junit.runner.Description;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +63,6 @@ public class Orchestrator extends SingleStartExternalResource {
   private Server server;
   private SeleneseRunner seleniumRunner;
   private BuildRunner buildRunner;
-  @VisibleForTesting
-  Verifier verifier;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
@@ -77,20 +71,11 @@ public class Orchestrator extends SingleStartExternalResource {
     this.config = config;
     this.distribution = distribution;
     this.licenses = new Licenses();
-    this.verifier = Verifier.allTestsInSuite();
   }
 
   @Override
   public Statement apply(Statement base, Description description) {
-    if (isSuite(description)) {
-      this.verifier.apply(base, description);
-    }
     return super.apply(base, description);
-  }
-
-  private boolean isSuite(Description description) {
-    RunWith annotation = description.getAnnotation(RunWith.class);
-    return annotation != null && annotation.value().equals(Suite.class);
   }
 
   @Override
