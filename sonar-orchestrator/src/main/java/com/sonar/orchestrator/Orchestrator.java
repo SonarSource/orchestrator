@@ -42,8 +42,6 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang.StringUtils;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
