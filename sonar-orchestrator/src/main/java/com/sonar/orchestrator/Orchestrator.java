@@ -74,11 +74,6 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   @Override
-  public Statement apply(Statement base, Description description) {
-    return super.apply(base, description);
-  }
-
-  @Override
   protected void beforeAll() {
     start();
   }

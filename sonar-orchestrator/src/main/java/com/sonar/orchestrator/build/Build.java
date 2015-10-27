@@ -102,7 +102,7 @@ public abstract class Build<T extends Build<T>> {
   }
 
   public Map<String, String> getEffectiveEnvironmentVariables() {
-    Map<String, String> result = new HashMap<String, String>();
+    Map<String, String> result = new HashMap<>();
     result.putAll(doGetEnvironmentVariablePrefixes());
     for (Map.Entry<String, String> entry : env.entrySet()) {
       String value = result.get(entry.getKey());
@@ -120,7 +120,7 @@ public abstract class Build<T extends Build<T>> {
    * that values are prefixed to variables set by caller.
    */
   protected Map<String, String> doGetEnvironmentVariablePrefixes() {
-    return new HashMap<String, String>();
+    return new HashMap<>();
   }
 
   /**

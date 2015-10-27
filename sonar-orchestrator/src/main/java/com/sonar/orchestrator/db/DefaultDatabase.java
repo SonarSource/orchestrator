@@ -182,7 +182,7 @@ public final class DefaultDatabase implements Database {
   }
 
   private List<Map<String, String>> executeSql(Connection connection, String sql) {
-    List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+    List<Map<String, String>> list = new ArrayList<>();
     Statement stmt = null;
     ResultSet rs = null;
     try {
@@ -191,7 +191,7 @@ public final class DefaultDatabase implements Database {
 
       ResultSetMetaData rsmd = rs.getMetaData();
       while (rs.next()) {
-        Map<String, String> row = new HashMap<String, String>();
+        Map<String, String> row = new HashMap<>();
         for (int i = 1; i <= rsmd.getColumnCount(); i++) {
           String columnName = StringUtils.upperCase(rsmd.getColumnName(i));
           row.put(columnName, rs.getString(i));

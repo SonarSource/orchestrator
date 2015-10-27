@@ -31,7 +31,7 @@ public class SonarItDslInterpreter {
   private final LexerlessGrammar grammar = SonarItDslGrammar.createGrammar();
 
   public List<Command> interpret(String dsl) {
-    ParserAdapter<LexerlessGrammar> parser = new ParserAdapter<LexerlessGrammar>(Charsets.UTF_8, grammar);
+    ParserAdapter<LexerlessGrammar> parser = new ParserAdapter<>(Charsets.UTF_8, grammar);
     AstNode ast = parser.parse(dsl);
     DslTransformation transformation = new DslTransformation();
     return transformation.transform(ast);
