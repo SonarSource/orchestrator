@@ -21,6 +21,7 @@ public class ResetDataWebService implements WebService {
 
     controller.createAction("reset")
       .setDescription("Reset data")
+      .setSince("Orchestrator 3.4")
       .setInternal(true)
       .setPost(true)
       .setHandler(new RequestHandler() {
