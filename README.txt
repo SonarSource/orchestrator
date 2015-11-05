@@ -1,5 +1,7 @@
+[![Build Status](https://travis-ci.org/SonarSource/orchestrator.svg)](https://travis-ci.org/SonarSource/orchestrator)
+
 # How to build
-mvn clean install
+`mvn clean install`
 
 # Prerequisites
 # Make sure you have your proper orchestrator.properties file, and MAVEN_HOME variable set
