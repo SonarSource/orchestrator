@@ -24,13 +24,12 @@ import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
+import java.io.File;
+import java.net.URL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.net.URL;
 
 /**
  * Installs a given version of sonar-runner. It finds the zip into :
@@ -41,12 +40,12 @@ import java.net.URL;
  *
  * @since 2.1
  */
-public class SonarRunnerInstaller {
-  private static final Logger LOG = LoggerFactory.getLogger(SonarRunnerInstaller.class);
+public class SonarScannerInstaller {
+  private static final Logger LOG = LoggerFactory.getLogger(SonarScannerInstaller.class);
 
   private final FileSystem fileSystem;
 
-  public SonarRunnerInstaller(FileSystem fileSystem) {
+  public SonarScannerInstaller(FileSystem fileSystem) {
     this.fileSystem = fileSystem;
   }
 
@@ -56,7 +55,7 @@ public class SonarRunnerInstaller {
   public File install(Version runnerVersion, File toDir) {
     clearCachedSnapshot(runnerVersion, toDir);
     if (!isInstalled(runnerVersion, toDir)) {
-      LOG.info("Installing sonar-runner " + runnerVersion);
+      LOG.info("Installing sonar-scanner " + runnerVersion);
       doInstall(runnerVersion, toDir);
     }
     return locateInstalledScript(runnerVersion, toDir);
@@ -67,30 +66,30 @@ public class SonarRunnerInstaller {
     File zipFile = locateZip(runnerVersion);
 
     if (zipFile == null || !zipFile.exists()) {
-      throw new IllegalArgumentException("Unsupported sonar-runner version: " + runnerVersion);
+      throw new IllegalArgumentException("Unsupported sonar-scanner version: " + runnerVersion);
     }
 
     try {
       ZipUtils.unzip(zipFile, toDir);
     } catch (Exception e) {
-      throw new IllegalStateException("Fail to unzip sonar-runner " + runnerVersion + " to " + toDir, e);
+      throw new IllegalStateException("Fail to unzip sonar-scanner " + runnerVersion + " to " + toDir, e);
     }
   }
 
-  private File locateZip(Version runnerVersion) {
+  private File locateZip(Version scannerVersion) {
     File zipFile = null;
-    URL zip = SonarRunnerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-runner-dist-" + runnerVersion.toString() + ".zip");
+    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-runner-dist-" + scannerVersion.toString() + ".zip");
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
-        zipFile = File.createTempFile("sonar-runner-dist-" + runnerVersion, "zip");
+        zipFile = File.createTempFile("sonar-runner-dist-" + scannerVersion, "zip");
         FileUtils.copyURLToFile(zip, zipFile);
       } catch (Exception e) {
         throw new IllegalStateException("Fail to unzip " + zip + " to " + zipFile, e);
       }
     } else {
-      LoggerFactory.getLogger(SonarRunnerInstaller.class).info("Searching for sonar-runner " + runnerVersion.toString() + " in maven repositories");
-      zipFile = fileSystem.locate(mavenLocation(runnerVersion));
+      LoggerFactory.getLogger(SonarScannerInstaller.class).info("Searching for sonar-scanner " + scannerVersion.toString() + " in maven repositories");
+      zipFile = fileSystem.locate(mavenLocation(scannerVersion));
     }
     return zipFile;
   }
@@ -99,8 +98,8 @@ public class SonarRunnerInstaller {
     String groupId;
     String artifactId;
     if (runnerVersion.isGreaterThanOrEquals("2.5")) {
-      groupId = "org.sonarsource.sonar-runner";
-      artifactId = "sonar-runner-dist";
+      groupId = "org.sonarsource.scanner";
+      artifactId = "sonar-scanner";
     } else if (runnerVersion.isGreaterThan("2.0")) {
       groupId = "org.codehaus.sonar.runner";
       artifactId = "sonar-runner-dist";
@@ -119,7 +118,7 @@ public class SonarRunnerInstaller {
   private static void clearCachedSnapshot(Version runnerVersion, File toDir) {
     File runnerDir = new File(toDir, directoryName(runnerVersion));
     if (runnerVersion.isSnapshot() && runnerDir.exists()) {
-      LOG.info("Delete sonar-runner cache: {}", runnerDir);
+      LOG.info("Delete sonar-scanner cache: {}", runnerDir);
       FileUtils.deleteQuietly(runnerDir);
     }
   }
@@ -127,7 +126,7 @@ public class SonarRunnerInstaller {
   private static boolean isInstalled(Version runnerVersion, File toDir) {
     File runnerDir = new File(toDir, directoryName(runnerVersion));
     if (runnerDir.isDirectory() && runnerDir.exists()) {
-      LOG.debug("Sonar runner {} already exists at {}", runnerVersion, runnerDir);
+      LOG.debug("SonarQube Scanner {} already exists at {}", runnerVersion, runnerDir);
       return true;
     }
     return false;
@@ -143,6 +142,10 @@ public class SonarRunnerInstaller {
   }
 
   private static String directoryName(Version runnerVersion) {
-    return "sonar-runner-" + runnerVersion.toString();
+    if (runnerVersion.isGreaterThanOrEquals("2.5")) {
+      return "sonar-scanner-" + runnerVersion.toString();
+    } else {
+      return "sonar-runner-" + runnerVersion.toString();
+    }
   }
 }

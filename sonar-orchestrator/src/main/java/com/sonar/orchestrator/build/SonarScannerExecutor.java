@@ -30,17 +30,17 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 
-class SonarRunnerExecutor extends AbstractBuildExecutor<SonarRunner> {
+class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
 
   private static final String SONAR_RUNNER_OPTS = "SONAR_RUNNER_OPTS";
 
   @Override
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
-    return execute(build, config, adjustedProperties, new SonarRunnerInstaller(config.fileSystem()), create);
+    return execute(build, config, adjustedProperties, new SonarScannerInstaller(config.fileSystem()), create);
   }
 
   @VisibleForTesting
-  BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarRunnerInstaller installer,
+  BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
     File runnerScript = installer.install(build.runnerVersion(), config.fileSystem().workspace());

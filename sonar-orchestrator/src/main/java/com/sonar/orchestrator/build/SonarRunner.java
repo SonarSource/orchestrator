@@ -32,8 +32,9 @@ import javax.annotation.Nullable;
  * Executes the sonar-runner script. In-process mode is not supported yet.
  *
  * @since 2.1
+ * @deprecated since 3.8 use {@link SonarScanner}
  */
-public final class SonarRunner extends Build<SonarRunner> {
+public class SonarRunner extends Build<SonarRunner> {
 
   public static final String DEFAULT_RUNNER_VERSION = "2.4";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
@@ -46,7 +47,7 @@ public final class SonarRunner extends Build<SonarRunner> {
   private boolean showErrors = true;
   private String task;
 
-  private SonarRunner() {
+  SonarRunner() {
   }
 
   @Override
@@ -163,7 +164,7 @@ public final class SonarRunner extends Build<SonarRunner> {
   @Override
   BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
     check();
-    return new SonarRunnerExecutor().execute(this, config, adjustedProperties);
+    return new SonarScannerExecutor().execute(this, config, adjustedProperties);
   }
 
   void check() {
