@@ -4,5 +4,9 @@ jdk: oraclejdk7
 install: true
 script: ./travis.sh
 
+env:
+  global:
+    - PR_ANALYSIS=true
+
 notifications:
   email: false
