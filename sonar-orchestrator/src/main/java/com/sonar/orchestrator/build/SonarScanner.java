@@ -157,7 +157,7 @@ public class SonarScanner extends SonarRunner {
   }
 
   public static SonarScanner create() {
-    return (SonarScanner) new SonarScanner()
+    return new SonarScanner()
       // default value
       .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING)
       .setProperty("sonar.scm.disabled", String.valueOf(DEFAULT_SCM_DISABLED));
@@ -166,10 +166,10 @@ public class SonarScanner extends SonarRunner {
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
     return
     // default value
-    (SonarScanner) create()
-      // incoming values
-      .setProjectDir(projectDir)
-      .setProperties(keyValueProperties);
+      create()
+        // incoming values
+        .setProjectDir(projectDir)
+        .setProperties(keyValueProperties);
   }
 
   @Override

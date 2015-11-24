@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
  * @since 2.1
  * @deprecated since 3.8 use {@link SonarScanner}
  */
+@Deprecated
 public class SonarRunner extends Build<SonarRunner> {
 
   public static final String DEFAULT_RUNNER_VERSION = "2.4";
