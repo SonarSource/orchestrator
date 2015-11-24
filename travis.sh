@@ -23,14 +23,14 @@ if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; 
   mvn sonar:sonar -B -e -V \
      -Dsonar.host.url=$SONAR_HOST_URL \
      -Dsonar.login=$SONAR_LOGIN \
-     -Dsonar.password=$SONAR_PASSWD
+     -Dsonar.password=$SONAR_PASSWORD
 
 
-elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "$SONAR_GITHUB_OAUTH" ]; then
+elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "$GITHUB_TOKEN" ]; then
   # For security reasons environment variables are not available on the pull requests
   # coming from outside repositories
   # http://docs.travis-ci.com/user/pull-requests/#Security-Restrictions-when-testing-Pull-Requests
-  # That's why the analysis does not need to be executed if the variable SONAR_GITHUB_OAUTH is not defined.
+  # That's why the analysis does not need to be executed if the variable GITHUB_TOKEN is not defined.
 
   echo 'Build and analyze pull request'
   # this pull request must be built and analyzed (without upload of report)
@@ -44,10 +44,10 @@ elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "$SONAR_GITHUB_OAUTH" ]; then
       -Dsonar.analysis.mode=issues \
       -Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST \
       -Dsonar.github.repository=$TRAVIS_REPO_SLUG \
-      -Dsonar.github.oauth=$SONAR_GITHUB_OAUTH \
+      -Dsonar.github.oauth=$GITHUB_TOKEN \
       -Dsonar.host.url=$SONAR_HOST_URL \
       -Dsonar.login=$SONAR_LOGIN \
-      -Dsonar.password=$SONAR_PASSWD
+      -Dsonar.password=$SONAR_PASSWORD
 
 
 else
