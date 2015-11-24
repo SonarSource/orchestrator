@@ -26,7 +26,12 @@ if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; 
      -Dsonar.password=$SONAR_PASSWD
 
 
-elif [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "$SONAR_GITHUB_OAUTH" ]; then
+  # For security reasons environment variables are not available on the pull requests
+  # coming from outside repositories
+  # http://docs.travis-ci.com/user/pull-requests/#Security-Restrictions-when-testing-Pull-Requests
+  # That's why the analysis does not need to be executed if the variable SONAR_GITHUB_OAUTH is not defined.
+
   echo 'Build and analyze pull request'
   # this pull request must be built and analyzed (without upload of report)
   mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
