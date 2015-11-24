@@ -12,6 +12,7 @@ function installTravisTools {
 installTravisTools
 
 if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  echo 'Build and analyze commit in master'
   # this commit is master must be built and analyzed (with upload of report)
   mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 
@@ -26,6 +27,7 @@ if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; 
 
 
 elif [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+  echo 'Build and analyze pull request'
   # this pull request must be built and analyzed (without upload of report)
   mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 
@@ -44,6 +46,7 @@ elif [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
 
 
 else
+  echo 'Build, no analysis'
   # Build branch, without any analysis
   mvn verify -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 fi
