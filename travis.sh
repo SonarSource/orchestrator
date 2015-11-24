@@ -23,7 +23,7 @@ then
   mvn sonar:sonar -B -e -V \
      -Dsonar.host.url=$SONAR_HOST_URL \
      -Dsonar.login=$SONAR_LOGIN \
-     -Dsonar.password=$SONAR_PASSWORD
+     -Dsonar.password=$SONAR_PASSWD
 
 
 elif [ "$TRAVIS_PULL_REQUEST" != "false" ]
@@ -41,7 +41,7 @@ elif [ "$TRAVIS_PULL_REQUEST" != "false" ]
       -Dsonar.github.oauth=$SONAR_GITHUB_OAUTH \
       -Dsonar.host.url=$SONAR_HOST_URL \
       -Dsonar.login=$SONAR_LOGIN \
-      -Dsonar.password=$SONAR_PASSWORD
+      -Dsonar.password=$SONAR_PASSWD
 
 
 else
