@@ -11,8 +11,7 @@ function installTravisTools {
 # We need some private jars like oracle
 installTravisTools
 
-if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]
-then
+if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   # this commit is master must be built and analyzed (with upload of report)
   mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 
@@ -26,7 +25,7 @@ then
      -Dsonar.password=$SONAR_PASSWD
 
 
-elif [ "$TRAVIS_PULL_REQUEST" != "false" ]
+elif [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   # this pull request must be built and analyzed (without upload of report)
   mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 
