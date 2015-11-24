@@ -79,6 +79,7 @@
 
   <profiles>
     <profile>
+      <!-- enable tracking of tests during analysis -->
       <id>coverage-per-test</id>
       <activation>
         <property>

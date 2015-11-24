@@ -14,7 +14,7 @@ installTravisTools
 if [ "${TRAVIS_BRANCH}" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]
 then
   # this commit is master must be built and analyzed (with upload of report)
-  mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -B -e -V
+  mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 
   # Switch to java 8 as the Dory HTTPS certificate is not supported by Java 7
   export JAVA_HOME=/usr/lib/jvm/java-8-oracle
@@ -28,7 +28,7 @@ then
 
 elif [ "$TRAVIS_PULL_REQUEST" != "false" ]
   # this pull request must be built and analyzed (without upload of report)
-  mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -B -e -V
+  mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 
   # Switch to java 8 as the Dory HTTPS certificate is not supported by Java 7
   export JAVA_HOME=/usr/lib/jvm/java-8-oracle
@@ -46,5 +46,5 @@ elif [ "$TRAVIS_PULL_REQUEST" != "false" ]
 
 else
   # Build branch, without any analysis
-  mvn verify -B -e -V -Dmaven.test.redirectTestOutputToFile=false
+  mvn verify -Dmaven.test.redirectTestOutputToFile=false -B -e -V
 fi
