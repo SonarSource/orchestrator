@@ -45,7 +45,7 @@ public class StartServerCommandTest {
   public static void prepare() {
     updateCenterUrl = OrchestratorBuilderTest.class.getResource("/update-center-test.properties");
     SETTINGS = ImmutableMap.of(
-      "sonar.runtimeVersion", "3.3",
+      "sonar.runtimeVersion", "4.5.6",
       "sonar.jdbc.dialect", "h2",
       "orchestrator.updateCenterUrl", updateCenterUrl.toString()
       );
@@ -61,7 +61,7 @@ public class StartServerCommandTest {
     Orchestrator orchestrator = command.initOrchestrator(context);
 
     assertThat(orchestrator).isNotNull();
-    assertThat(orchestrator.getConfiguration().getString("sonar.runtimeVersion")).isEqualTo("3.3");
+    assertThat(orchestrator.getConfiguration().getString("sonar.runtimeVersion")).isEqualTo("4.5.6");
     assertThat(orchestrator.getConfiguration().getString("sonar.jdbc.dialect")).isEqualTo("h2");
   }
 

@@ -26,12 +26,10 @@ import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.OrchestratorBuilder;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.locator.MavenLocation;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.apache.commons.lang.StringUtils;
-import org.sonar.updatecenter.common.Release;
 
 public class StartServerCommand extends Command {
 
@@ -67,12 +65,12 @@ public class StartServerCommand extends Command {
   private void initPlugins(OrchestratorBuilder builder) {
     for (Plugin plugin : plugins) {
       try {
-        Release r = builder.getUpdateCenter().getUpdateCenterPluginReferential().findPlugin(plugin.key).getRelease(plugin.version);
-        builder.addPlugin(MavenLocation.create(r.groupId(), r.artifactId(), r.getVersion().toString()));
+        builder.setOrchestratorProperty(plugin.key + "Version", plugin.version);
+        builder.addPlugin(plugin.key);
         builder.activateLicense(plugin.key);
 
       } catch (NoSuchElementException e) {
-        throw new IllegalStateException("Unable to find plugin " + plugin.key + " version " + plugin.version + " in update center", e);
+        throw new IllegalStateException(String.format("Unable to find plugin %s version %s in update center", plugin.key, plugin.version), e);
       }
     }
   }
