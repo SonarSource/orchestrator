@@ -45,6 +45,11 @@
     <url>https://github.com/SonarSource/sonar-orchestrator</url>
     <tag>HEAD</tag>
   </scm>
+  
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://jira.sonarsource.com/browse/ORCH</url>
+  </issueManagement>
 
   <build>
     <plugins>
