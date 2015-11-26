@@ -25,6 +25,8 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,10 +35,10 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -147,27 +149,6 @@ public class SonarDownloaderTest {
     assertThat(zip).isEqualTo(snapshotFile);
     assertThat(zip).exists();
     assertThat(FileUtils.readFileToString(zip)).isNotEqualTo("old version of zip");
-  }
-
-  @Test
-  public void shouldDownload() {
-    // The file may have already been downloaded, so first
-    SonarDistribution sonar = new SonarDistribution(Version.create("5.1.2"));
-    File zip = downloader.downloadZip(sonar);
-    zip.delete();
-    assertThat(zip).doesNotExist();
-    zip = downloader.downloadZip(sonar);
-    // Let's say that download time is at worst 5min
-    assertThat(zip.lastModified() >= System.currentTimeMillis() - 300000L).isTrue();
-  }
-
-  @Test
-  public void shouldDownloadAndUnzip() {
-    SonarDistribution sonar = new SonarDistribution(Version.create("5.1.2"));
-
-    File folder = downloader.downloadAndUnzip(sonar);
-
-    assertThat(folder).isDirectory();
   }
 
   @Test
