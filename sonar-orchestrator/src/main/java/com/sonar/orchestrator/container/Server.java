@@ -213,7 +213,6 @@ public class Server {
       throw new IllegalStateException("Fail to restore profile backup", e);
 
     } finally {
-      client.getConnectionManager().shutdown();
       client.close();
     }
   }

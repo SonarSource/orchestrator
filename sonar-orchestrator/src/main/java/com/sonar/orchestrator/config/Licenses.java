@@ -26,7 +26,6 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -55,20 +54,19 @@ public class Licenses {
   }
 
   private String downloadFromGithub(String pluginKey) {
-    HttpClient client = new DefaultHttpClient();
-    HttpGet request = new HttpGet(rootUrl + pluginKey + ".txt");
-
-    request.addHeader("Authorization", "token " + findGithubToken());
-
+    String url = rootUrl + pluginKey + ".txt";
+    DefaultHttpClient client = new DefaultHttpClient();
     try {
+      HttpGet request = new HttpGet(url);
+      request.addHeader("Authorization", "token " + findGithubToken());
       LoggerFactory.getLogger(getClass()).info("Requesting license " + request.getURI());
       return StringUtils.defaultString(client.execute(request, new BasicResponseHandler()));
     } catch (ClientProtocolException e) {
       LOG.debug("Exception hold ", e);
     } catch (IOException e) {
-      throw new IllegalStateException("Fail to request license: " + request.getURI(), e);
+      throw new IllegalStateException("Fail to request license: " + url, e);
     } finally {
-      client.getConnectionManager().shutdown();
+      client.close();
     }
 
     return "";
