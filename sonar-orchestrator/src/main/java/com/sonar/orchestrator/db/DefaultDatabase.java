@@ -21,12 +21,6 @@ package com.sonar.orchestrator.db;
 
 import com.google.common.collect.Lists;
 import com.sonar.orchestrator.config.Configuration;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -39,6 +33,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class DefaultDatabase implements Database {
 
@@ -136,7 +134,7 @@ public final class DefaultDatabase implements Database {
       }
       LOG.info("Delete resource related data");
       for (String relatedTable : RESOURCE_RELATED_TABLES) {
-        deleteWhereResoureIdNotNull(relatedTable, connection);
+        deleteWhereResourceIdNotNull(relatedTable, connection);
       }
       return this;
 
@@ -228,8 +226,8 @@ public final class DefaultDatabase implements Database {
       // ORCH-172
       throw new IllegalStateException("Table name [" + tableName + "] should be lowercase to avoid issues");
     }
-    try {
-      connection.prepareStatement("TRUNCATE TABLE " + tableName).execute();
+    try (Statement stmt = connection.createStatement()) {
+      stmt.execute("TRUNCATE TABLE " + tableName);
       // commit is useless on some databases
       connection.commit();
     } catch (SQLException e) {
@@ -239,9 +237,9 @@ public final class DefaultDatabase implements Database {
     return this;
   }
 
-  private DefaultDatabase deleteWhereResoureIdNotNull(String tableName, Connection connection) {
-    try {
-      connection.prepareStatement("DELETE FROM " + tableName + " WHERE resource_id IS NOT NULL").execute();
+  private DefaultDatabase deleteWhereResourceIdNotNull(String tableName, Connection connection) {
+    try(Statement stmt = connection.createStatement()) {
+      stmt.execute("DELETE FROM " + tableName + " WHERE resource_id IS NOT NULL");
       // commit is useless on some databases
       connection.commit();
     } catch (SQLException e) {
@@ -351,10 +349,10 @@ public final class DefaultDatabase implements Database {
       TimeUnit.SECONDS.sleep(kSecBetweenKillFactor * (kNbAttempts - attemptToGo));
 
       for (String spid : spids) {
-        try {
+        try(Statement stmt = connection.createStatement()) {
           String sql = databaseClient.getKillConnectionSql(spid);
           LOG.warn("Kill JDBC orphan " + sql);
-          connection.prepareStatement(sql).execute();
+          stmt.execute(sql);
           // commit is useless on some databases
           connection.commit();
         } catch (SQLException e) {

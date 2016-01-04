@@ -56,8 +56,7 @@ public final class ZipUtils {
   @VisibleForTesting
   static void javaUnzip(File zip, File toDir) {
     try {
-      ZipFile zipFile = new ZipFile(zip);
-      try {
+      try(ZipFile zipFile = new ZipFile(zip)) {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
           ZipEntry entry = entries.nextElement();
@@ -78,8 +77,6 @@ public final class ZipUtils {
             }
           }
         }
-      } finally {
-        zipFile.close();
       }
     } catch (Exception e) {
       throw new IllegalStateException("Fail to unzip " + zip + " to " + toDir, e);
