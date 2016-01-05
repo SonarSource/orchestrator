@@ -21,11 +21,11 @@ package com.sonar.orchestrator.config;
 
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.InputStream;
+import javax.annotation.CheckForNull;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
 
 public class FileSystem {
   private final Configuration config;
@@ -118,10 +118,12 @@ public class FileSystem {
     return mavenLocalRepository;
   }
 
+  @CheckForNull
   public File mavenHome() {
     return mavenHome;
   }
 
+  @CheckForNull
   public File antHome() {
     return antHome;
   }

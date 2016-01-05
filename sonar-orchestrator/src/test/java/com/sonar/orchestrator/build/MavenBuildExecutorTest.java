@@ -26,19 +26,29 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.apache.commons.lang.SystemUtils;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import org.apache.commons.lang.SystemUtils;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class MavenBuildExecutorTest {
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testDebugMode() throws IOException {
@@ -58,6 +68,21 @@ public class MavenBuildExecutorTest {
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
     assertThat(result.getLogs()).contains("[INFO] BUILD SUCCESS");
+  }
+
+  // ORCH-351
+  @Test
+  public void shouldOverrideM2_HOME() throws Exception {
+    Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
+    MavenBuild build = MavenBuild.create(pom).addGoal("clean");
+
+    File mavenHome = new File(this.getClass().getResource("MavenBuildExecutorTest/fake_maven").toURI());
+    new File(mavenHome, "bin/mvn").setExecutable(true);
+    BuildResult result = new MavenBuildExecutor().execute(build,
+      Configuration.builder().addEnvVariables().addSystemProperties().setProperty("maven.home", mavenHome.getAbsolutePath()).build(),
+      Maps.<String, String>newHashMap());
+
+    assertThat(result.getLogs()).contains("M2_HOME=" + mavenHome.getPath());
   }
 
   // ORCH-179

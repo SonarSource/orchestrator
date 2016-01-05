@@ -25,13 +25,13 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import javax.annotation.Nullable;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
+import org.slf4j.LoggerFactory;
 
 class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
 
@@ -51,12 +51,17 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
   private void executeGoal(MavenBuild build, Configuration config, Map<String, String> adjustedProperties, String goal,
     final BuildResult result, CommandExecutor commandExecutor) {
     try {
-      Command command = Command.create(getMvnPath(config.fileSystem().mavenHome()));
+      File mavenHome = config.fileSystem().mavenHome();
+      Command command = Command.create(getMvnPath(mavenHome));
       if (build.getExecutionDir() != null) {
         command.setDirectory(build.getExecutionDir());
       }
       for (Map.Entry<String, String> env : build.getEffectiveEnvironmentVariables().entrySet()) {
         command.setEnvironmentVariable(env.getKey(), env.getValue());
+      }
+      if (mavenHome != null) {
+        // Force M2_HOME to override default value from calling env
+        command.setEnvironmentVariable("M2_HOME", mavenHome.getAbsolutePath());
       }
       // allow to set "clean install" in the same process
       command.addArguments(StringUtils.split(goal, " "));
@@ -85,7 +90,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
     }
   }
 
-  static String getMvnPath(File mvnHome) throws IOException {
+  static String getMvnPath(@Nullable File mvnHome) throws IOException {
     String program = "mvn";
     if (SystemUtils.IS_OS_WINDOWS) {
       program += ".bat";
