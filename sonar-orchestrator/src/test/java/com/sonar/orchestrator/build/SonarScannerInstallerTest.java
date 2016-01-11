@@ -139,8 +139,8 @@ public class SonarScannerInstallerTest {
     MavenLocation location = SonarScannerInstaller.mavenLocation(Version.create("2.5"));
     assertThat(location.getPackaging()).isEqualTo("zip");
     assertThat(location.version()).isEqualTo(Version.create("2.5"));
-    assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner");
-    assertThat(location.getArtifactId()).isEqualTo("sonar-scanner");
+    assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.cli");
+    assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-cli");
   }
 
   @Test

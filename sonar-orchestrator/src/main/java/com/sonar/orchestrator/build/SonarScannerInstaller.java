@@ -52,13 +52,13 @@ public class SonarScannerInstaller {
   /**
    * Installs an ephemeral sonar-runner and returns the path to the script to execute
    */
-  public File install(Version runnerVersion, File toDir) {
-    clearCachedSnapshot(runnerVersion, toDir);
-    if (!isInstalled(runnerVersion, toDir)) {
-      LOG.info("Installing sonar-scanner " + runnerVersion);
-      doInstall(runnerVersion, toDir);
+  public File install(Version scannerVersion, File toDir) {
+    clearCachedSnapshot(scannerVersion, toDir);
+    if (!isInstalled(scannerVersion, toDir)) {
+      LOG.info("Installing sonar-scanner " + scannerVersion);
+      doInstall(scannerVersion, toDir);
     }
-    return locateInstalledScript(runnerVersion, toDir);
+    return locateInstalledScript(scannerVersion, toDir);
   }
 
   @VisibleForTesting
@@ -94,13 +94,13 @@ public class SonarScannerInstaller {
     return zipFile;
   }
 
-  static MavenLocation mavenLocation(Version runnerVersion) {
+  static MavenLocation mavenLocation(Version scannerVersion) {
     String groupId;
     String artifactId;
-    if (runnerVersion.isGreaterThanOrEquals("2.5")) {
-      groupId = "org.sonarsource.scanner";
-      artifactId = "sonar-scanner";
-    } else if (runnerVersion.isGreaterThan("2.0")) {
+    if (scannerVersion.isGreaterThanOrEquals("2.5")) {
+      groupId = "org.sonarsource.scanner.cli";
+      artifactId = "sonar-scanner-cli";
+    } else if (scannerVersion.isGreaterThan("2.0")) {
       groupId = "org.codehaus.sonar.runner";
       artifactId = "sonar-runner-dist";
     } else {
@@ -110,7 +110,7 @@ public class SonarScannerInstaller {
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
-      .setVersion(runnerVersion)
+      .setVersion(scannerVersion)
       .withPackaging("zip")
       .build();
   }
