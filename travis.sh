@@ -13,11 +13,10 @@ installTravisTools
 
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo 'Build and analyze commit in master'
-  # this commit is master must be built and analyzed (with upload of report)
   mvn org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar \
     -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false \
     -Dsonar.host.url=$SONAR_HOST_URL \
-    -Dsonar.login=$SONAR_TOKEN
+    -Dsonar.login=$SONAR_TOKEN \
     -B -e -V
 
 elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$TRAVIS_SECURE_ENV_VARS" == "true" ]; then
