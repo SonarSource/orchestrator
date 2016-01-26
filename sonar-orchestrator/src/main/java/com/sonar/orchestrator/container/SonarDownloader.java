@@ -30,10 +30,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import javax.annotation.CheckForNull;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.Release;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class SonarDownloader {
   private static final Logger LOG = LoggerFactory.getLogger(SonarDownloader.class);
@@ -61,10 +65,9 @@ public class SonarDownloader {
       }
     }
 
-    LOG.info("Download " + distrib.zipFilename() + " in " + toDir.getAbsolutePath());
     File zip = downloadZip(distrib);
 
-    LOG.info("Unzip " + zip);
+    LOG.info("Unzip {} to {}", zip, toDir);
     ZipUtils.unzip(zip, toDir);
 
     return new File(toDir, distrib.unzippedDirname());
@@ -73,8 +76,9 @@ public class SonarDownloader {
   public File downloadZip(SonarDistribution distrib) {
     File zip = zips.get(distrib);
     if (zip.exists()) {
-      LOG.info("Distribution found: " + zip);
+      LOG.info("SonarQube found in cache: {}",  zip);
     } else {
+      LOG.info("SonarQube not found in cache");
       zip = downloadZipToFile(distrib, zip);
       zips.setAsUpToDate(zip);
     }
@@ -93,7 +97,6 @@ public class SonarDownloader {
   }
 
   private File searchInMavenRepositories(SonarDistribution distribution, File toFile) {
-    LOG.info("Searching for zip in Maven repositories");
     // search for zip in maven repositories
     MavenLocation location = MavenLocation.builder()
       .setGroupId("org.codehaus.sonar")
@@ -112,28 +115,31 @@ public class SonarDownloader {
       result = fileSystem.copyToFile(location, toFile);
     }
     if (result != null && result.exists()) {
-      LOG.info("Found zip in Maven repositories");
+      LOG.info("SonarQube found in Maven local repository [{}]: ", fileSystem.mavenLocalRepository(), location);
+    } else {
+      LOG.info("SonarQube not found in Maven local repository [{}]", fileSystem.mavenLocalRepository());
     }
     return result;
   }
 
   @VisibleForTesting
+  @CheckForNull
   String getDownloadUrl(SonarDistribution distribution) {
     for (Release release : configuration.updateCenter().getSonar().getReleases()) {
       if (release.getVersion().getName().equals(distribution.version().toString())) {
         return release.getDownloadUrl();
       }
     }
-
-    throw new IllegalArgumentException("This version is not listed on update center: " + distribution.version());
+    return null;
   }
 
+  @CheckForNull
   private File downloadFromDist(SonarDistribution distribution, File toFile) {
-    if (!distribution.isRelease()) {
+    String fileUrl = getDownloadUrl(distribution);
+    if (isBlank(fileUrl)) {
+      LOG.info("SonarQube version {} is not defined in update center", distribution.version());
       return null;
     }
-
-    String fileUrl = getDownloadUrl(distribution);
     File tempFile = null;
     try {
       FileUtils.forceMkdir(toFile.getParentFile());

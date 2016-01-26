@@ -106,9 +106,9 @@ public class SonarDownloaderTest {
   }
 
   @Test
-  public void shouldFailDownload() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("This version is not listed on update center: dummy");
+  public void shouldFailIfZipNotFound() {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Can not find sonarqube-dummy.zip");
 
     downloader.downloadZip(new SonarDistribution(Version.create("dummy")));
   }
