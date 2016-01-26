@@ -151,12 +151,4 @@ public final class SonarDistribution {
     this.removeDistributedPlugins = remove;
     return this;
   }
-
-  public String zipFilename() {
-    return unzippedDirname() + ".zip";
-  }
-
-  public String unzippedDirname() {
-    return String.format("sonarqube-%s", version.toString());
-  }
 }

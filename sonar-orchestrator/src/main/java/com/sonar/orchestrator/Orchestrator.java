@@ -28,7 +28,6 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.config.Licenses;
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.container.ServerInstaller;
 import com.sonar.orchestrator.container.ServerWrapper;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
@@ -38,6 +37,8 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.selenium.Selenese;
 import com.sonar.orchestrator.selenium.SeleneseRunner;
+import com.sonar.orchestrator.server.ServerInstaller;
+import com.sonar.orchestrator.server.ServerZipFinder;
 import com.sonar.orchestrator.util.NetworkUtils;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,13 +106,14 @@ public class Orchestrator extends SingleStartExternalResource {
       port = NetworkUtils.getNextAvailablePort();
     }
     distribution.setPort(port);
-    FileSystem fileSystem = config.fileSystem();
-    ServerInstaller serverInstaller = new ServerInstaller(fileSystem, database.getClient(), licenses, config);
+    FileSystem fs = config.fileSystem();
+    ServerZipFinder zipFinder = new ServerZipFinder(fs, config.updateCenter());
+    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, fs, database.getClient(), licenses);
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d%s", port, StringUtils.removeEnd(distribution.getContext(), "/")));
     server.setPort(port);
 
-    serverWrapper = new ServerWrapper(server, config, fileSystem.javaHome());
+    serverWrapper = new ServerWrapper(server, config, fs.javaHome());
     serverWrapper.start();
 
     for (Location backup : distribution.getProfileBackups()) {

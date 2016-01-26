@@ -75,17 +75,4 @@ public class SonarDistributionTest {
     distribution.removeServerProperty("foo");
     assertThat(distribution.getServerProperties().get("foo")).isNull();
   }
-
-  @Test
-  public void test_zipFilename() {
-    SonarDistribution distribution = new SonarDistribution();
-
-    distribution.setVersion(Version.create("4.0-SNAPSHOT"));
-    assertThat(distribution.zipFilename()).isEqualTo("sonarqube-4.0-SNAPSHOT.zip");
-    assertThat(distribution.unzippedDirname()).isEqualTo("sonarqube-4.0-SNAPSHOT");
-
-    distribution.setVersion(Version.create("4.5"));
-    assertThat(distribution.zipFilename()).isEqualTo("sonarqube-4.5.zip");
-    assertThat(distribution.unzippedDirname()).isEqualTo("sonarqube-4.5");
-  }
 }

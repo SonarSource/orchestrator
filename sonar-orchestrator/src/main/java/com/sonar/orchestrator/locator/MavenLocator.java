@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
+import javax.annotation.CheckForNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class MavenLocator implements Locator<MavenLocation> {
     return new URL(StringUtils.removeEnd(baseUrl.toString(), "/") + "/" + path);
   }
 
+  @CheckForNull
   private File locateInLocalRepository(MavenLocation location) {
     if (config.fileSystem().mavenLocalRepository() != null && config.fileSystem().mavenLocalRepository().exists()) {
       File file = new File(config.fileSystem().mavenLocalRepository(), path(location));

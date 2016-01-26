@@ -17,25 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.container;
+@ParametersAreNonnullByDefault
+package com.sonar.orchestrator.server;
 
-import org.junit.Test;
+import javax.annotation.ParametersAreNonnullByDefault;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class InstallationKeysTest {
-  @Test
-  public void generate_unique_key() {
-    Set<String> keys = new HashSet<>();
-    for (int i = 0; i < 1000; i++) {
-      String key = InstallationKeys.instance().next();
-      assertThat(key).isNotEmpty();
-      assertThat(key.length()).isLessThan(5);
-      assertThat(keys.contains(key)).isFalse();
-      keys.add(key);
-    }
-  }
-}

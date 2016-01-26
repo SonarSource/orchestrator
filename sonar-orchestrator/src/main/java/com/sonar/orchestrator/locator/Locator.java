@@ -21,8 +21,10 @@ package com.sonar.orchestrator.locator;
 
 import java.io.File;
 import java.io.InputStream;
+import javax.annotation.CheckForNull;
 
 public interface Locator<L extends Location> {
+  @CheckForNull
   File locate(L location);
 
   File copyToDirectory(L location, File toDir);

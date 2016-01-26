@@ -19,19 +19,26 @@
  */
 package com.sonar.orchestrator.util;
 
+import java.io.IOException;
 import org.apache.commons.io.FileUtils;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipUtilsTest {
+
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
+
   File zip = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/util/ZipUtilsTest/shouldUnzipFile.zip"));
 
   @Test
-  public void shouldUnzipFile() {
-    File toDir = new File("target/tmp/shouldUnzipFile/");
+  public void shouldUnzipFile() throws IOException {
+    File toDir = temp.newFolder();
 
     ZipUtils.unzip(zip, toDir);
 
@@ -39,8 +46,8 @@ public class ZipUtilsTest {
   }
 
   @Test
-  public void shouldUnzipTwice() {
-    File toDir = new File("target/tmp/shouldUnzipFileTwice/");
+  public void shouldUnzipTwice() throws IOException {
+    File toDir = temp.newFolder();
 
     ZipUtils.unzip(zip, toDir);
     ZipUtils.unzip(zip, toDir);
@@ -49,8 +56,8 @@ public class ZipUtilsTest {
   }
 
   @Test
-  public void shouldUnzipJava() {
-    File toDir = new File("target/tmp/shouldUnzipFileJava/");
+  public void shouldUnzipJava() throws IOException {
+    File toDir = temp.newFolder();
 
     ZipUtils.javaUnzip(zip, toDir);
 

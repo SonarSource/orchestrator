@@ -2,15 +2,6 @@
 
 set -euo pipefail
 
-function installTravisTools {
-  mkdir ~/.local
-  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v21 | tar zx --strip-components 1 -C ~/.local
-  source ~/.local/bin/install
-}
-
-# We need some private jars like oracle
-installTravisTools
-
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo 'Build, deploy and analyze commit in master'
   mvn org.jacoco:jacoco-maven-plugin:prepare-agent deploy sonar:sonar \
@@ -45,3 +36,4 @@ else
     -B -e -V \
     -s settings-repox.xml
 fi
+
