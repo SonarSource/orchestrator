@@ -125,7 +125,7 @@ public class SonarDownloader {
   @VisibleForTesting
   @CheckForNull
   String getDownloadUrl(SonarDistribution distribution) {
-    for (Release release : configuration.updateCenter().getSonar().getReleases()) {
+    for (Release release : configuration.updateCenter().getSonar().getAllReleases()) {
       if (release.getVersion().getName().equals(distribution.version().toString())) {
         return release.getDownloadUrl();
       }
