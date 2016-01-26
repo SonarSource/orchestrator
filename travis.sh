@@ -13,13 +13,16 @@ installTravisTools
 
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo 'Build and analyze commit in master'
-  mvn org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar \
-    -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false \
+  mvn org.jacoco:jacoco-maven-plugin:prepare-agent deploy sonar:sonar \
+    -Pcoverage-per-test,deploy-artifactory \
+    -Dmaven.test.redirectTestOutputToFile=false \
     -Dsonar.host.url=$SONAR_HOST_URL \
     -Dsonar.login=$SONAR_TOKEN \
+    -Dartifactory.deploy.username=$REPOX_DEPLOY_USERNAME \
+    -Dartifactory.deploy.password=$REPOX_DEPLOY_PASSWORD \
     -B -e -V
 
-elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$TRAVIS_SECURE_ENV_VARS" == "true" ]; then
+elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
   echo 'Build and analyze pull request'
   mvn org.jacoco:jacoco-maven-plugin:prepare-agent verify \
     -Pcoverage-per-test -Dmaven.test.redirectTestOutputToFile=false -B -e -V \
