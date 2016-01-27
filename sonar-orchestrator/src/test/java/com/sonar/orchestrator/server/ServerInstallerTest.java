@@ -167,6 +167,19 @@ public class ServerInstallerTest {
   }
 
   @Test
+  public void do_not_set_license_if_value_is_not_defined() throws Exception {
+    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
+    distrib.activateLicense("cobol");
+    when(licenses.get("cobol")).thenReturn(null);
+    when(licenses.licensePropertyKey("cobol")).thenReturn("sonar.cobol.license.secured");
+
+    Server server = underTest.install(distrib);
+
+    assertThat(openPropertiesFile(server).getProperty("sonar.cobol.license.secured")).isNull();
+  }
+
+  @Test
   public void remove_bundled_plugins_by_default() throws Exception {
     when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
