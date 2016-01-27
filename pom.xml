@@ -24,7 +24,7 @@
     <guava.version>18.0</guava.version>
     <junit.version>4.12</junit.version>
     <slf4j.version>1.7.2</slf4j.version>
-    <sonar.exclusions>**/com/sonar/orchestrator/echo/**/*.java,**/com/sonar/orchestrator/test/**/*.java</sonar.exclusions>
+    <sonar.exclusions>**/com/sonar/orchestrator/echo/**/*.java,**/com/sonar/orchestrator/test/**/*.java,target/generated-sources/**/*</sonar.exclusions>
 
     <!-- deployment to SonarSource Artifactory -->
     <gitRepositoryName>orchestrator</gitRepositoryName>

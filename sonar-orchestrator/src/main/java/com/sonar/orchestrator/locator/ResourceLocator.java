@@ -19,13 +19,12 @@
  */
 package com.sonar.orchestrator.locator;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.apache.commons.io.IOUtils;
 
 class ResourceLocator implements Locator<ResourceLocation> {
 
@@ -46,18 +45,12 @@ class ResourceLocator implements Locator<ResourceLocation> {
 
   @Override
   public File copyToFile(ResourceLocation location, File toFile) {
-    InputStream input = null;
-    OutputStream output = null;
-    try {
-      input = ResourceLocator.class.getResourceAsStream(location.getPath());
-      output = new FileOutputStream(toFile, false);
+    try (InputStream input = ResourceLocator.class.getResourceAsStream(location.getPath());
+      OutputStream output = new FileOutputStream(toFile, false)) {
       IOUtils.copyLarge(input, output);
       return toFile;
     } catch (IOException e) {
       throw new IllegalStateException("Fail to copy " + location + " to file: " + toFile, e);
-    } finally {
-      IOUtils.closeQuietly(input);
-      IOUtils.closeQuietly(output);
     }
   }
 }

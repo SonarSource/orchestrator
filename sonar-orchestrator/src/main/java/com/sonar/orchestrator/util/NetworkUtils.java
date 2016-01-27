@@ -20,13 +20,11 @@
 package com.sonar.orchestrator.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.lang3.ArrayUtils;
 
 public final class NetworkUtils {
   private static final TravisIncrementalPortFinder TRAVIS_INCREMENTAL_PORT_FINDER = new TravisIncrementalPortFinder();
@@ -74,15 +72,11 @@ public final class NetworkUtils {
     }
 
     public int getRandomUnusedPort() throws IOException {
-      ServerSocket socket = null;
-      try {
-        socket = new ServerSocket();
+      try (ServerSocket socket = new ServerSocket()) {
         socket.bind(new InetSocketAddress("localhost", 0));
         return socket.getLocalPort();
       } catch (IOException e) {
         throw new IllegalStateException("Can not find a free network port", e);
-      } finally {
-        IOUtils.closeQuietly(socket);
       }
     }
 
