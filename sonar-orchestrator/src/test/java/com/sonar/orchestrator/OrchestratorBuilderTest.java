@@ -320,4 +320,36 @@ public class OrchestratorBuilderTest {
       .addPlugin("abap")
       .build();
   }
+
+  @Test
+  public void default_web_context_is_sonar_if_before_5_4() {
+    Configuration config = Configuration.builder().setProperty("sonar.runtimeVersion", "5.3").build();
+    Orchestrator orch = new OrchestratorBuilder(config).build();
+    assertThat(orch.getDistribution().getContext()).isEqualTo("/sonar");
+  }
+
+  @Test
+  public void web_context_can_be_overridden_before_5_4() {
+    Configuration config = Configuration.builder().setProperty("sonar.runtimeVersion", "5.3").build();
+    Orchestrator orch = new OrchestratorBuilder(config)
+      .setContext("/foo")
+      .build();
+    assertThat(orch.getDistribution().getContext()).isEqualTo("/foo");
+  }
+
+  @Test
+  public void no_web_context_since_5_4() {
+    Configuration config = Configuration.builder().setProperty("sonar.runtimeVersion", "5.4").build();
+    Orchestrator orch = new OrchestratorBuilder(config).build();
+    assertThat(orch.getDistribution().getContext()).isEqualTo("/");
+  }
+
+  @Test
+  public void web_context_can_not_be_overridden_since_5_4() {
+    Configuration config = Configuration.builder().setProperty("sonar.runtimeVersion", "5.4").build();
+    Orchestrator orch = new OrchestratorBuilder(config)
+      .setContext("/foo")
+      .build();
+    assertThat(orch.getDistribution().getContext()).isEqualTo("/");
+  }
 }
