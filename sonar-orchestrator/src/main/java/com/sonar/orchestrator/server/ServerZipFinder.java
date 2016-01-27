@@ -23,14 +23,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.locator.URLLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import javax.annotation.CheckForNull;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.Release;
@@ -118,24 +116,10 @@ public class ServerZipFinder {
       LOG.info("SonarQube {} is not defined in update center", version);
       return null;
     }
-    LOG.info("Downloading SonarQube {} from {}", version, url);
 
     try {
       File tempDir = Files.createTempDir();
-      OkHttpClient httpClient = new OkHttpClient();
-      Request httpRequest = new Request.Builder()
-        .url(url)
-        .header("User-Agent", "Orchestrator")
-        .build();
-      Response response = httpClient.newCall(httpRequest).execute();
-      if (!response.isSuccessful()) {
-        throw new IllegalStateException(format("Fail to download %s. Received %d [%s]", url, response.code(), response.message()));
-      }
-      String disposition = response.header("Content-Disposition");
-      String filename = disposition.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
-      File to = new File(tempDir, filename);
-      FileUtils.copyInputStreamToFile(response.body().byteStream(), to);
-      return to;
+      return fs.copyToDirectory(URLLocation.create(new URL(url)), tempDir);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to download " + url, e);
     }

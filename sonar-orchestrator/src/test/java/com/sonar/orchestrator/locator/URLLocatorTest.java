@@ -60,14 +60,14 @@ public class URLLocatorTest {
 
   @Test
   public void testEquals() {
-    URL anotherURL = null;
+    URL anotherURL;
     try {
       anotherURL = new URL("http://docs.oracle.com/javase/7/docs/api/java/net/URL.html");
       URLLocation anotherURLLocation = URLLocation.create(anotherURL);
       URLLocation anotherURLLocationSameURL = URLLocation.create(anotherURL);
 
       assertThat(location.equals(location)).isTrue();
-      assertThat(!location.equals(new String("wrong"))).isTrue();
+      assertThat(!location.equals("wrong")).isTrue();
       assertThat(anotherURLLocation.equals(anotherURLLocationSameURL)).isTrue();
       assertThat(!location.equals(anotherURLLocation)).isTrue();
 

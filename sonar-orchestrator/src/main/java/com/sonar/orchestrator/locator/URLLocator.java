@@ -19,17 +19,25 @@
  */
 package com.sonar.orchestrator.locator;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.defaultString;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 class URLLocator implements Locator<URLLocation> {
 
   private static final Logger LOG = LoggerFactory.getLogger(URLLocator.class);
+  private static final String USER_AGENT = "Orchestrator";
 
   @Override
   public File locate(URLLocation location) {
@@ -38,8 +46,25 @@ class URLLocator implements Locator<URLLocation> {
 
   @Override
   public File copyToDirectory(URLLocation location, File toDir) {
-    File toFile = new File(toDir, location.getFileName());
-    return copyToFile(location, toFile);
+    try {
+      File toFile;
+      if (isHttpRequest(location)) {
+        Response response = sendHttpRequest(location);
+        String disposition = defaultString(response.header("Content-Disposition"));
+        String filename = disposition.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
+        if (isBlank(filename)) {
+          filename = location.getFileName();
+        }
+        toFile = new File(toDir, filename);
+        FileUtils.copyInputStreamToFile(response.body().byteStream(), toFile);
+      } else {
+        toFile = new File(toDir, location.getFileName());
+        FileUtils.copyURLToFile(location.getURL(), toFile);
+      }
+      return toFile;
+    } catch (IOException e) {
+      throw new IllegalStateException(format("Fail to copy %s to directory: %s", location, toDir), e);
+    }
   }
 
   @Override
@@ -54,12 +79,35 @@ class URLLocator implements Locator<URLLocation> {
   @Override
   public File copyToFile(URLLocation location, File toFile) {
     try {
-      LOG.info("Downloading: " + location.getURL());
-      FileUtils.copyURLToFile(location.getURL(), toFile);
+      if (isHttpRequest(location)) {
+        Response response = sendHttpRequest(location);
+        FileUtils.copyInputStreamToFile(response.body().byteStream(), toFile);
+      } else {
+        FileUtils.copyURLToFile(location.getURL(), toFile);
+      }
+      return toFile;
     } catch (IOException e) {
-      throw new IllegalStateException("Fail to copy " + location + " to file: " + toFile, e);
+      throw new IllegalStateException(format("Fail to copy %s to file: %s", location, toFile), e);
     }
-    return toFile;
+  }
+
+  private boolean isHttpRequest(URLLocation location) {
+    return location.getURL().getProtocol().toLowerCase(Locale.ENGLISH).startsWith("http");
+  }
+
+  private Response sendHttpRequest(URLLocation location) throws IOException {
+    LOG.info("Downloading: " + location.getURL());
+
+    OkHttpClient httpClient = new OkHttpClient();
+    Request httpRequest = new Request.Builder()
+      .url(location.getURL())
+      .header("User-Agent", USER_AGENT)
+      .build();
+    Response response = httpClient.newCall(httpRequest).execute();
+    if (!response.isSuccessful()) {
+      throw new IllegalStateException(format("Fail to download %s. Received %d [%s]", location.getURL(), response.code(), response.message()));
+    }
+    return response;
   }
 
 }

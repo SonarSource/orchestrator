@@ -31,6 +31,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.NoSuchElementException;
 
+import static java.lang.String.format;
+
 public class PluginLocator implements Locator<PluginLocation> {
   private static final Logger LOG = LoggerFactory.getLogger(PluginLocator.class);
 
@@ -88,21 +90,21 @@ public class PluginLocator implements Locator<PluginLocation> {
     try {
       findPlugin = config.updateCenter().getUpdateCenterPluginReferential().findPlugin(location.key());
     } catch (NoSuchElementException e) {
-      throw new IllegalStateException(String.format("Plugin with key %s not found in update center", location.key()), e);
+      throw new IllegalStateException(format("Plugin with key %s not found in update center", location.key()), e);
     }
 
     Release release;
     try {
       release = findPlugin.getRelease(location.version().toString());
     } catch (NoSuchElementException e) {
-      throw new IllegalStateException(String.format("Unable to find version %s in update center for plugin with key %s", location.version().toString(), location.key()), e);
+      throw new IllegalStateException(format("Unable to find version %s in update center for plugin with key %s", location.version().toString(), location.key()), e);
     }
 
     try {
       return URLLocation.create(new URL(release.getDownloadUrl()),
-        "sonar-" + release.getKey() + "-plugin-" + release.getVersion() + ".jar");
+        format("sonar-%s-plugin-%s.jar", release.getKey(), release.getVersion()));
     } catch (MalformedURLException e) {
-      throw new IllegalStateException(String.format("Invalid URL in update center for plugin %s: %s", release.getKey(), release.getDownloadUrl()), e);
+      throw new IllegalStateException(format("Invalid URL in update center for plugin %s: %s", release.getKey(), release.getDownloadUrl()), e);
     }
   }
 
