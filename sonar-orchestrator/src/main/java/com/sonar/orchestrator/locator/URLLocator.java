@@ -91,11 +91,11 @@ class URLLocator implements Locator<URLLocation> {
     }
   }
 
-  private boolean isHttpRequest(URLLocation location) {
+  private static boolean isHttpRequest(URLLocation location) {
     return location.getURL().getProtocol().toLowerCase(Locale.ENGLISH).startsWith("http");
   }
 
-  private Response sendHttpRequest(URLLocation location) throws IOException {
+  private static Response sendHttpRequest(URLLocation location) throws IOException {
     LOG.info("Downloading: " + location.getURL());
 
     OkHttpClient httpClient = new OkHttpClient();
