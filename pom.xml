@@ -123,7 +123,7 @@
       </build>
     </profile>
     <profile>
-      <id>deploy-artifactory</id>
+      <id>deploy-sonarsource</id>
       <build>
         <plugins>
           <plugin>
@@ -168,6 +168,7 @@
                   </artifactory>
                   <deployProperties>
                     <vcs.revision>{{GIT_COMMIT|TRAVIS_COMMIT}}</vcs.revision>
+                    <vcs.branch>{{GIT_BRANCH|TRAVIS_BRANCH}}</vcs.branch>
                     <build.name>${gitRepositoryName}</build.name>
                     <build.number>{{TRAVIS_BUILD_NUMBER|BUILD_ID}}</build.number>
                   </deployProperties>
