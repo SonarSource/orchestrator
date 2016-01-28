@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.google.common.io.Files;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.CheckForNull;
+import org.apache.commons.io.FileUtils;
 
 import static java.lang.String.format;
 
@@ -57,7 +57,7 @@ public class ServerZipCache {
   public File moveToCache(Version version, File file) {
     File to = addToCache(version, file);
     try {
-      Files.move(file, to);
+      FileUtils.moveFile(file, to);
     } catch (IOException e) {
       throw new IllegalStateException(format("Fail to move SonarQube zip [%s] to cache [%s]", file, to), e);
     }
@@ -67,7 +67,7 @@ public class ServerZipCache {
   public File copyToCache(Version version, File file) {
     File to = addToCache(version, file);
     try {
-      Files.copy(file, to);
+      FileUtils.copyFile(file, to);
     } catch (IOException e) {
       throw new IllegalStateException(format("Fail to move SonarQube zip [%s] to cache [%s]", file, to), e);
     }
