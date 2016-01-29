@@ -11,6 +11,7 @@ configureTravis
 
 # Do not deploy a SNAPSHOT version but the release version related to this build,
 # for example "1.2-build123"
+SONAR_PROJECT_VERSION=`mvn help:evaluate -Dexpression=project.version | grep -v '^\[\|Download\w\+\:'`
 set_maven_build_version $TRAVIS_BUILD_NUMBER
 
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
@@ -20,6 +21,7 @@ if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; th
     -Dmaven.test.redirectTestOutputToFile=false \
     -Dsonar.host.url=$SONAR_HOST_URL \
     -Dsonar.login=$SONAR_TOKEN \
+    -Dsonar.projectVersion=$SONAR_PROJECT_VERSION \
     -B -e -V
 
 elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
