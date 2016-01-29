@@ -2,12 +2,16 @@
 
 set -euo pipefail
 
-function installTravisTools {
+function configureTravis {
   mkdir ~/.local
   curl -sSL https://github.com/SonarSource/travis-utils/tarball/master | tar zx --strip-components 1 -C ~/.local
   source ~/.local/bin/install
 }
-installTravisTools
+configureTravis
+
+# Do not deploy a SNAPSHOT version but the release version related to this build,
+# for example "1.2-build123"
+set_maven_build_version $TRAVIS_BUILD_NUMBER
 
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo 'Build, deploy and analyze commit in master'
@@ -16,8 +20,6 @@ if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; th
     -Dmaven.test.redirectTestOutputToFile=false \
     -Dsonar.host.url=$SONAR_HOST_URL \
     -Dsonar.login=$SONAR_TOKEN \
-    -Dartifactory.deploy.username=$REPOX_DEPLOY_USERNAME \
-    -Dartifactory.deploy.password=$REPOX_DEPLOY_PASSWORD \
     -B -e -V
 
 elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
