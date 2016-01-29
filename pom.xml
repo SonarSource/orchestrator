@@ -8,7 +8,7 @@
   </parent>
   <groupId>org.sonarsource.orchestrator</groupId>
   <artifactId>orchestrator-parent</artifactId>
-  <version>3.9-SNAPSHOT</version>
+  <version>3.9</version>
   <packaging>pom</packaging>
   <name>Orchestrator :: Parent</name>
   <inceptionYear>2011</inceptionYear>
@@ -47,7 +47,7 @@
     <connection>scm:git:git@github.com:SonarSource/sonar-orchestrator.git</connection>
     <developerConnection>scm:git:git@github.com:SonarSource/sonar-orchestrator.git</developerConnection>
     <url>https://github.com/SonarSource/sonar-orchestrator</url>
-    <tag>HEAD</tag>
+    <tag>3.9</tag>
   </scm>
   
   <issueManagement>
