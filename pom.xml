@@ -27,6 +27,8 @@
 
     <!-- used for deployment to SonarSource Artifactory -->
     <gitRepositoryName>orchestrator</gitRepositoryName>
+    <!-- required for deployment (no wagon hack in settings.xml). Parent 26 still declares 3.0.5. -->
+    <maven.min.version>3.2</maven.min.version>
   </properties>
 
   <modules>
@@ -127,7 +129,7 @@
             <artifactId>maven-enforcer-plugin</artifactId>
             <executions>
               <execution>
-                <id>enforce-scm-repo-property</id>
+                <id>enforce-deploy-settings</id>
                 <goals>
                   <goal>enforce</goal>
                 </goals>
