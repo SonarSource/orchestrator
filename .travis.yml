@@ -11,3 +11,8 @@ cache:
   directories:
     - $HOME/.m2/repository
     - $HOME/.sonar
+
+notifications:
+  webhooks:
+    # URL to QA hook, including credentials
+    secure: "JUsAM03iESPks+FlbLFgHSWpfX85fO4d04Jv55iMECh44k82/uTgU9x6GUYJq3cbqBqCtsPcuKEnX5qXLGX6JEhJ/Yz1UAESajOdKMv6G8uC/tHhDIXOCUAJlZiLrqoVNv2eWOC85j6YO5zfN0T1hMFwgesGZdKAjHNdtN+ParJwTo0v1JTFGwXToY2zWsdBzdb8MYvBfpK8byAmax9MdTe+llep+mS5JqxJAR8RnGOc91YE8j9RBPRNjujz+22XH9k7XXfRjo0NEWheQkfwGhTgTpZ6aIsnN1etE9gvOOofuvwCIhksB4BlkKzLAadQt2Jf6KhRiDOXWRRt1CY+4RDcdXq4/330+1USVcU59wU0kgbGu42EnvBRheqj2gDNemVovA9o7KSpCLGELSZJCxMWKNLfmSqdFM04r/xu1liuc7NStxQrVmpdtJE3z0sAXMSvPAXK4e/ogPxdkoI/SEyY6Tsp/E8FcuC0PLHYgq00hQWMiPZZ9aHzhLqsktECpbJZSqogz5QfhkVjMMqzgRKW2m94k3SAaBj4wDGWoZGU4kw9T3t2WI9D2dE/mz1b3QeaAGQtPGtG6oOjJ08DJ+pk2NtHUDZ65TJYWZWmJyevomVI7fre0VHBTwXWroxqH4Vw9JaIzn2WdueRAQiIk7JN9kOGyJIEqnQ0Bsn6O4A="
