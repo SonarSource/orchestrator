@@ -55,7 +55,7 @@ public class ServerZipCache {
   }
 
   public File moveToCache(Version version, File file) {
-    File to = addToCache(version, file);
+    File to = prepareAddToCache(version, file);
     try {
       FileUtils.moveFile(file, to);
     } catch (IOException e) {
@@ -65,7 +65,7 @@ public class ServerZipCache {
   }
 
   public File copyToCache(Version version, File file) {
-    File to = addToCache(version, file);
+    File to = prepareAddToCache(version, file);
     try {
       FileUtils.copyFile(file, to);
     } catch (IOException e) {
@@ -74,7 +74,7 @@ public class ServerZipCache {
     return to;
   }
 
-  private File addToCache(Version version, File file) {
+  private File prepareAddToCache(Version version, File file) {
     File to;
     if (version.isRelease()) {
       to = locateRelease(version);
@@ -82,6 +82,9 @@ public class ServerZipCache {
       // do not rename the file, as it can differ from version
       to = new File(fs.workspace(), file.getName());
       SNAPSHOTS.put(version, to);
+    }
+    if (to.exists()) {
+      FileUtils.deleteQuietly(to);
     }
     return to;
   }
