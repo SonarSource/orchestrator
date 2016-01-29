@@ -21,15 +21,17 @@ package com.sonar.orchestrator.locator;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import org.junit.rules.TemporaryFolder;
 
 import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +39,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FileLocationTest extends PropertyAndEnvTest {
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException expectedException = ExpectedException.none();
+
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
 
   @Test
   public void shouldCreateWithFile() {
@@ -68,7 +73,7 @@ public class FileLocationTest extends PropertyAndEnvTest {
   public void ofSharedWithEnv() {
     URL url = getClass().getResource("/com/sonar/orchestrator/locator/FileLocationTest/index.txt");
 
-    Map<String,String> envVariables = new HashMap<>(System.getenv());
+    Map<String, String> envVariables = new HashMap<>(System.getenv());
     envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.getPath()));
     setEnv(ImmutableMap.copyOf(envVariables));
 
@@ -90,7 +95,117 @@ public class FileLocationTest extends PropertyAndEnvTest {
 
   @Test
   public void ofShared_bad_shared_dir() {
-    thrown.expect(IllegalStateException.class);
+    expectedException.expect(IllegalStateException.class);
     FileLocation.ofShared("abap/foo.txt", "/bad/path");
+  }
+
+  @Test
+  public void byWildcardFilename_matches_one_file() throws IOException {
+    File dir = temp.newFolder();
+    File file = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar");
+    FileUtils.touch(file);
+
+    FileLocation location = FileLocation.byWildcardFilename(dir, "sonar-foo-plugin-*.jar");
+    assertThat(location.getFile()).isEqualTo(file);
+  }
+
+  @Test
+  public void byWildcardFilename_fails_if_matches_multiple_files() throws IOException {
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Multiple files match [sonar-foo-plugin-*.jar] in directory");
+
+    File dir = temp.newFolder();
+    FileUtils.touch(new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar"));
+    FileUtils.touch(new File(dir, "sonar-foo-plugin-0.2-SNAPSHOT.jar"));
+
+    FileLocation.byWildcardFilename(dir, "sonar-foo-plugin-*.jar");
+  }
+
+  @Test
+  public void byWildcardFilename_fails_if_does_not_match() throws IOException {
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("No files match [something-*.jar] in directory");
+
+    File dir = temp.newFolder();
+    FileUtils.touch(new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar"));
+
+    FileLocation.byWildcardFilename(dir, "something-*.jar");
+  }
+
+  @Test
+  public void byWildcardMavenFilename_fails_if_directory_does_not_exist() throws IOException {
+    File dir = temp.newFolder();
+
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Directory [" + dir + "] does not exist");
+
+    dir.delete();
+    FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar");
+  }
+
+  @Test
+  public void byWildcardMavenFilename_matches_one_file() throws IOException {
+    File dir = temp.newFolder();
+    File file = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar");
+    FileUtils.touch(file);
+
+    FileLocation location = FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar");
+    assertThat(location.getFile()).isEqualTo(file);
+  }
+
+  @Test
+  public void byWildcardMavenFilename_fails_if_matches_multiple_files() throws IOException {
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Multiple files match [sonar-foo-plugin-*.jar] in directory");
+
+    File dir = temp.newFolder();
+    FileUtils.touch(new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar"));
+    FileUtils.touch(new File(dir, "sonar-foo-plugin-0.2-SNAPSHOT.jar"));
+
+    FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar");
+  }
+
+  @Test
+  public void byWildcardMavenFilename_fails_if_does_not_match() throws IOException {
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("No files match [something-*.jar] in directory");
+
+    File dir = temp.newFolder();
+    FileUtils.touch(new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar"));
+
+    FileLocation.byWildcardMavenFilename(dir, "something-*.jar");
+  }
+
+  @Test
+  public void byWildcardFilename_fails_if_directory_does_not_exist() throws IOException {
+    File dir = temp.newFolder();
+
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Directory [" + dir + "] does not exist");
+
+    dir.delete();
+    FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar");
+  }
+
+  @Test
+  public void byWildcardFilename_excludes_sources() throws IOException {
+    File dir = temp.newFolder();
+    File file = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar");
+    File sources = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT-sources.jar");
+    FileUtils.touch(file);
+    FileUtils.touch(sources);
+
+    assertThat(FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar").getFile()).isEqualTo(file);
+  }
+
+  @Test
+  public void byWildcardFilename_excludes_tests() throws IOException {
+    File dir = temp.newFolder();
+    File file = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar");
+    File tests = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT-tests.jar");
+    FileUtils.touch(file);
+    FileUtils.touch(tests);
+
+    assertThat(FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar").getFile()).isEqualTo(file);
   }
 }
