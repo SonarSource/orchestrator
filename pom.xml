@@ -99,7 +99,7 @@
         <dependency>
           <groupId>org.sonarsource.java</groupId>
           <artifactId>sonar-jacoco-listeners</artifactId>
-          <version>3.7</version>
+          <version>3.9</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
