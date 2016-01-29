@@ -25,7 +25,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <sonar.exclusions>**/com/sonar/orchestrator/echo/**/*.java,**/com/sonar/orchestrator/test/**/*.java,target/generated-sources/**/*</sonar.exclusions>
 
-    <!-- deployment to SonarSource Artifactory -->
+    <!-- used for deployment to SonarSource Artifactory -->
     <gitRepositoryName>orchestrator</gitRepositoryName>
   </properties>
 
@@ -141,13 +141,13 @@
                       <variableName>ARTIFACTORY_URL</variableName>
                     </requireEnvironmentVariable>
                     <requireEnvironmentVariable>
-                      <variableName>ARTIFACTORY_REPO</variableName>
+                      <variableName>ARTIFACTORY_DEPLOY_REPO</variableName>
                     </requireEnvironmentVariable>
                     <requireEnvironmentVariable>
-                      <variableName>ARTIFACTORY_USERNAME</variableName>
+                      <variableName>ARTIFACTORY_DEPLOY_USERNAME</variableName>
                     </requireEnvironmentVariable>
                     <requireEnvironmentVariable>
-                      <variableName>ARTIFACTORY_PASSWORD</variableName>
+                      <variableName>ARTIFACTORY_DEPLOY_PASSWORD</variableName>
                     </requireEnvironmentVariable>
                   </rules>
                   <fail>true</fail>
@@ -191,9 +191,9 @@
                   </licenses>
                   <publisher>
                     <contextUrl>${env.ARTIFACTORY_URL}</contextUrl>
-                    <repoKey>${env.ARTIFACTORY_REPO}</repoKey>
-                    <username>${env.ARTIFACTORY_USERNAME}</username>
-                    <password>${env.ARTIFACTORY_PASSWORD}</password>
+                    <repoKey>${env.ARTIFACTORY_DEPLOY_REPO}</repoKey>
+                    <username>${env.ARTIFACTORY_DEPLOY_USERNAME}</username>
+                    <password>${env.ARTIFACTORY_DEPLOY_PASSWORD}</password>
                     <publishBuildInfo>true</publishBuildInfo>
                     <publishArtifacts>true</publishArtifacts>
                   </publisher>
