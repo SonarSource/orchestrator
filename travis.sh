@@ -16,7 +16,7 @@ set_maven_build_version $TRAVIS_BUILD_NUMBER
 
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo 'Build, deploy and analyze commit in master'
-  mvn org.jacoco:jacoco-maven-plugin:prepare-agent deploy sonar:sonar \
+  mvn org.jacoco:jacoco-maven-plugin:prepare-agent org.jfrog.buildinfo:artifactory-maven-plugin::publish sonar:sonar \
     -Pcoverage-per-test,deploy-sonarsource \
     -Dmaven.test.redirectTestOutputToFile=false \
     -Dsonar.host.url=$SONAR_HOST_URL \
