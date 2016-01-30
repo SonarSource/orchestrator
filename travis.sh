@@ -16,7 +16,7 @@ set_maven_build_version $TRAVIS_BUILD_NUMBER
 
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo 'Build, deploy and analyze commit in master'
-  mvn deploy \
+  mvn org.jacoco:jacoco-maven-plugin:prepare-agent deploy sonar:sonar \
     -Pcoverage-per-test,deploy-sonarsource \
     -Dmaven.test.redirectTestOutputToFile=false \
     -Dsonar.host.url=$SONAR_HOST_URL \
@@ -36,7 +36,7 @@ elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
     -Dsonar.host.url=$SONAR_HOST_URL \
     -Dsonar.login=$SONAR_TOKEN \
     -B -e -V
-    
+
 else
   echo 'Build, no deploy, no analysis'
   # Build branch, without any analysis
@@ -44,4 +44,3 @@ else
     -Dmaven.test.redirectTestOutputToFile=false \
     -B -e -V
 fi
-
