@@ -44,9 +44,9 @@
   </organization>
 
   <scm>
-    <connection>scm:git:git@github.com:SonarSource/sonar-orchestrator.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarSource/sonar-orchestrator.git</developerConnection>
-    <url>https://github.com/SonarSource/sonar-orchestrator</url>
+    <connection>scm:git:git@github.com:SonarSource/orchestrator.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/orchestrator.git</developerConnection>
+    <url>https://github.com/SonarSource/orchestrator</url>
     <tag>HEAD</tag>
   </scm>
   
