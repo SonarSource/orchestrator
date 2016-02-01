@@ -23,10 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +53,8 @@ class URLLocator implements Locator<URLLocation> {
       File toFile;
       if (isHttpRequest(location)) {
         Response response = sendHttpRequest(location);
-        String disposition = defaultString(response.header("Content-Disposition"));
-        String filename = disposition.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
-        if (isBlank(filename)) {
+        String filename = getFilenameFromContentDispositionHeader(response.header("Content-Disposition"));
+        if (filename == null) {
           filename = location.getFileName();
         }
         toFile = new File(toDir, filename);
@@ -110,4 +112,22 @@ class URLLocator implements Locator<URLLocation> {
     return response;
   }
 
+  @CheckForNull
+  static String getFilenameFromContentDispositionHeader(@Nullable String header) {
+    if (isBlank(header)) {
+      return null;
+    }
+    String filename = header.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
+    if (header.equals(filename)) {
+      // strange case on bintray: "attachment; filename = sonar-lits-plugin-0.5.jar"
+      filename = StringUtils.substringAfterLast(header, "=");
+    }
+    if (filename != null) {
+      filename = StringUtils.remove(filename, "\"");
+      filename = StringUtils.remove(filename, "'");
+      filename = StringUtils.remove(filename, ";");
+      filename = StringUtils.remove(filename, " ");
+    }
+    return defaultString(filename, null);
+  }
 }

@@ -131,4 +131,13 @@ public class URLLocatorTest {
 
     assertThat(IOUtils.toString(input)).isEqualTo("foo");
   }
+
+  @Test
+  public void test_getFilenameFromContentDispositionHeader() {
+    assertThat(URLLocator.getFilenameFromContentDispositionHeader(null)).isNull();
+    assertThat(URLLocator.getFilenameFromContentDispositionHeader("")).isNull();
+    assertThat(URLLocator.getFilenameFromContentDispositionHeader("Content-Disposition: attachment; filename=foo.jar")).isEqualTo("foo.jar");
+    assertThat(URLLocator.getFilenameFromContentDispositionHeader("Content-Disposition: attachment; filename=foo.jar;")).isEqualTo("foo.jar");
+
+  }
 }
