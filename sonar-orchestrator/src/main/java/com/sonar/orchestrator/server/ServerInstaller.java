@@ -43,7 +43,7 @@ public class ServerInstaller {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerInstaller.class);
 
-  private final AtomicInteger dirId = new AtomicInteger(0);
+  private static final AtomicInteger sharedDirId = new AtomicInteger(0);
   private final ServerZipFinder zipFinder;
   private final FileSystem fs;
   private final DatabaseClient databaseClient;
@@ -64,7 +64,7 @@ public class ServerInstaller {
 
   private File locateAndUnzip(SonarDistribution distrib) {
     File zip = zipFinder.find(distrib.version());
-    File toDir = new File(fs.workspace(), String.valueOf(dirId.addAndGet(1)));
+    File toDir = new File(fs.workspace(), String.valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {

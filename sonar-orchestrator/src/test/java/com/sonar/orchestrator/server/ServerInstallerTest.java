@@ -86,7 +86,7 @@ public class ServerInstallerTest {
     Server server = underTest.install(new SonarDistribution(VERSION_4_5_6));
     assertThat(server.getDistribution().version()).isEqualTo(VERSION_4_5_6);
     // installed in a unique location. Home directory is the name defined in zip structure
-    assertThat(server.getHome()).isEqualTo(new File(workspaceDir, "1/sonarqube-4.5.6"));
+    assertThat(server.getHome().getParentFile().getParentFile()).isEqualTo(workspaceDir);
     Properties props = openPropertiesFile(server);
     assertThat(props.getProperty("sonar.jdbc.url")).isEqualTo("jdbc:h2:mem");
   }
