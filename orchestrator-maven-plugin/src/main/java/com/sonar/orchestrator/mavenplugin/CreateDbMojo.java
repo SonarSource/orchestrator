@@ -20,11 +20,13 @@
 package com.sonar.orchestrator.mavenplugin;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.OrchestratorBuilder;
 import com.sonar.orchestrator.config.Configuration;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * @goal create-db
@@ -40,6 +42,10 @@ public class CreateDbMojo extends AbstractMojo {
    */
   protected MavenSession session;
 
+  @Parameter(property = "sonar.runtimeVersion", required = false)
+  protected String sqVersion = null;
+
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     Configuration config = Configuration.builder()
@@ -47,7 +53,11 @@ public class CreateDbMojo extends AbstractMojo {
       .addMap(session.getExecutionProperties())
       .build();
 
-    Orchestrator orchestrator = Orchestrator.builder(config).build();
+    OrchestratorBuilder builder = Orchestrator.builder(config);
+    if (sqVersion != null && sqVersion.trim().length() > 0) {
+      builder.setOrchestratorProperty("sonar.runtimeVersion", sqVersion);
+    }
+    Orchestrator orchestrator = builder.build();
     try {
       orchestrator.start();
     } finally {
