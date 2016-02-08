@@ -20,44 +20,34 @@
 package com.sonar.orchestrator.mavenplugin;
 
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.OrchestratorBuilder;
 import com.sonar.orchestrator.config.Configuration;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
-/**
- * @goal create-db
- * @requiresProject false
- * @requiresDependencyResolution runtime
- */
+@Mojo(name = "create-db", requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true, requiresProject = false)
 public class CreateDbMojo extends AbstractMojo {
 
-  /**
-   * @parameter property="session"
-   * @readonly
-   * @required
-   */
-  protected MavenSession session;
+  @Parameter(property = "session", readonly = true, required = true)
+  private MavenSession session;
 
   @Parameter(property = "sonar.runtimeVersion", required = false)
   protected String sqVersion = null;
 
-
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    Configuration config = Configuration.builder()
-      .addEnvVariables()
-      .addMap(session.getExecutionProperties())
-      .build();
-
-    OrchestratorBuilder builder = Orchestrator.builder(config);
+    Configuration.Builder configBuilder = Configuration.builder();
+    configBuilder.addEnvVariables();
+    configBuilder.addMap(session.getExecutionProperties());
     if (sqVersion != null && sqVersion.trim().length() > 0) {
-      builder.setOrchestratorProperty("sonar.runtimeVersion", sqVersion);
+      configBuilder.setProperty("sonar.runtimeVersion", sqVersion);
     }
-    Orchestrator orchestrator = builder.build();
+
+    Orchestrator orchestrator = Orchestrator.builder(configBuilder.build()).build();
     try {
       orchestrator.start();
     } finally {
