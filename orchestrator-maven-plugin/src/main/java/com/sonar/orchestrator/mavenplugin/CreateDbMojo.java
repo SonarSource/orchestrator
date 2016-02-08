@@ -46,6 +46,7 @@ public class CreateDbMojo extends AbstractMojo {
     if (sqVersion != null && sqVersion.trim().length() > 0) {
       configBuilder.setProperty("sonar.runtimeVersion", sqVersion);
     }
+    configBuilder.setProperty("maven.localRepository", session.getLocalRepository().getBasedir());
 
     Orchestrator orchestrator = Orchestrator.builder(configBuilder.build()).build();
     try {
