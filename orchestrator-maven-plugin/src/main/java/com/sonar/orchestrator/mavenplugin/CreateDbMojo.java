@@ -51,9 +51,6 @@ public class CreateDbMojo extends AbstractMojo {
     Orchestrator orchestrator = Orchestrator.builder(configBuilder.build()).build();
     try {
       orchestrator.start();
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
     } finally {
       orchestrator.stop();
     }
