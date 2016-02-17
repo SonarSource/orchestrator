@@ -29,10 +29,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-@Mojo(name = "create-db", requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true, requiresProject = false)
+@Mojo(name = "create-db", requiresDependencyResolution = ResolutionScope.RUNTIME, requiresProject = false, threadSafe = true)
 public class CreateDbMojo extends AbstractMojo {
 
-  @Parameter(property = "session", readonly = true, required = true)
+  @Parameter(property = "session", required = true, readonly = true)
   private MavenSession session;
 
   @Parameter(property = "sonar.runtimeVersion", required = false)
