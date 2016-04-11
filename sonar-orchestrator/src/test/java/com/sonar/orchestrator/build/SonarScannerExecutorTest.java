@@ -25,12 +25,11 @@ import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import com.sonar.orchestrator.version.Version;
+import java.io.File;
+import java.util.Map;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -54,7 +53,7 @@ public class SonarScannerExecutorTest {
     props.put("sonar.projectKey", "SAMPLE");
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("1.3")), any(File.class))).thenReturn(new File("sonar-runner.sh"));
+    when(installer.install(eq(Version.create("1.3")), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -90,7 +89,7 @@ public class SonarScannerExecutorTest {
     props.put("sonar.projectKey", "SAMPLE");
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("2.1")), any(File.class))).thenReturn(new File("sonar-runner.sh"));
+    when(installer.install(eq(Version.create("2.1")), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -126,7 +125,7 @@ public class SonarScannerExecutorTest {
     props.put("sonar.projectKey", "SAMPLE");
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("2.0")), any(File.class))).thenReturn(new File("sonar-runner.sh"));
+    when(installer.install(eq(Version.create("2.0")), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -159,7 +158,7 @@ public class SonarScannerExecutorTest {
     Map<String, String> props = Maps.newTreeMap();
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("2.0")), any(File.class))).thenReturn(new File("sonar-runner.sh"));
+    when(installer.install(eq(Version.create("2.0")), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 

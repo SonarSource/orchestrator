@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,8 @@ import javax.annotation.Nullable;
  */
 public class SonarScanner extends SonarRunner {
 
+  private boolean useOldSonarRunnerScript = false;
+
   SonarScanner() {
   }
 
@@ -44,7 +47,30 @@ public class SonarScanner extends SonarRunner {
   }
 
   @Override
+  public SonarScanner setEnvironmentVariable(String name, String value) {
+    return (SonarScanner) super.setEnvironmentVariable(name, value);
+  }
+
+  /**
+   * @deprecated since 3.10 use {@link #setScannerVersion(String)}
+   */
+  @Deprecated
+  @Override
   public SonarScanner setRunnerVersion(String s) {
+    return (SonarScanner) super.setRunnerVersion(s);
+  }
+
+  /**
+   * @since 3.11
+   */
+  public Version scannerVersion() {
+    return runnerVersion();
+  }
+
+  /**
+   * @since 3.11
+   */
+  public SonarScanner setScannerVersion(String s) {
     return (SonarScanner) super.setRunnerVersion(s);
   }
 
@@ -156,6 +182,19 @@ public class SonarScanner extends SonarRunner {
     return (SonarScanner) super.setProperties(keyValues);
   }
 
+  /**
+   * @since 3.11 used by SQ Scanner CLI ITs
+   */
+  public SonarScanner setUseOldSonarRunnerScript(boolean useOldSonarRunnerScript) {
+    this.useOldSonarRunnerScript = useOldSonarRunnerScript;
+    return this;
+  }
+
+  @Override
+  public boolean isUseOldSonarRunnerScript() {
+    return !scannerVersion().isGreaterThanOrEquals("2.6") || useOldSonarRunnerScript;
+  }
+
   public static SonarScanner create() {
     return new SonarScanner()
       // default value
@@ -166,10 +205,10 @@ public class SonarScanner extends SonarRunner {
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
     return
     // default value
-      create()
-        // incoming values
-        .setProjectDir(projectDir)
-        .setProperties(keyValueProperties);
+    create()
+      // incoming values
+      .setProjectDir(projectDir)
+      .setProperties(keyValueProperties);
   }
 
   @Override

@@ -21,12 +21,11 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.version.Version;
+import java.io.File;
 import org.assertj.core.data.MapEntry;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -86,7 +85,7 @@ public class SonarRunnerTest {
 
     assertThat(build.getProjectDir()).isEqualTo(new File("."));
     // check default values
-    assertThat(build.runnerVersion()).isEqualTo(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION));
+    assertThat(build.runnerVersion()).isEqualTo(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION));
     assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo(SonarRunner.DEFAULT_SOURCE_ENCODING);
     assertThat(build.getProperties().get("sonar.scm.disabled")).isEqualTo(String.valueOf(SonarRunner.DEFAULT_SCM_DISABLED));
     // check assigned values
@@ -133,7 +132,7 @@ public class SonarRunnerTest {
   @Test
   public void runner_version_must_be_set() {
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("sonar-runner version must be set");
+    thrown.expectMessage("version must be set");
 
     SonarRunner.create().setRunnerVersion("");
   }

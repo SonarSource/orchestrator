@@ -24,15 +24,15 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
 
 class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
 
   private static final String SONAR_RUNNER_OPTS = "SONAR_RUNNER_OPTS";
+  private static final String SONAR_SCANNER_OPTS = "SONAR_SCANNER_OPTS";
 
   @Override
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
@@ -43,9 +43,9 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
-    File runnerScript = installer.install(build.runnerVersion(), config.fileSystem().workspace());
+    File runnerScript = installer.install(build.runnerVersion(), config.fileSystem().workspace(), build.isUseOldSonarRunnerScript());
     try {
-      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, SONAR_RUNNER_OPTS);
+      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, build.isUseOldSonarRunnerScript() ? SONAR_RUNNER_OPTS : SONAR_SCANNER_OPTS);
       Command command = createCommand(build, adjustedProperties, runnerScript);
       LoggerFactory.getLogger(SonarRunner.class).info("Execute: " + command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
@@ -54,7 +54,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
       return result;
 
     } catch (Exception e) {
-      throw new IllegalStateException("Fail to execute sonar-runner", e);
+      throw new IllegalStateException("Fail to execute SonarQube Scanner", e);
     }
   }
 

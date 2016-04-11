@@ -37,12 +37,12 @@ import javax.annotation.Nullable;
 @Deprecated
 public class SonarRunner extends Build<SonarRunner> {
 
-  public static final String DEFAULT_RUNNER_VERSION = "2.4";
+  public static final String DEFAULT_SCANNER_VERSION = "2.4";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
   public static final String DEFAULT_SOURCE_ENCODING = "UTF-8";
   public static final boolean DEFAULT_SCM_DISABLED = true;
 
-  private Version runnerVersion = Version.create(DEFAULT_RUNNER_VERSION);
+  private Version scannerVersion = Version.create(DEFAULT_SCANNER_VERSION);
   private File projectDir;
   private boolean debugLogs = false;
   private boolean showErrors = true;
@@ -59,7 +59,11 @@ public class SonarRunner extends Build<SonarRunner> {
   }
 
   public Version runnerVersion() {
-    return runnerVersion;
+    return scannerVersion;
+  }
+
+  public boolean isUseOldSonarRunnerScript() {
+    return !runnerVersion().isGreaterThanOrEquals("2.6");
   }
 
   public File getProjectDir() {
@@ -79,8 +83,8 @@ public class SonarRunner extends Build<SonarRunner> {
   }
 
   public SonarRunner setRunnerVersion(String s) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(s), "sonar-runner version must be set");
-    this.runnerVersion = Version.create(s);
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(s), "version must be set");
+    this.scannerVersion = Version.create(s);
     return this;
   }
 

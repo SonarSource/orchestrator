@@ -52,13 +52,13 @@ public class SonarScannerInstaller {
   /**
    * Installs an ephemeral sonar-runner and returns the path to the script to execute
    */
-  public File install(Version scannerVersion, File toDir) {
+  public File install(Version scannerVersion, File toDir, boolean useOldScript) {
     clearCachedSnapshot(scannerVersion, toDir);
     if (!isInstalled(scannerVersion, toDir)) {
       LOG.info("Installing sonar-scanner " + scannerVersion);
       doInstall(scannerVersion, toDir);
     }
-    return locateInstalledScript(scannerVersion, toDir);
+    return locateInstalledScript(scannerVersion, toDir, useOldScript);
   }
 
   @VisibleForTesting
@@ -132,8 +132,13 @@ public class SonarScannerInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(Version runnerVersion, File toDir) {
-    String filename = SystemUtils.IS_OS_WINDOWS ? "sonar-runner.bat" : "sonar-runner";
+  private static File locateInstalledScript(Version runnerVersion, File toDir, boolean useOldScript) {
+    String filename;
+    if (useOldScript) {
+      filename = SystemUtils.IS_OS_WINDOWS ? "sonar-runner.bat" : "sonar-runner";
+    } else {
+      filename = SystemUtils.IS_OS_WINDOWS ? "sonar-scanner.bat" : "sonar-scanner";
+    }
     File script = new File(toDir, directoryName(runnerVersion) + "/bin/" + filename);
     if (!script.exists()) {
       throw new IllegalStateException("File does not exist: " + script);

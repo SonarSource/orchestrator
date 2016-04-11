@@ -85,7 +85,7 @@ public class SonarScannerTest {
 
     assertThat(build.getProjectDir()).isEqualTo(new File("."));
     // check default values
-    assertThat(build.runnerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_RUNNER_VERSION));
+    assertThat(build.runnerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION));
     assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo(SonarScanner.DEFAULT_SOURCE_ENCODING);
     assertThat(build.getProperties().get("sonar.scm.disabled")).isEqualTo(String.valueOf(SonarScanner.DEFAULT_SCM_DISABLED));
     // check assigned values
@@ -132,7 +132,7 @@ public class SonarScannerTest {
   @Test
   public void runner_version_must_be_set() {
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("sonar-runner version must be set");
+    thrown.expectMessage("version must be set");
 
     SonarScanner.create().setRunnerVersion("");
   }

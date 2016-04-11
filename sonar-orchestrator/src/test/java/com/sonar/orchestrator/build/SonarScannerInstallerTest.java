@@ -63,18 +63,18 @@ public class SonarScannerInstallerTest {
   public void unsupported_version() throws Exception {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Unsupported sonar-scanner version: 1.0");
-    installer.install(Version.create("1.0"), temp.newFolder());
+    installer.install(Version.create("1.0"), temp.newFolder(), true);
   }
 
   @Test
   public void install_embedded_version() throws Exception {
     File toDir = temp.newFolder();
-    File script = installer.install(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+    File script = installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-runner");
     assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-runner-" + SonarRunner.DEFAULT_RUNNER_VERSION);
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-runner-" + SonarRunner.DEFAULT_SCANNER_VERSION);
 
     verify(fileSystem, never()).locate(any(MavenLocation.class));
   }
@@ -86,7 +86,7 @@ public class SonarScannerInstallerTest {
       new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
 
     // we're sure that SNAPSHOT versions are not embedded in sonar-runner
-    File script = installer.install(Version.create("1.4-SNAPSHOT"), toDir);
+    File script = installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-runner");
@@ -95,13 +95,27 @@ public class SonarScannerInstallerTest {
   }
 
   @Test
+  public void new_sonar_scanner_script() throws Exception {
+    File toDir = temp.newFolder();
+    when(fileSystem.locate(SonarScannerInstaller.mavenLocation(Version.create("2.6-SNAPSHOT")))).thenReturn(
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-scanner-2.6-SNAPSHOT.zip").toURI()));
+
+    File script = installer.install(Version.create("2.6-SNAPSHOT"), toDir, false);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("sonar-scanner");
+    assertThat(script.getParentFile().getName()).isEqualTo("bin");
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-2.6-SNAPSHOT");
+  }
+
+  @Test
   public void do_not_install_twice() throws Exception {
     File toDir = temp.newFolder();
 
-    installer.install(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
-    installer.install(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
+    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
 
-    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_RUNNER_VERSION), toDir);
+    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir);
   }
 
   @Test
@@ -110,8 +124,8 @@ public class SonarScannerInstallerTest {
     when(fileSystem.locate(SonarScannerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
       new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
 
-    installer.install(Version.create("1.4-SNAPSHOT"), toDir);
-    installer.install(Version.create("1.4-SNAPSHOT"), toDir);
+    installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
+    installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
 
     verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), toDir);
   }
@@ -147,6 +161,6 @@ public class SonarScannerInstallerTest {
   public void corrupted_zip() throws Exception {
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("Fail to unzip sonar-scanner");
-    installer.install(Version.create("corrupted"), temp.newFolder());
+    installer.install(Version.create("corrupted"), temp.newFolder(), true);
   }
 }
