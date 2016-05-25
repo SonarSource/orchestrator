@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 /**
  * Executes the sonar-runner script. In-process mode is not supported yet.
  *
- * @since 2.1
+ * @since 3.8
  */
 public class SonarScanner extends SonarRunner {
 
@@ -52,7 +52,7 @@ public class SonarScanner extends SonarRunner {
   }
 
   /**
-   * @deprecated since 3.10 use {@link #setScannerVersion(String)}
+   * @deprecated since 3.11 use {@link #setScannerVersion(String)}
    */
   @Deprecated
   @Override
