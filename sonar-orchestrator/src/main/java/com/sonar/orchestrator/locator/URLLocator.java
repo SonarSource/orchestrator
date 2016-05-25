@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import okhttp3.OkHttpClient;
@@ -100,7 +101,9 @@ class URLLocator implements Locator<URLLocation> {
   private static Response sendHttpRequest(URLLocation location) throws IOException {
     LOG.info("Downloading: " + location.getURL());
 
-    OkHttpClient httpClient = new OkHttpClient();
+    OkHttpClient httpClient = new OkHttpClient.Builder()
+      .readTimeout(60, TimeUnit.SECONDS)
+      .build();
     Request httpRequest = new Request.Builder()
       .url(location.getURL())
       .header("User-Agent", USER_AGENT)

@@ -18,8 +18,8 @@
     <sonarWsClient.version>4.5</sonarWsClient.version>
     <httpclient.version>4.3.2</httpclient.version>
     <commonsIO.version>2.4</commonsIO.version>
-    <commonsCodec.version>1.7</commonsCodec.version>
     <commonsLang.version>2.6</commonsLang.version>
+    <commonsExec.version>1.3</commonsExec.version>
     <guava.version>18.0</guava.version>
     <junit.version>4.12</junit.version>
     <slf4j.version>1.7.2</slf4j.version>
