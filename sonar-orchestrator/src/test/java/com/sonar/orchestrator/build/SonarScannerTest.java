@@ -46,6 +46,7 @@ public class SonarScannerTest {
       .setDebugLogs(true)
       .setShowErrors(false)
       .setTask("task")
+      .addArgument("-X")
       .addArguments("--help")
       .setLibraries("lib/guava.jar")
       .setProperty("foo", "bar")
@@ -54,12 +55,13 @@ public class SonarScannerTest {
       .setRunnerVersion("1.4")
       .setLanguage("java")
       .setSourceEncoding("UTF-8")
+      .setUseOldSonarRunnerScript(true)
       .setProfile("my profile");
 
     assertThat(build.getProjectDir()).isEqualTo(new File("."));
     assertThat(build.runnerVersion()).isEqualTo(Version.create("1.4"));
     assertThat(build.getTask()).isEqualTo("task");
-    assertThat(build.arguments().get(0)).isEqualTo("--help");
+    assertThat(build.arguments()).containsExactly("-X", "--help");
     assertThat(build.getProperties().get("sonar.projectKey")).isEqualTo("SAMPLE");
     assertThat(build.getProperties().get("sonar.projectName")).isEqualTo("Sample");
     assertThat(build.getProperties().get("sonar.projectVersion")).isEqualTo("1.2.3");
@@ -75,6 +77,10 @@ public class SonarScannerTest {
     assertThat(build.getProperties().get("sonar.profile")).isEqualTo("my profile");
     assertThat(build.isDebugLogs()).isTrue();
     assertThat(build.isShowErrors()).isFalse();
+    assertThat(build.isUseOldSonarRunnerScript()).isTrue();
+
+    build.setScannerVersion("2.5");
+    assertThat(build.scannerVersion()).isEqualTo(Version.create("2.5"));
   }
 
   @Test
