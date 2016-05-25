@@ -19,6 +19,12 @@
  */
 package com.sonar.orchestrator.locator;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -26,11 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,6 +46,9 @@ public class URLLocatorTest {
 
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+
+  @Rule
+  public MockWebServer webServer = new MockWebServer();
 
   @Before
   public void prepare() {
@@ -138,6 +142,35 @@ public class URLLocatorTest {
     assertThat(URLLocator.getFilenameFromContentDispositionHeader("")).isNull();
     assertThat(URLLocator.getFilenameFromContentDispositionHeader("Content-Disposition: attachment; filename=foo.jar")).isEqualTo("foo.jar");
     assertThat(URLLocator.getFilenameFromContentDispositionHeader("Content-Disposition: attachment; filename=foo.jar;")).isEqualTo("foo.jar");
+  }
 
+  @Test
+  public void test_copyToFile() throws Exception {
+    File toFile = temp.newFile();
+    webServer.enqueue(new MockResponse().setBody("hello world"));
+
+    urlLocator.copyToFile(URLLocation.create(webServer.url("/").url()), toFile);
+    assertThat(toFile).exists().isFile().hasContent("hello world");
+  }
+
+  @Test
+  public void copyToDir_gets_filename_from_http_header() throws Exception {
+    File toDir = temp.newFolder();
+    webServer.enqueue(new MockResponse().setBody("hello world").setHeader("Content-Disposition", "attachment; filename=\"foo.txt\""));
+
+    // URL is about bar.txt but HTTP header is about foo.txt -> the latter wins
+    urlLocator.copyToDirectory(URLLocation.create(webServer.url("/bar.txt").url()), toDir);
+    File toFile = new File(toDir, "foo.txt");
+    assertThat(toFile).exists().isFile().hasContent("hello world");
+  }
+
+  @Test
+  public void copyToDir_gets_filename_from_url_if_http_header_is_missing() throws Exception {
+    File toDir = temp.newFolder();
+    webServer.enqueue(new MockResponse().setBody("hello world"));
+
+    urlLocator.copyToDirectory(URLLocation.create(webServer.url("/foo.txt").url()), toDir);
+    File toFile = new File(toDir, "foo.txt");
+    assertThat(toFile).exists().isFile().hasContent("hello world");
   }
 }
