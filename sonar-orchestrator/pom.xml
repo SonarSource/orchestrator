@@ -225,12 +225,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock</artifactId>
-      <version>1.53</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.sonar.sslr</groupId>
       <artifactId>sslr-testing-harness</artifactId>
       <version>1.19.2</version>
