@@ -67,7 +67,7 @@ public class MavenBuildExecutorTest {
     BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), Maps.<String, String>newHashMap());
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
-    assertThat(result.getLogs()).contains("[INFO] BUILD SUCCESS");
+    assertThat(result.getLogs()).containsSequence("[INFO] Scanning for projects...", "[INFO] Total time");
   }
 
   // ORCH-351
