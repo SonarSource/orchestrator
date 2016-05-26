@@ -205,6 +205,8 @@
                     <password>${env.ARTIFACTORY_DEPLOY_PASSWORD}</password>
                     <publishBuildInfo>true</publishBuildInfo>
                     <publishArtifacts>true</publishArtifacts>
+                    <excludePatterns>*echo*</excludePatterns>
+                    <filterExcludedArtifactsFromBuild>true</filterExcludedArtifactsFromBuild>
                   </publisher>
                   <buildInfo>
                     <buildName>${gitRepositoryName}</buildName>
