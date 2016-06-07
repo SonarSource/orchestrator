@@ -11,8 +11,7 @@
 
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
-    <argLine>-Xmx128m -server ${surefire.argLine}</argLine>
-    <jacoco.version>0.7.6.201602180812</jacoco.version>
+    <argLine>-Xmx128m -server</argLine>
   </properties>
 
   <build>

@@ -14,13 +14,13 @@
   <inceptionYear>2011</inceptionYear>
 
   <properties>
-    <surefire.argLine />
     <sonarWsClient.version>4.5</sonarWsClient.version>
     <httpclient.version>4.3.2</httpclient.version>
     <commonsIO.version>2.4</commonsIO.version>
     <commonsLang.version>2.6</commonsLang.version>
     <commonsExec.version>1.3</commonsExec.version>
     <guava.version>18.0</guava.version>
+    <jacoco.version>0.7.6.201602180812</jacoco.version>
     <junit.version>4.12</junit.version>
     <slf4j.version>1.7.2</slf4j.version>
     <sonar.exclusions>**/com/sonar/orchestrator/echo/**/*.java,**/com/sonar/orchestrator/test/**/*.java,target/generated-sources/**/*</sonar.exclusions>
@@ -86,7 +86,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.7.5.201505241946</version>
+        <version>${jacoco.version}</version>
         <configuration>
           <includes>
             <include>com.sonar.orchestrator.*</include>
