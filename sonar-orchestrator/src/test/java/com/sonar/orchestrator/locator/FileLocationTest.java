@@ -208,4 +208,15 @@ public class FileLocationTest extends PropertyAndEnvTest {
 
     assertThat(FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar").getFile()).isEqualTo(file);
   }
+
+  @Test
+  public void byWildcardFilename_excludes_javadoc() throws IOException {
+    File dir = temp.newFolder();
+    File file = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT.jar");
+    File tests = new File(dir, "sonar-foo-plugin-0.1-SNAPSHOT-javadoc.jar");
+    FileUtils.touch(file);
+    FileUtils.touch(tests);
+
+    assertThat(FileLocation.byWildcardMavenFilename(dir, "sonar-foo-plugin-*.jar").getFile()).isEqualTo(file);
+  }
 }
