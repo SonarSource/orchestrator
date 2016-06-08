@@ -87,6 +87,7 @@ public class FileLocation implements Location {
    * <ul>
    *   <li>files matching *-sources.jar</li>
    *   <li>files matching *-tests.jar</li>
+   *   <li>files matching *-javadoc.jar</li>
    * </ul>
    * Example: {@code byWildcardMavenArtifactFilename(new File("../target"), "sonar-foo-plugin-*.jar")}
    *
@@ -100,7 +101,8 @@ public class FileLocation implements Location {
     IOFileFilter artifactFilter = new WildcardFileFilter(wildcardFilename, IOCase.SENSITIVE);
     IOFileFilter sourcesFilter = notFileFilter(new WildcardFileFilter("*-sources.jar"));
     IOFileFilter testsFilter = notFileFilter(new WildcardFileFilter("*-tests.jar"));
-    IOFileFilter filters = and(artifactFilter, sourcesFilter, testsFilter);
+    IOFileFilter javadocFilter = notFileFilter(new WildcardFileFilter("*-javadoc.jar"));
+    IOFileFilter filters = and(artifactFilter, sourcesFilter, testsFilter, javadocFilter);
     Collection<File> files = new ArrayList<>(FileUtils.listFiles(directory, filters, null));
     return getOnlyFile(directory, wildcardFilename, files);
   }
