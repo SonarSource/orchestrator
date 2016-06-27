@@ -40,6 +40,6 @@ public class BuildFailureException extends RuntimeException {
 
   @Override
   public String getMessage() {
-    return "status=" + result.getStatus() + " " + "build=[" + build + "]";
+    return "status=" + result.getStatus() + " " + "logs=[" + result.getLogs() + "]";
   }
 }

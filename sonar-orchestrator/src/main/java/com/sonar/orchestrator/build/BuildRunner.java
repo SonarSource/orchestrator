@@ -24,11 +24,11 @@ import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.db.Database;
-
 import java.util.Map;
 
 public class BuildRunner {
 
+  public static final String SONAR_HOST_URL = "sonar.host.url";
   private final Configuration config;
   private final Database database;
 
@@ -52,9 +52,14 @@ public class BuildRunner {
   @VisibleForTesting
   Map<String, String> adjustProperties(Server server, Build<?> build) {
     Map<String, String> adjustedProperties = Maps.newHashMap();
-    if (server != null) {
-      adjustedProperties.put("sonar.host.url", server.getUrl());
-      adjustedProperties.putAll(database.getSonarProperties());
+    if (!(build instanceof ScannerForMSBuild) || !((ScannerForMSBuild) build).arguments().contains("end")) {
+      if (server != null) {
+        adjustedProperties.put(SONAR_HOST_URL, server.getUrl());
+        if (!server.version().isGreaterThanOrEquals("5.2")) {
+          adjustedProperties.putAll(database.getSonarProperties());
+        }
+      }
+      adjustedProperties.put("sonar.scm.disabled", "true");
     }
     // build properties override predefined properties
     adjustedProperties.putAll(build.getProperties());

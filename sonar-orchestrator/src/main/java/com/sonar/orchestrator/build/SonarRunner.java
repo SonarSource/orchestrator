@@ -40,7 +40,6 @@ public class SonarRunner extends Build<SonarRunner> {
   public static final String DEFAULT_SCANNER_VERSION = "2.4";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
   public static final String DEFAULT_SOURCE_ENCODING = "UTF-8";
-  public static final boolean DEFAULT_SCM_DISABLED = true;
 
   private Version scannerVersion = Version.create(DEFAULT_SCANNER_VERSION);
   private File projectDir;
@@ -153,8 +152,7 @@ public class SonarRunner extends Build<SonarRunner> {
   public static SonarRunner create() {
     return new SonarRunner()
       // default value
-      .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING)
-      .setProperty("sonar.scm.disabled", String.valueOf(DEFAULT_SCM_DISABLED));
+      .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING);
   }
 
   public static SonarRunner create(File projectDir, String... keyValueProperties) {

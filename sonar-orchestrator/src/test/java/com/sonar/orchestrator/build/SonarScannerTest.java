@@ -93,7 +93,6 @@ public class SonarScannerTest {
     // check default values
     assertThat(build.runnerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION));
     assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo(SonarScanner.DEFAULT_SOURCE_ENCODING);
-    assertThat(build.getProperties().get("sonar.scm.disabled")).isEqualTo(String.valueOf(SonarScanner.DEFAULT_SCM_DISABLED));
     // check assigned values
     assertThat(build.getProperties().get("sonar.projectKey")).isEqualTo("SAMPLE");
     assertThat(build.getProperties().get("sonar.projectName")).isEqualTo("Sample");

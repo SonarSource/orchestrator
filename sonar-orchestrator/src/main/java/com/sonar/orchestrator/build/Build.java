@@ -24,12 +24,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
-
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public abstract class Build<T extends Build<T>> {
 
@@ -185,7 +184,9 @@ public abstract class Build<T extends Build<T>> {
    * Shortcut to set the parameter "sonar.dynamicAnalysis" to false
    *
    * @since 2.10
+   * @deprecated since 3.13
    */
+  @Deprecated
   public T withoutDynamicAnalysis() {
     return setProperty("sonar.dynamicAnalysis", "false");
   }

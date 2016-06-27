@@ -24,14 +24,13 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 
 public class Command {
 
@@ -122,21 +121,20 @@ public class Command {
   String[] toStrings() {
     List<String> command = Lists.newArrayList();
     if (os.isWindows()) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(DOUBLE_QUOTE);
-      sb.append(executable);
+      command.add("cmd");
+      command.add("/c");
+      if (executable.matches(".*[&<>\\(\\)\\[\\]\\{\\}\\^=;!\\+,`~\"'\\s]+.*")) {
+        command.add(DOUBLE_QUOTE + executable + DOUBLE_QUOTE);
+      } else {
+        command.add(executable);
+      }
       for (String argument : arguments) {
-        // all the characters that need parameter to be escaped
-        if (os.isWindows() && argument.matches(".*[&<>\\(\\)\\[\\]\\{\\}\\^=;!\\+,`~\"'\\s]+.*")) {
-          sb.append(" \"").append(argument);
-          sb.append("\"");
+        if (argument.matches(".*[&<>\\(\\)\\[\\]\\{\\}\\^=;!\\+,`~\"'\\s]+.*")) {
+          command.add(DOUBLE_QUOTE + argument + DOUBLE_QUOTE);
         } else {
-          sb.append(" ").append(argument);
+          command.add(argument);
         }
       }
-      sb.append(DOUBLE_QUOTE);
-      command = Arrays.asList("cmd", "/c", sb.toString());
-
     } else {
       command.add(executable);
       command.addAll(arguments);
