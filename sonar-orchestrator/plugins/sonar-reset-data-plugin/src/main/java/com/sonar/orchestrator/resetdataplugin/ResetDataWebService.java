@@ -16,7 +16,7 @@ public class ResetDataWebService implements WebService {
 
   @Override
   public void define(Context context) {
-    NewController controller = context.createController("orchestrator")
+    NewController controller = context.createController("api/orchestrator")
       .setDescription("Orchestrator web service");
 
     controller.createAction("reset")

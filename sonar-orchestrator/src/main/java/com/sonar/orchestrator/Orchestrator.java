@@ -242,7 +242,7 @@ public class Orchestrator extends SingleStartExternalResource {
   public void resetData() {
     LOG.info("Reset data");
     if (getServer().version().isGreaterThanOrEquals("5.0")) {
-      getServer().post("/orchestrator/reset", Collections.<String, Object>emptyMap());
+      getServer().post("/api/orchestrator/reset", Collections.<String, Object>emptyMap());
     } else {
       getDatabase().truncateInspectionTables();
     }
