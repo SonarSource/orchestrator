@@ -53,7 +53,7 @@ public class MavenBuildExecutorTest {
   @Test
   public void testDebugMode() throws IOException {
     if (SystemUtils.IS_OS_WINDOWS) {
-      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"))).contains("bin\\mvn.bat");
+      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"))).contains("bin\\mvn.cmd");
     } else {
       assertThat(MavenBuildExecutor.getMvnPath(new File("maven"))).contains("bin/mvn");
     }

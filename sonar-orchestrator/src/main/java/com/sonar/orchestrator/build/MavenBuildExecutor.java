@@ -91,14 +91,23 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
   }
 
   static String getMvnPath(@Nullable File mvnHome) throws IOException {
-    String program = "mvn";
+    final String program = "mvn";
+    if (mvnHome == null) {
+      // Will try to use the one in PATH
+      return program;
+    }
     if (SystemUtils.IS_OS_WINDOWS) {
-      program += ".bat";
+      File bat = new File(mvnHome, "bin/" + program + ".bat");
+      if (bat.exists()) {
+        return bat.getCanonicalPath();
+      } else {
+        // Assume Maven 3.3.x+
+        File cmd = new File(mvnHome, "bin/" + program + ".cmd");
+        return cmd.getCanonicalPath();
+      }
+    } else {
+      return new File(mvnHome, "bin/" + program).getCanonicalPath();
     }
-    if (mvnHome != null) {
-      program = new File(mvnHome, "bin/" + program).getCanonicalPath();
-    }
-    return program;
   }
 
 }
