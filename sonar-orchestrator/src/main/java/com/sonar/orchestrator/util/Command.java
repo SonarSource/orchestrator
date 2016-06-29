@@ -121,20 +121,25 @@ public class Command {
   String[] toStrings() {
     List<String> command = Lists.newArrayList();
     if (os.isWindows()) {
-      command.add("cmd");
-      command.add("/c");
+      StringBuilder sb = new StringBuilder();
+      sb.append(DOUBLE_QUOTE);
       if (executable.matches(".*[&<>\\(\\)\\[\\]\\{\\}\\^=;!\\+,`~\"'\\s]+.*")) {
-        command.add(DOUBLE_QUOTE + executable + DOUBLE_QUOTE);
+        sb.append(DOUBLE_QUOTE).append(executable).append(DOUBLE_QUOTE);
       } else {
-        command.add(executable);
+        sb.append(executable);
       }
       for (String argument : arguments) {
+        sb.append(" ");
+        // all the characters that need parameter to be escaped
         if (argument.matches(".*[&<>\\(\\)\\[\\]\\{\\}\\^=;!\\+,`~\"'\\s]+.*")) {
-          command.add(DOUBLE_QUOTE + argument + DOUBLE_QUOTE);
+          sb.append(DOUBLE_QUOTE).append(argument).append(DOUBLE_QUOTE);
         } else {
-          command.add(argument);
+          sb.append(argument);
         }
       }
+      sb.append(DOUBLE_QUOTE);
+      command = Arrays.asList("cmd", "/c", sb.toString());
+
     } else {
       command.add(executable);
       command.addAll(arguments);

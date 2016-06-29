@@ -66,21 +66,21 @@ public class CommandTest {
     command.addArguments(new String[] {"-x", "-y"});
     assertThat(command.getExecutable()).isEqualTo("java");
     assertThat(command.getArguments()).hasSize(5);
-    assertThat(command.toCommandLine()).isEqualTo("cmd /c java -Xmx512m -a -b -x -y");
+    assertThat(command.toCommandLine()).isEqualTo("cmd /c \"java -Xmx512m -a -b -x -y\"");
   }
 
   @Test
   public void escape_argument_on_windows() {
     Command command = new Command("java", WINDOWS);
     command.addArgument("url=mysql?foo;bar&baz");
-    assertThat(command.toCommandLine()).isEqualTo("cmd /c java \"url=mysql?foo;bar&baz\"");
+    assertThat(command.toCommandLine()).isEqualTo("cmd /c \"java \"url=mysql?foo;bar&baz\"\"");
   }
 
   @Test
   public void escape_executable_on_windows() {
     Command command = new Command("c:\\Program Files\\java.exe", WINDOWS);
     command.addArgument("foo");
-    assertThat(command.toCommandLine()).isEqualTo("cmd /c \"c:\\Program Files\\java.exe\" foo");
+    assertThat(command.toCommandLine()).isEqualTo("cmd /c \"\"c:\\Program Files\\java.exe\" foo\"");
   }
 
   @Test
@@ -99,7 +99,7 @@ public class CommandTest {
     Command command = new Command("java", WINDOWS);
     command.addSystemArgument("foo", "bar");
     command.addSystemArgument("profile", "sonar way");
-    assertThat(command.toCommandLine()).isEqualTo("cmd /c java \"-Dfoo=bar\" \"-Dprofile=sonar way\"");
+    assertThat(command.toCommandLine()).isEqualTo("cmd /c \"java \"-Dfoo=bar\" \"-Dprofile=sonar way\"\"");
   }
 
   @Test
