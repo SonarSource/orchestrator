@@ -83,7 +83,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       LoggerFactory.getLogger(getClass()).info("Execute: " + command);
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
-      result.setStatus(status);
+      result.addStatus(status);
 
     } catch (Exception e) {
       throw new IllegalStateException("Fail to execute Maven", e);

@@ -151,18 +151,19 @@ public class BuildRunnerTest {
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.6"));
     Build build = mock(Build.class);
-    when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().setStatus(2));
+    when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2));
 
     BuildRunner runner = new BuildRunner(config, database);
     BuildResult result = runner.runQuietly(server, build);
 
-    assertThat(result.getStatus()).isEqualTo(2);
+    assertThat(result.getLastStatus()).isEqualTo(2);
+    assertThat(result.getStatuses()).containsExactly(2);
   }
 
   @Test
   public void throw_exception_if_run_fails() {
     thrown.expect(BuildFailureException.class);
-    thrown.expectMessage("status=2");
+    thrown.expectMessage("statuses=[2]");
 
     Build build = mock(Build.class);
     try {
@@ -170,7 +171,7 @@ public class BuildRunnerTest {
       Database database = mock(Database.class);
       Server server = mock(Server.class);
       when(server.version()).thenReturn(Version.create("5.6"));
-      when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().setStatus(2));
+      when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2));
 
       BuildRunner runner = new BuildRunner(config, database);
       runner.run(server, build);
@@ -179,7 +180,33 @@ public class BuildRunnerTest {
       assertThat(e.getBuild()).isEqualTo(build);
       assertThat(e.getResult().isSuccess()).isFalse();
       assertThat(e.getResult().isSuccess()).isFalse();
-      assertThat(e.getMessage()).startsWith("status=2");
+      assertThat(e.getMessage()).startsWith("statuses=[2]");
+      // forward exception to the junit test
+      throw e;
+    }
+  }
+
+  @Test
+  public void throw_exception_if_any_run_fails() {
+    thrown.expect(BuildFailureException.class);
+    thrown.expectMessage("statuses=[2, 0]");
+
+    Build build = mock(Build.class);
+    try {
+      Configuration config = Configuration.create();
+      Database database = mock(Database.class);
+      Server server = mock(Server.class);
+      when(server.version()).thenReturn(Version.create("5.6"));
+      when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2).addStatus(0));
+
+      BuildRunner runner = new BuildRunner(config, database);
+      runner.run(server, build);
+
+    } catch (BuildFailureException e) {
+      assertThat(e.getBuild()).isEqualTo(build);
+      assertThat(e.getResult().isSuccess()).isFalse();
+      assertThat(e.getResult().isSuccess()).isFalse();
+      assertThat(e.getMessage()).startsWith("statuses=[2, 0]");
       // forward exception to the junit test
       throw e;
     }
@@ -192,7 +219,7 @@ public class BuildRunnerTest {
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.6"));
     Build build = mock(Build.class);
-    when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().setStatus(0));
+    when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(0));
 
     BuildRunner runner = new BuildRunner(config, database);
     BuildResult result = runner.run(server, build);

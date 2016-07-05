@@ -19,6 +19,8 @@
  */
 package com.sonar.orchestrator.build;
 
+import java.util.stream.Collectors;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class BuildFailureException extends RuntimeException {
@@ -40,6 +42,10 @@ public class BuildFailureException extends RuntimeException {
 
   @Override
   public String getMessage() {
-    return "status=" + result.getStatus() + " " + "logs=[" + result.getLogs() + "]";
+    return "statuses=[" +
+      result.getStatuses().stream()
+        .map(i -> i.toString())
+        .collect(Collectors.joining(", "))
+      + "] logs=[" + result.getLogs() + "]";
   }
 }

@@ -21,12 +21,15 @@ package com.sonar.orchestrator.build;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class BuildResult {
 
   // StringWriter does not need to be closed
   private StringWriter logs = new StringWriter();
-  private Integer status;
+  private List<Integer> statuses = new ArrayList<>();
 
   public Writer getLogsWriter() {
     return logs;
@@ -36,20 +39,37 @@ public class BuildResult {
     return logs.toString();
   }
 
+  /**
+   * @deprecated since 3.13 use {@link #getLastStatus()}
+   */
+  @Deprecated
   public Integer getStatus() {
-    return status;
+    return getLastStatus();
   }
 
-  public BuildResult setStatus(Integer status) {
-    this.status = status;
+  /**
+   * With {@link MavenBuild} or {@link AntBuild} it is possible to chain execution of several goals/target. 
+   * This will return the status of the last execution.
+   * @since 3.13
+   */
+  public Integer getLastStatus() {
+    return statuses.isEmpty() ? null : statuses.get(statuses.size() - 1);
+  }
+
+  public List<Integer> getStatuses() {
+    return Collections.unmodifiableList(statuses);
+  }
+
+  public BuildResult addStatus(Integer status) {
+    statuses.add(status);
     return this;
   }
 
   /**
-   * Tests status, return true if zero, false
-   * @return true if the status is zero
+   * Tests statuses, return true if all zero, else false
+   * @return true if all statuses are zero
    */
   public boolean isSuccess() {
-    return getStatus() == 0;
+    return statuses.stream().allMatch(s -> s == 0);
   }
 }

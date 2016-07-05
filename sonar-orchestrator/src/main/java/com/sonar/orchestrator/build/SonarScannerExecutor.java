@@ -50,7 +50,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
       LoggerFactory.getLogger(SonarRunner.class).info("Execute: " + command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
-      result.setStatus(status);
+      result.addStatus(status);
       return result;
 
     } catch (Exception e) {

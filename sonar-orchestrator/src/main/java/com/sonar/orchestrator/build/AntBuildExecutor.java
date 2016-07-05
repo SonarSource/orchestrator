@@ -25,13 +25,12 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
+import org.slf4j.LoggerFactory;
 
 class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
 
@@ -66,7 +65,7 @@ class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
       LoggerFactory.getLogger(getClass()).info("Execute: " + command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
-      result.setStatus(status);
+      result.addStatus(status);
 
     } catch (Exception e) {
       throw new IllegalStateException("Fail to execute Ant", e);
