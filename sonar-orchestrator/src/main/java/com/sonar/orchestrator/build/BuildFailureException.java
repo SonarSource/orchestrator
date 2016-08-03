@@ -44,7 +44,7 @@ public class BuildFailureException extends RuntimeException {
   public String getMessage() {
     return "statuses=[" +
       result.getStatuses().stream()
-        .map(i -> i.toString())
+        .map(Object::toString)
         .collect(Collectors.joining(", "))
       + "] logs=[" + result.getLogs() + "]";
   }
