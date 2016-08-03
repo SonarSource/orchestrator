@@ -4,9 +4,10 @@ set -euo pipefail
 
 function configureTravis {
   mkdir ~/.local
-  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v28 | tar zx --strip-components 1 -C ~/.local
+  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v31 | tar zx --strip-components 1 -C ~/.local
   source ~/.local/bin/install
 }
 configureTravis
+. installJDK8
 
 regular_mvn_build_deploy_analyze
