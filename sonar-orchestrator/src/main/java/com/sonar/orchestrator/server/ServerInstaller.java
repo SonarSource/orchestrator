@@ -136,6 +136,7 @@ public class ServerInstaller {
       properties.setProperty("sonar.jdbc.password", databaseClient.getPassword());
       // Use same host as NetworkUtils.getNextAvailablePort()
       properties.setProperty("sonar.web.host", "localhost");
+      properties.setProperty("sonar.search.port", "0");
       properties.setProperty("sonar.search.host", "localhost");
       properties.setProperty("sonar.log.console", "true");
 

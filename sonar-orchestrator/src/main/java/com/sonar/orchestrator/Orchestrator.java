@@ -28,7 +28,6 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.config.Licenses;
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.container.ServerWrapper;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
@@ -37,15 +36,22 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.selenium.Selenese;
 import com.sonar.orchestrator.selenium.SeleneseRunner;
+import com.sonar.orchestrator.server.ServerCommandLineFactory;
 import com.sonar.orchestrator.server.ServerInstaller;
+import com.sonar.orchestrator.server.ServerProcess;
+import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.ServerZipFinder;
+import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.util.NetworkUtils;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
+
+import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
 
@@ -57,19 +63,22 @@ public class Orchestrator extends SingleStartExternalResource {
   private final SonarDistribution distribution;
   private final Licenses licenses;
   private final AtomicBoolean started = new AtomicBoolean(false);
-  private ServerWrapper serverWrapper;
+
   private DefaultDatabase database;
   private Server server;
   private SeleneseRunner seleniumRunner;
   private BuildRunner buildRunner;
+  private ServerProcess process;
+  private StartupLogWatcher startupLogWatcher;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
    */
-  Orchestrator(Configuration config, SonarDistribution distribution) {
-    this.config = config;
-    this.distribution = distribution;
+  Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
+    this.config = requireNonNull(config);
+    this.distribution = requireNonNull(distribution);
     this.licenses = new Licenses();
+    this.startupLogWatcher = startupLogWatcher;
   }
 
   @Override
@@ -113,8 +122,8 @@ public class Orchestrator extends SingleStartExternalResource {
     server.setUrl(String.format("http://localhost:%d%s", port, StringUtils.removeEnd(distribution.getContext(), "/")));
     server.setPort(port);
 
-    serverWrapper = new ServerWrapper(server, config, fs.javaHome());
-    serverWrapper.start();
+    process = new ServerProcessImpl(new ServerCommandLineFactory(fs), server, startupLogWatcher);
+    process.start();
 
     for (Location backup : distribution.getProfileBackups()) {
       server.restoreProfile(backup);
@@ -144,8 +153,8 @@ public class Orchestrator extends SingleStartExternalResource {
       return;
     }
 
-    if (serverWrapper != null) {
-      serverWrapper.stopAndClean();
+    if (process != null) {
+      process.stop();
     }
     if (database != null) {
       database.stop();
@@ -156,12 +165,10 @@ public class Orchestrator extends SingleStartExternalResource {
    * restart of the sonarQube server
    */
   public void restartServer() {
-
-    if (serverWrapper != null) {
-      serverWrapper.stop();
-      serverWrapper.start();
+    if (process != null) {
+      process.stop();
+      process.start();
     }
-
   }
 
   public Database getDatabase() {

@@ -133,7 +133,7 @@ public class CommandExecutorTest {
     command.addArgument("-Dprop.quotes=single'quote");
 
     command.addArgument("-jar");
-    command.addArgument(TestModules.getFile("echo/target", "echo-*.jar").getAbsolutePath());
+    command.addArgument(TestModules.getFile("../echo/target", "echo-*.jar").getAbsolutePath());
     command.setDirectory(outputDir);
 
     // arguments

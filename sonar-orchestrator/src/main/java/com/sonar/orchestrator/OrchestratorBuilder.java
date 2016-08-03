@@ -30,6 +30,7 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.PluginLocation;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.locator.URLLocation;
+import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +60,7 @@ public class OrchestratorBuilder {
   private final Map<String, String> overriddenProperties;
   private UpdateCenter updateCenter;
   private String mainPluginKey;
+  private StartupLogWatcher startupLogWatcher;
 
   OrchestratorBuilder(Configuration initialConfig) {
     this.config = initialConfig;
@@ -69,6 +71,14 @@ public class OrchestratorBuilder {
   public OrchestratorBuilder setSonarVersion(String s) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(s), "Empty SonarQube version");
     this.overriddenProperties.put(Configuration.SONAR_VERSION_PROPERTY, s);
+    return this;
+  }
+
+  /**
+   * FIXME
+   */
+  public OrchestratorBuilder setStartupLogWatcher(@Nullable StartupLogWatcher w) {
+    this.startupLogWatcher = w;
     return this;
   }
 
@@ -347,6 +357,6 @@ public class OrchestratorBuilder {
     if (this.distribution.version().isGreaterThanOrEquals("5.4")) {
       this.distribution.setContext("/");
     }
-    return new Orchestrator(finalConfig, distribution);
+    return new Orchestrator(finalConfig, distribution, startupLogWatcher);
   }
 }

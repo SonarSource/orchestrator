@@ -38,7 +38,6 @@ public final class SonarDistribution {
   private List<Location> pluginLocations = Lists.newArrayList();
   private List<Location> profileBackups = Lists.newArrayList();
   private Properties serverProperties = new Properties();
-  private List<String> serverAdditionalJvmArguments = Lists.newArrayList();
   private List<String> licensedPluginKeys = Lists.newArrayList();
   private boolean removeDistributedPlugins = true;
 
@@ -103,13 +102,6 @@ public final class SonarDistribution {
   public SonarDistribution addServerProperties(Properties props) {
     serverProperties.putAll(props);
     return this;
-  }
-
-  /**
-   * @since 2.11.2
-   */
-  public List<String> serverAdditionalJvmArguments() {
-    return serverAdditionalJvmArguments;
   }
 
   public boolean isRelease() {

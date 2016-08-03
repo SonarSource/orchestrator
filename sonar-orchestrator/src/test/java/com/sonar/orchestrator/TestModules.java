@@ -31,12 +31,7 @@ public class TestModules {
 
   public static File getFile(String dir, String filenameRegexp) {
     FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
-    // the Intellij way
     File[] files = new File(dir).listFiles(fileFilter);
-    if (files == null || files.length != 1) {
-      // the Eclipse and Maven way
-      files = new File("../" + dir).listFiles(fileFilter);
-    }
     if (files == null || files.length != 1) {
       throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
     }
