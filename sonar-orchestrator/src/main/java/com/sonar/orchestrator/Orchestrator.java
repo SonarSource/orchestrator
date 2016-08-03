@@ -117,7 +117,7 @@ public class Orchestrator extends SingleStartExternalResource {
     distribution.setPort(port);
     FileSystem fs = config.fileSystem();
     ServerZipFinder zipFinder = new ServerZipFinder(fs, config.updateCenter());
-    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, fs, database.getClient(), licenses);
+    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, fs, database.getClient());
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d%s", port, StringUtils.removeEnd(distribution.getContext(), "/")));
     server.setPort(port);

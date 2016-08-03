@@ -21,7 +21,6 @@ package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.config.Licenses;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
@@ -53,14 +52,13 @@ public class ServerInstallerTest {
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
-  ServerZipFinder zipFinder = mock(ServerZipFinder.class);
-  FileSystem fs = mock(FileSystem.class);
-  DatabaseClient dbClient = mock(DatabaseClient.class);
-  Licenses licenses = mock(Licenses.class);
-  File installsDir;
-  File workspaceDir;
-  File mavenLocalDir;
-  ServerInstaller underTest;
+  private ServerZipFinder zipFinder = mock(ServerZipFinder.class);
+  private FileSystem fs = mock(FileSystem.class);
+  private DatabaseClient dbClient = mock(DatabaseClient.class);
+  private File installsDir;
+  private File workspaceDir;
+  private File mavenLocalDir;
+  private ServerInstaller underTest;
 
   @Before
   public void setUp() throws IOException {
@@ -76,7 +74,7 @@ public class ServerInstallerTest {
     when(dbClient.getUrl()).thenReturn("jdbc:h2:mem");
     when(dbClient.getLogin()).thenReturn("sonar");
     when(dbClient.getPassword()).thenReturn("sonar");
-    underTest = new ServerInstaller(zipFinder, fs, dbClient, licenses);
+    underTest = new ServerInstaller(zipFinder, fs, dbClient);
   }
 
   @Test
@@ -151,32 +149,6 @@ public class ServerInstallerTest {
     distrib.addPluginLocation(FileLocation.of(invalidPlugin));
 
     underTest.install(distrib);
-  }
-
-  @Test
-  public void copy_licenses() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
-    distrib.activateLicense("cobol");
-    when(licenses.get("cobol")).thenReturn("<LICENSE_COBOL>");
-    when(licenses.licensePropertyKey("cobol")).thenReturn("sonar.cobol.license.secured");
-
-    Server server = underTest.install(distrib);
-
-    assertThat(openPropertiesFile(server).getProperty("sonar.cobol.license.secured")).isEqualTo("<LICENSE_COBOL>");
-  }
-
-  @Test
-  public void do_not_set_license_if_value_is_not_defined() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
-    distrib.activateLicense("cobol");
-    when(licenses.get("cobol")).thenReturn(null);
-    when(licenses.licensePropertyKey("cobol")).thenReturn("sonar.cobol.license.secured");
-
-    Server server = underTest.install(distrib);
-
-    assertThat(openPropertiesFile(server).getProperty("sonar.cobol.license.secured")).isNull();
   }
 
   @Test
