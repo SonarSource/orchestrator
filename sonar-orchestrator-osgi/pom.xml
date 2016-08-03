@@ -100,7 +100,6 @@
               org.junit;bundle-version="4.11",
               org.codehaus.sonar.ws-client;bundle-version="${sonarWsClient.version}",
               org.apache.commons.lang;bundle-version="${commonsLang.version}",
-              org.apache.commons.codec;bundle-version="${commonsCodec.version}",
               org.apache.commons.io;bundle-version="${commonsIO.version}",
               com.google.guava;bundle-version="${guava.version}",
               slf4j.api;bundle-version="${slf4j.version}",
