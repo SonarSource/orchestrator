@@ -145,25 +145,6 @@ public class DefaultDatabaseTest {
     db.truncate("METRICS");
   }
 
-  @Test
-  public void truncateInspectionTables() {
-    assertThat(db.countSql("select count(kee) from projects")).isGreaterThan(0);
-    assertThat(db.countSql("select count(id) from properties")).isEqualTo(2);
-
-    // do not fail if tables do not exist (EVENTS, ...)
-    db.truncateInspectionTables();
-
-    // the table PROJECTS is truncated
-    assertThat(db.countSql("select count(kee) from projects")).isEqualTo(0);
-
-    // the table METRICS is NOT truncated
-    assertThat(db.countSql("select count(kee) from metrics")).isGreaterThan(0);
-
-    // Resource related data are deleted
-    // Only delete when resource_id is not null
-    assertThat(db.countSql("select count(id) from properties")).isEqualTo(1);
-  }
-
   private void assertConnected(Database operations) throws SQLException {
     Connection connection = operations.openConnection();
     try {

@@ -33,12 +33,6 @@ public interface Database {
   Database truncate(String tableName);
 
   /**
-   * This is used only for SonarQube versions < 5.0.
-   * Have to wait 5.0 becomes LTS before dropping this mechanism.
-   */
-  Database truncateInspectionTables();
-
-  /**
    * Example : countSql("count(kee) from metrics")
    */
   int countSql(String sql);

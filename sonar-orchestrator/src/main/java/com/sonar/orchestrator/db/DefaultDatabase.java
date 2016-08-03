@@ -92,57 +92,6 @@ public final class DefaultDatabase implements Database {
     }
   }
 
-  private static final String[] INSPECTION_TABLES = {
-    "action_plans",
-    "authors",
-    "dependencies",
-    "duplications_index",
-    "events",
-    "graphs",
-    "issues",
-    "issue_changes",
-    "manual_measures",
-    "notifications",
-    "project_links",
-    "project_measures",
-    "projects",
-    "resource_index",
-    "snapshot_sources",
-    "snapshots",
-    "snapshot_data"
-  };
-
-  private static final String[] RESOURCE_RELATED_TABLES = {
-    "group_roles",
-    "user_roles",
-    "properties"
-  };
-
-  /**
-   * Clean up of tables for SonarQube 4.5
-   * This is based on a hardcoded list of tables.
-   * @return
-   */
-  @Override
-  public Database truncateInspectionTables() {
-
-    Connection connection = openConnection();
-    try {
-      LOG.info("Truncate inspection tables");
-      for (String inspectionTable : INSPECTION_TABLES) {
-        truncate(inspectionTable, connection);
-      }
-      LOG.info("Delete resource related data");
-      for (String relatedTable : RESOURCE_RELATED_TABLES) {
-        deleteWhereResourceIdNotNull(relatedTable, connection);
-      }
-      return this;
-
-    } finally {
-      closeQuietly(connection);
-    }
-  }
-
   @Override
   public int countSql(String sql) {
     LOG.info("Count sql");
@@ -233,18 +182,6 @@ public final class DefaultDatabase implements Database {
     } catch (SQLException e) {
       // frequent use-case : the table does not exist
       LOG.warn("Truncation of tables failed", e);
-    }
-    return this;
-  }
-
-  private DefaultDatabase deleteWhereResourceIdNotNull(String tableName, Connection connection) {
-    try(Statement stmt = connection.createStatement()) {
-      stmt.execute("DELETE FROM " + tableName + " WHERE resource_id IS NOT NULL");
-      // commit is useless on some databases
-      connection.commit();
-    } catch (SQLException e) {
-      // frequent use-case : the table does not exist
-      LOG.warn("Deletion of tables failed", e);
     }
     return this;
   }
