@@ -23,25 +23,23 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.db.Database;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public class BuildRunner {
 
   public static final String SONAR_HOST_URL = "sonar.host.url";
   private final Configuration config;
-  private final Database database;
 
-  public BuildRunner(Configuration config, Database database) {
+  public BuildRunner(Configuration config) {
     this.config = config;
-    this.database = database;
   }
 
-  public BuildResult runQuietly(Server server, Build<?> build) {
+  public BuildResult runQuietly(@Nullable Server server, Build<?> build) {
     return build.execute(config, adjustProperties(server, build));
   }
 
-  public BuildResult run(Server server, Build<?> build) {
+  public BuildResult run(@Nullable Server server, Build<?> build) {
     BuildResult result = runQuietly(server, build);
     if (!result.isSuccess()) {
       throw new BuildFailureException(build, result);
@@ -50,14 +48,11 @@ public class BuildRunner {
   }
 
   @VisibleForTesting
-  Map<String, String> adjustProperties(Server server, Build<?> build) {
+  Map<String, String> adjustProperties(@Nullable Server server, Build<?> build) {
     Map<String, String> adjustedProperties = Maps.newHashMap();
-    if (!(build instanceof ScannerForMSBuild) || !((ScannerForMSBuild) build).arguments().contains("end")) {
+    if (!(build instanceof ScannerForMSBuild) || !build.arguments().contains("end")) {
       if (server != null) {
         adjustedProperties.put(SONAR_HOST_URL, server.getUrl());
-        if (!server.version().isGreaterThanOrEquals("5.2")) {
-          adjustedProperties.putAll(database.getSonarProperties());
-        }
       }
       adjustedProperties.put("sonar.scm.disabled", "true");
     }

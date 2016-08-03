@@ -138,7 +138,7 @@ public class Orchestrator extends SingleStartExternalResource {
       }
     }
 
-    buildRunner = new BuildRunner(config, database);
+    buildRunner = new BuildRunner(config);
     seleniumRunner = new SeleneseRunner(config);
   }
 

@@ -22,7 +22,6 @@ package com.sonar.orchestrator.build;
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.version.Version;
 import java.util.Arrays;
 import java.util.Map;
@@ -48,15 +47,13 @@ public class BuildRunnerTest {
   @Test
   public void inject_server_properties() {
     Configuration config = Configuration.create();
-    Database database = mock(Database.class);
-    when(database.getSonarProperties()).thenReturn(ImmutableMap.of("sonar.jdbc.dialect", "h2", "sonar.jdbc.url", "jdbc:h2"));
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.2"));
     when(server.getUrl()).thenReturn("http://localhost:9000");
     Build build = mock(Build.class);
     when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
 
-    BuildRunner runner = new BuildRunner(config, database);
+    BuildRunner runner = new BuildRunner(config);
     runner.runQuietly(server, build);
 
     ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
@@ -73,15 +70,13 @@ public class BuildRunnerTest {
   @Test
   public void inject_properties_for_msbuild_start() {
     Configuration config = Configuration.create();
-    Database database = mock(Database.class);
-    when(database.getSonarProperties()).thenReturn(ImmutableMap.of("sonar.jdbc.dialect", "h2", "sonar.jdbc.url", "jdbc:h2"));
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.2"));
     when(server.getUrl()).thenReturn("http://localhost:9000");
     Build build = mock(ScannerForMSBuild.class);
     when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
 
-    BuildRunner runner = new BuildRunner(config, database);
+    BuildRunner runner = new BuildRunner(config);
     runner.runQuietly(server, build);
 
     ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
@@ -98,15 +93,13 @@ public class BuildRunnerTest {
   @Test
   public void dont_inject_properties_for_msbuild_end() {
     Configuration config = Configuration.create();
-    Database database = mock(Database.class);
-    when(database.getSonarProperties()).thenReturn(ImmutableMap.of("sonar.jdbc.dialect", "h2", "sonar.jdbc.url", "jdbc:h2"));
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.2"));
     when(server.getUrl()).thenReturn("http://localhost:9000");
     Build build = mock(ScannerForMSBuild.class);
     when(build.arguments()).thenReturn(Arrays.asList("end"));
 
-    BuildRunner runner = new BuildRunner(config, database);
+    BuildRunner runner = new BuildRunner(config);
     runner.runQuietly(server, build);
 
     ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
@@ -118,42 +111,14 @@ public class BuildRunnerTest {
   }
 
   @Test
-  public void inject_server_properties_prior_5_2() {
-    Configuration config = Configuration.create();
-    Database database = mock(Database.class);
-    when(database.getSonarProperties()).thenReturn(ImmutableMap.of("sonar.jdbc.dialect", "h2", "sonar.jdbc.url", "jdbc:h2"));
-    Server server = mock(Server.class);
-    when(server.version()).thenReturn(Version.create("4.5"));
-    when(server.getUrl()).thenReturn("http://localhost:9000");
-    Build build = mock(Build.class);
-    when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
-
-    BuildRunner runner = new BuildRunner(config, database);
-    runner.runQuietly(server, build);
-
-    ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
-
-    verify(build).execute(eq(config), captor.capture());
-
-    assertThat(captor.getValue()).containsOnly(
-      entry("sonar.projectKey", "SAMPLE"),
-      entry("sonar.jdbc.dialect", "h2"),
-      entry("sonar.jdbc.url", "jdbc:h2"),
-      entry("sonar.host.url", "http://localhost:9000"),
-      entry("language", "java"),
-      entry("sonar.scm.disabled", "true"));
-  }
-
-  @Test
   public void runQuietly() {
     Configuration config = Configuration.create();
-    Database database = mock(Database.class);
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.6"));
     Build build = mock(Build.class);
     when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2));
 
-    BuildRunner runner = new BuildRunner(config, database);
+    BuildRunner runner = new BuildRunner(config);
     BuildResult result = runner.runQuietly(server, build);
 
     assertThat(result.getLastStatus()).isEqualTo(2);
@@ -168,12 +133,11 @@ public class BuildRunnerTest {
     Build build = mock(Build.class);
     try {
       Configuration config = Configuration.create();
-      Database database = mock(Database.class);
       Server server = mock(Server.class);
       when(server.version()).thenReturn(Version.create("5.6"));
       when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2));
 
-      BuildRunner runner = new BuildRunner(config, database);
+      BuildRunner runner = new BuildRunner(config);
       runner.run(server, build);
 
     } catch (BuildFailureException e) {
@@ -194,12 +158,11 @@ public class BuildRunnerTest {
     Build build = mock(Build.class);
     try {
       Configuration config = Configuration.create();
-      Database database = mock(Database.class);
       Server server = mock(Server.class);
       when(server.version()).thenReturn(Version.create("5.6"));
       when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2).addStatus(0));
 
-      BuildRunner runner = new BuildRunner(config, database);
+      BuildRunner runner = new BuildRunner(config);
       runner.run(server, build);
 
     } catch (BuildFailureException e) {
@@ -215,13 +178,12 @@ public class BuildRunnerTest {
   @Test
   public void return_status_zero_if_run_passes() {
     Configuration config = Configuration.create();
-    Database database = mock(Database.class);
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.6"));
     Build build = mock(Build.class);
     when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(0));
 
-    BuildRunner runner = new BuildRunner(config, database);
+    BuildRunner runner = new BuildRunner(config);
     BuildResult result = runner.run(server, build);
 
     assertThat(result.isSuccess()).isTrue();
