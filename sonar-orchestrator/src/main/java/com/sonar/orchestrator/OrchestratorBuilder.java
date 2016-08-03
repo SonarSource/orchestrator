@@ -75,7 +75,18 @@ public class OrchestratorBuilder {
   }
 
   /**
-   * FIXME
+   * Ability to watch server logs at startup. The watcher is responsible for
+   * detecting when server is operational. It allows for example:
+   * <ul>
+   *   <li>to test clustering, for example by starting a single Elasticsearch
+   *   node. Server is considered as started when the log "Process[es] is up" is displayed.</li>
+   *   <li>to test upgrade, as the server is stuck as long as database model
+   *   is not upgraded</li>
+   *   <li>to parse the listening port of Elasticsearch as a random port
+   *   is used by Orchestrator</li>
+   * </ul>
+   *
+   * @since 3.13
    */
   public OrchestratorBuilder setStartupLogWatcher(@Nullable StartupLogWatcher w) {
     this.startupLogWatcher = w;

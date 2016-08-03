@@ -19,9 +19,18 @@
  */
 package com.sonar.orchestrator.server;
 
+/**
+ * @see com.sonar.orchestrator.OrchestratorBuilder#setStartupLogWatcher(StartupLogWatcher)
+ * @since 3.13
+ */
 @FunctionalInterface
 public interface StartupLogWatcher {
 
+  /**
+   *
+   * @param logLine a line of logs/sonar.log
+   * @return true if server is detected as started and operational, otherwise false
+   */
   boolean isStarted(String logLine);
 
 }
