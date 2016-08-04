@@ -149,7 +149,8 @@ public class ServerProcessImpl implements ServerProcess {
       MappedByteBuffer mappedByteBuffer = sharedMemory.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 50L * 10);
 
       // Now we are stopping all processes as quick as possible
-      mappedByteBuffer.put(1, (byte) 0xFF); // stopping app process
+      // by asking for stop of "app" process
+      mappedByteBuffer.put(1, (byte) 0xFF);
     }
   }
 
