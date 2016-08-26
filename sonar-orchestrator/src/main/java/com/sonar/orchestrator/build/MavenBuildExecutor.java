@@ -52,7 +52,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
     final BuildResult result, CommandExecutor commandExecutor) {
     try {
       File mavenHome = config.fileSystem().mavenHome();
-      Command command = Command.create(getMvnPath(mavenHome));
+      Command command = Command.create(getMvnPath(mavenHome, config.fileSystem().mavenBinary()));
       if (build.getExecutionDir() != null) {
         command.setDirectory(build.getExecutionDir());
       }
@@ -77,8 +77,8 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
         command.addArgument("-X");
       }
       command.addArguments(build.arguments());
-      for (Map.Entry entry : adjustedProperties.entrySet()) {
-        command.addSystemArgument(entry.getKey().toString(), entry.getValue().toString());
+      for (Map.Entry<String, String> entry : adjustedProperties.entrySet()) {
+        command.addSystemArgument(entry.getKey(), entry.getValue());
       }
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       LoggerFactory.getLogger(getClass()).info("Execute: " + command);
@@ -90,24 +90,25 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
     }
   }
 
-  static String getMvnPath(@Nullable File mvnHome) throws IOException {
-    final String program = "mvn";
+  static String getMvnPath(@Nullable File mvnHome, @Nullable String mvnBinary) throws IOException {
+    String program = "mvn";
     if (mvnHome == null) {
       // Will try to use the one in PATH
       return program;
+    }
+    if (StringUtils.isNotBlank(mvnBinary)) {
+      program = mvnBinary;
     }
     if (SystemUtils.IS_OS_WINDOWS) {
       File bat = new File(mvnHome, "bin/" + program + ".bat");
       if (bat.exists()) {
         return bat.getCanonicalPath();
-      } else {
-        // Assume Maven 3.3.x+
-        File cmd = new File(mvnHome, "bin/" + program + ".cmd");
-        return cmd.getCanonicalPath();
       }
-    } else {
-      return new File(mvnHome, "bin/" + program).getCanonicalPath();
+      // Assume Maven 3.3.x+
+      File cmd = new File(mvnHome, "bin/" + program + ".cmd");
+      return cmd.getCanonicalPath();
     }
+    return new File(mvnHome, "bin/" + program).getCanonicalPath();
   }
 
 }

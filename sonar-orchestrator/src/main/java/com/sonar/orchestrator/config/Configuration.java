@@ -208,7 +208,7 @@ public class Configuration {
     private Builder loadPropertiesFile() {
       String fileUrl = props.get("ORCHESTRATOR_CONFIG_URL");
       fileUrl = StringUtils.defaultIfBlank(props.get("orchestrator.configUrl"), fileUrl);
-      if (!StringUtils.isNotBlank(fileUrl)) {
+      if (StringUtils.isBlank(fileUrl)) {
         // Use default values
         setPropertyIfAbsent("sonar.jdbc.dialect", "embedded");
         setPropertyIfAbsent("orchestrator.updateCenterUrl", "http://update.sonarsource.org/update-center-dev.properties");
@@ -216,7 +216,8 @@ public class Configuration {
           // For Jenkins
           setPropertyIfAbsent("maven.localRepository", System.getenv("SONAR_MAVEN_REPOSITORY"));
         } else {
-          setPropertyIfAbsent("maven.localRepository", System.getProperty("user.home") + "/.m2/repository");
+          setPropertyIfAbsent("maven.localRepository",
+            StringUtils.defaultIfBlank(System.getProperty("maven.localRepository"), System.getProperty("user.home") + "/.m2/repository"));
         }
 
         return this;

@@ -19,12 +19,11 @@
  */
 package com.sonar.orchestrator.config;
 
+import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -79,5 +78,14 @@ public class FileSystemTest {
     thrown.expect(IllegalArgumentException.class);
     Configuration config = Configuration.builder().setProperty("maven.localRepository", "/invalid/path").build();
     new FileSystem(config);
+  }
+
+  @Test
+  public void shouldLoadMavenBinary() {
+    File mavenHome = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/config/FileSystemTest/maven"));
+    Configuration config = Configuration.builder().setProperty("maven.home", mavenHome).setProperty("maven.binary", "fake.cmd").build();
+    FileSystem fileSystem = new FileSystem(config);
+    assertThat(fileSystem.mavenHome()).isEqualTo(mavenHome);
+    assertThat(fileSystem.mavenBinary()).isEqualTo("fake.cmd");
   }
 }

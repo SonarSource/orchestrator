@@ -23,8 +23,11 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.CheckForNull;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.slf4j.LoggerFactory;
 
 public class FileSystem {
@@ -32,6 +35,7 @@ public class FileSystem {
   private final Locators locators;
   private File mavenLocalRepository;
   private File mavenHome;
+  private String mavenBinary;
   private File antHome;
   private File javaHome;
   private File workspace;
@@ -41,7 +45,7 @@ public class FileSystem {
     this.config = config;
     this.locators = new Locators(config);
     initWorkspace();
-    initMavenHome();
+    initMavenHomeAndBinary();
     initAntHome();
     initUserHome();
     initJavaHome();
@@ -91,7 +95,7 @@ public class FileSystem {
     }
   }
 
-  private void initMavenHome() {
+  private void initMavenHomeAndBinary() {
     String value = config.getStringByKeys("maven.home", "MAVEN_HOME");
     if (StringUtils.isBlank(value)) {
       value = config.getStringByKeys("maven.home", "M2_HOME");
@@ -101,6 +105,26 @@ public class FileSystem {
       if (!mavenHome.isDirectory() || !mavenHome.exists()) {
         throw new IllegalArgumentException("Maven home is not valid: " + value);
       }
+    }
+
+    String binary = config.getStringByKeys("maven.binary", "MAVEN_BINARY");
+    if (StringUtils.isNotBlank(binary)) {
+      mavenBinary = binary;
+      File completePath = new File(mavenHome, "bin/" + mavenBinary);
+      List<String> binaryExtension = new ArrayList<>();
+      binaryExtension.add("");
+      if (SystemUtils.IS_OS_WINDOWS) {
+        binaryExtension.add(".cmd");
+        binaryExtension.add(".bat");
+      }
+      for (String ext : binaryExtension) {
+        File completePathWithExt = new File(completePath + ext);
+        if (completePathWithExt.isFile() && completePathWithExt.exists()) {
+          return;
+        }
+      }
+      throw new IllegalArgumentException(
+        "Maven binary is not valid: " + completePath.getAbsolutePath() + " (With one of these extensions: " + StringUtils.join(binaryExtension, ",") + ")");
     }
   }
 
@@ -121,6 +145,11 @@ public class FileSystem {
   @CheckForNull
   public File mavenHome() {
     return mavenHome;
+  }
+
+  @CheckForNull
+  public String mavenBinary() {
+    return mavenBinary;
   }
 
   @CheckForNull
