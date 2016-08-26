@@ -12,6 +12,7 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <argLine>-Xmx128m -server</argLine>
+    <okhttp.version>3.4.1</okhttp.version>
   </properties>
 
   <build>
@@ -79,7 +80,7 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
-      <version>3.4.1</version>
+      <version>${okhttp.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -220,7 +221,7 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>
-      <version>3.0.1</version>
+      <version>${okhttp.version}</version>
       <scope>test</scope>
     </dependency>
 
