@@ -23,3 +23,10 @@ export MAVEN_REMOTE_REPOSITORY=http://nexus.internal.sonarsource.com/nexus/conte
 -Dhttp.proxyUser=foo
 -Dhttp.proxyPassword=bar
 ```
+
+# For running orchestrator with a custom Maven installation, add Java properties :
+```
+-Dmaven.localRepository="C:/your/maven/repository"
+-Dmaven.home="C:/your/mavenX"
+-Dmaven.binary=mvnDebug   (binary located in [maven.home]/bin/, without .bat or .cmd extension on Windows)
+```

@@ -1,0 +1,1 @@
+echo Fake script for Maven binary detection 

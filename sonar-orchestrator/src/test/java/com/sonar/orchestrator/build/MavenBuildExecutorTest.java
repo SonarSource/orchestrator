@@ -53,9 +53,10 @@ public class MavenBuildExecutorTest {
   @Test
   public void testDebugMode() throws IOException {
     if (SystemUtils.IS_OS_WINDOWS) {
-      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"))).contains("bin\\mvn.cmd");
+      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"), null)).contains("bin\\mvn.cmd");
+      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"), "mvnDebug")).contains("bin\\mvnDebug.cmd");
     } else {
-      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"))).contains("bin/mvn");
+      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"), null)).contains("bin/mvn");
     }
   }
 
@@ -79,7 +80,8 @@ public class MavenBuildExecutorTest {
     File mavenHome = new File(this.getClass().getResource("MavenBuildExecutorTest/fake_maven").toURI());
     new File(mavenHome, "bin/mvn").setExecutable(true);
     BuildResult result = new MavenBuildExecutor().execute(build,
-      Configuration.builder().addEnvVariables().addSystemProperties().setProperty("maven.home", mavenHome.getAbsolutePath()).build(),
+      Configuration.builder().addEnvVariables().addSystemProperties().setProperty("maven.home", mavenHome.getAbsolutePath())
+        .setProperty("maven.binary", "").build(),
       Maps.<String, String>newHashMap());
 
     assertThat(result.getLogs()).contains("M2_HOME=" + mavenHome.getPath());
