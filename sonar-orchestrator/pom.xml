@@ -174,13 +174,6 @@
       <version>1.19.2</version>
     </dependency>
 
-    <!-- Reflection -->
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.8</version>
-    </dependency>
-
     <!-- unit tests -->
     <dependency>
       <groupId>org.assertj</groupId>
