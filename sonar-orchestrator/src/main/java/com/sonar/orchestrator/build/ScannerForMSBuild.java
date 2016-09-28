@@ -22,9 +22,12 @@ package com.sonar.orchestrator.build;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
+
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 /**
@@ -33,20 +36,19 @@ import javax.annotation.Nullable;
  * @since 3.13
  */
 public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
-
-  public static final String DEFAULT_SCANNER_VERSION = "2.1";
-
-  private Version scannerVersion = Version.create(DEFAULT_SCANNER_VERSION);
+  private Version scannerVersion = null;
   private File projectDir;
   private boolean debugLogs = false;
   private boolean useOldRunnerScript = false;
   private String projectKey;
   private String projectName;
   private String projectVersion;
+  private Location location;
 
   ScannerForMSBuild() {
   }
 
+  @CheckForNull
   public Version scannerVersion() {
     return scannerVersion;
   }
@@ -56,11 +58,20 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   }
 
   public boolean isUseOldRunnerScript() {
-    return !scannerVersion().isGreaterThanOrEquals("2.2") || useOldRunnerScript;
+    if(scannerVersion == null) {
+      return useOldRunnerScript;
+    }
+    
+    return !scannerVersion.isGreaterThanOrEquals("2.2") || useOldRunnerScript;
   }
 
   public File getProjectDir() {
     return projectDir;
+  }
+  
+  @CheckForNull
+  public Location getLocation() {
+    return location;
   }
 
   public boolean isDebugLogs() {
@@ -70,6 +81,12 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   public ScannerForMSBuild setScannerVersion(String s) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(s), "version must be set");
     this.scannerVersion = Version.create(s);
+    return this;
+  }
+  
+  public ScannerForMSBuild setScannerLocation(Location location) {
+    Preconditions.checkNotNull(location);
+    this.location = location;
     return this;
   }
 

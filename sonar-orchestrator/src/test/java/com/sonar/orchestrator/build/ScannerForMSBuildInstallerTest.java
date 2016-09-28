@@ -19,10 +19,14 @@
  */
 package com.sonar.orchestrator.build;
 
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.net.URL;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,9 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * NOTE FOR IDE
@@ -50,34 +53,75 @@ public class ScannerForMSBuildInstallerTest {
   public TemporaryFolder temp = new TemporaryFolder();
 
   private FileSystem fileSystem;
+  private Configuration config;
   private ScannerForMSBuildInstaller installer;
 
   @Before
   public void init() {
     fileSystem = mock(FileSystem.class);
-    installer = spy(new ScannerForMSBuildInstaller(fileSystem));
+    config = mock(Configuration.class);
+    when(config.fileSystem()).thenReturn(fileSystem);
+    installer = new ScannerForMSBuildInstaller(config);
   }
 
   @Test
   public void install_embedded_version() throws Exception {
     File toDir = temp.newFolder();
-    File script = installer.install(Version.create(ScannerForMSBuild.DEFAULT_SCANNER_VERSION), toDir, true);
+    File script = installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
-    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-" + ScannerForMSBuild.DEFAULT_SCANNER_VERSION);
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION);
 
     verify(fileSystem, never()).locate(any(MavenLocation.class));
   }
 
   @Test
-  public void do_not_install_twice() throws Exception {
+  public void install_zip() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/MSBuild.SonarQube.Runner-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
+    File script = installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild");
+
+    verify(fileSystem, never()).locate(any(MavenLocation.class));
+  }
+
+  @Test
+  public void do_not_install_twice_with_version() throws Exception {
+    File toDir = temp.newFolder();
+    File script = installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true);
+    File txt = new File(script.getParentFile(), "text.txt");
+    txt.createNewFile();
+    assertThat(txt).exists();
+
+    installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true);
+    assertThat(txt).exists();
+  }
+
+  @Test
+  public void do_install_twice_with_location() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/MSBuild.SonarQube.Runner-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
+
+    File script = installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
+    File txt = new File(script.getParentFile(), "text.txt");
+    txt.createNewFile();
+    assertThat(txt).exists();
+
+    installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
+    assertThat(txt).doesNotExist();
+  }
+
+  @Test
+  public void fail_if_file_doesnt_exist() throws Exception {
     File toDir = temp.newFolder();
 
-    installer.install(Version.create(ScannerForMSBuild.DEFAULT_SCANNER_VERSION), toDir, true);
-    installer.install(Version.create(ScannerForMSBuild.DEFAULT_SCANNER_VERSION), toDir, true);
-
-    verify(installer, times(1)).doInstall(Version.create(ScannerForMSBuild.DEFAULT_SCANNER_VERSION), toDir);
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("File doesn't exist");
+    installer.install(null, FileLocation.of(new File("unknown")), toDir, true);
   }
 
   @Test
@@ -93,6 +137,6 @@ public class ScannerForMSBuildInstallerTest {
   public void corrupted_zip() throws Exception {
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("Fail to unzip scanner for MSBuild");
-    installer.install(Version.create("corrupted"), temp.newFolder(), true);
+    installer.install(Version.create("corrupted"), null, temp.newFolder(), true);
   }
 }

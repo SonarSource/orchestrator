@@ -19,13 +19,18 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URL;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,40 +41,66 @@ import org.slf4j.LoggerFactory;
  * @since 3.13
  */
 public class ScannerForMSBuildInstaller {
+  public static final String DEFAULT_SCANNER_VERSION = "2.1";
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuildInstaller.class);
 
   private final FileSystem fileSystem;
+  private final Locators locators;
 
-  public ScannerForMSBuildInstaller(FileSystem fileSystem) {
-    this.fileSystem = fileSystem;
+  public ScannerForMSBuildInstaller(Configuration config) {
+    this.fileSystem = config.fileSystem();
+    this.locators = new Locators(config);
   }
 
   /**
    * Installs an ephemeral Scanner for MSBuild and returns the path to the exe to execute
    */
-  public File install(Version scannerVersion, File toDir, boolean useOldScript) {
+  public File install(@Nullable Version scannerVersion, @Nullable Location location, File toDir, boolean useOldScript) {
+    if (location != null) {
+      return install(location, toDir, useOldScript);
+    } else if (scannerVersion != null) {
+      return install(scannerVersion, toDir, useOldScript);
+    } else {
+      return install(Version.create(DEFAULT_SCANNER_VERSION), toDir, useOldScript);
+    }
+  }
+
+  private File install(Location location, File toDir, boolean useOldScript) {
+    clearCachedSnapshot(null, toDir);
+    if (!isInstalled(null, toDir)) {
+      LOG.info("Installing Scanner for MSBuild from " + location);
+      File zipFile = locators.locate(location);
+
+      if (zipFile == null || !zipFile.exists()) {
+        throw new IllegalArgumentException("File doesn't exist: " + zipFile);
+      }
+      doInstall(zipFile, toDir, null);
+    }
+    return locateInstalledScript(null, toDir, useOldScript);
+  }
+
+  private File install(Version scannerVersion, File toDir, boolean useOldScript) {
     clearCachedSnapshot(scannerVersion, toDir);
     if (!isInstalled(scannerVersion, toDir)) {
       LOG.info("Installing Scanner for MSBuild " + scannerVersion);
-      doInstall(scannerVersion, toDir);
+      File zipFile = locateZip(scannerVersion);
+
+      if (zipFile == null || !zipFile.exists()) {
+        throw new IllegalArgumentException("Unsupported scanner for MSBuild version: " + scannerVersion);
+      }
+
+      doInstall(zipFile, toDir, scannerVersion);
     }
     return locateInstalledScript(scannerVersion, toDir, useOldScript);
   }
 
-  @VisibleForTesting
-  void doInstall(Version scannerVersion, File toDir) {
-    File zipFile = locateZip(scannerVersion);
-
-    if (zipFile == null || !zipFile.exists()) {
-      throw new IllegalArgumentException("Unsupported scanner for MSBuild version: " + scannerVersion);
-    }
-
+  void doInstall(File zipFile, File toDir, @Nullable Version scannerVersion) {
     try {
       File scannerDir = new File(toDir, directoryName(scannerVersion));
       scannerDir.mkdirs();
       ZipUtils.unzip(zipFile, scannerDir);
     } catch (Exception e) {
-      throw new IllegalStateException("Fail to unzip scanner for MSBuild " + scannerVersion + " to " + toDir, e);
+      throw new IllegalStateException("Fail to unzip scanner for MSBuild  from" + zipFile + "  to " + toDir, e);
     }
   }
 
@@ -102,9 +133,9 @@ public class ScannerForMSBuildInstaller {
       .build();
   }
 
-  private static void clearCachedSnapshot(Version scannerVersion, File toDir) {
+  private static void clearCachedSnapshot(@Nullable Version scannerVersion, File toDir) {
     File scannerDir = new File(toDir, directoryName(scannerVersion));
-    if (scannerVersion.isSnapshot() && scannerDir.exists()) {
+    if ((scannerVersion == null || scannerVersion.isSnapshot()) && scannerDir.exists()) {
       LOG.info("Delete scanner for MSBuild cache: {}", scannerDir);
       FileUtils.deleteQuietly(scannerDir);
     }
@@ -119,7 +150,7 @@ public class ScannerForMSBuildInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(Version scannerVersion, File toDir, boolean useOldScript) {
+  private static File locateInstalledScript(@Nullable Version scannerVersion, File toDir, boolean useOldScript) {
     String filename;
     if (useOldScript) {
       filename = "MSBuild.SonarQube.Runner.exe";
@@ -133,7 +164,11 @@ public class ScannerForMSBuildInstaller {
     return script;
   }
 
-  private static String directoryName(Version scannerVersion) {
-    return "sonar-scanner-msbuild-" + scannerVersion.toString();
+  private static String directoryName(@Nullable Version scannerVersion) {
+    if (scannerVersion != null) {
+      return "sonar-scanner-msbuild-" + scannerVersion.toString();
+    } else {
+      return "sonar-scanner-msbuild";
+    }
   }
 }

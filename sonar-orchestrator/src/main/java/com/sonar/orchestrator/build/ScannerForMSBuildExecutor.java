@@ -33,14 +33,14 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
 
   @Override
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
-    return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(config.fileSystem()), create);
+    return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(config), create);
   }
 
   @VisibleForTesting
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, ScannerForMSBuildInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
-    File runnerScript = installer.install(build.scannerVersion(), config.fileSystem().workspace(), build.isUseOldRunnerScript());
+    File runnerScript = installer.install(build.scannerVersion(), build.getLocation(), config.fileSystem().workspace(), build.isUseOldRunnerScript());
     try {
       Command command = createCommand(build, adjustedProperties, runnerScript);
       LoggerFactory.getLogger(ScannerForMSBuild.class).info("Execute: " + command);
