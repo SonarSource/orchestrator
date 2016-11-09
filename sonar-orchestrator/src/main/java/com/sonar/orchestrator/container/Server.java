@@ -113,8 +113,52 @@ public class Server {
     return distribution.version();
   }
 
+  /**
+   * @deprecated from SQ 6.2 and on, use {@link #getAppLogs()}, {@link #getWebLogs()}, {@link #getCeLogs()} or {@link #getEsLogs()}
+   */
+  @Deprecated
   public File getLogs() {
-    return FileUtils.getFile(home, "logs", "sonar.log");
+    return getLogFile("sonar.log");
+  }
+
+  /**
+   * Starting from SQ 6.2, only App JVM logs in "sonar.log" file.
+   *
+   * @since 3.13
+   */
+  public File getAppLogs() {
+    return getLogFile("sonar.log");
+  }
+
+  /**
+   * Starting from SQ 6.2, Web JVM logs in "web.log" file.
+   *
+   * @since 3.13
+   */
+  public File getWebLogs() {
+    return getLogFile("web.log");
+  }
+
+  /**
+   * Starting from SQ 6.2, Compute Engine JVM logs in "ce.log" file.
+   *
+   * @since 3.13
+   */
+  public File getCeLogs() {
+    return getLogFile("ce.log");
+  }
+
+  /**
+   * Starting from SQ 6.2, Elastic Search JVM logs in "es.log" file.
+   *
+   * @since 3.13
+   */
+  public File getEsLogs() {
+    return getLogFile("es.log");
+  }
+
+  private File getLogFile(String logFile) {
+    return FileUtils.getFile(home, "logs", logFile);
   }
 
   public Sonar getWsClient() {
