@@ -21,6 +21,8 @@ package com.sonar.orchestrator.coverage;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,9 +40,34 @@ public class JaCoCoArgumentsBuilderTest {
 
   @Rule
   public MockHttpServerInterceptor httpServer = new MockHttpServerInterceptor();
-
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+
+  @Test
+  public void all_constructors_are_private() {
+   assertThat(hasOnlyPrivateConstructors(JaCoCoArgumentsBuilder.class)).isTrue();
+  }
+
+  /**
+   * Asserts that all constructors are private, usually for helper classes with
+   * only static methods. If a constructor does not have any parameters, then
+   * it's instantiated.
+   */
+  private static boolean hasOnlyPrivateConstructors(Class clazz) {
+    boolean ok = true;
+    for (Constructor constructor : clazz.getDeclaredConstructors()) {
+      ok &= Modifier.isPrivate(constructor.getModifiers());
+      if (constructor.getParameterTypes().length == 0) {
+        constructor.setAccessible(true);
+        try {
+          constructor.newInstance();
+        } catch (Exception e) {
+          throw new IllegalStateException(String.format("Fail to instantiate %s", clazz), e);
+        }
+      }
+    }
+    return ok;
+  }
 
   @Test
   public void shouldGetJaCoCoVersionFromPom() {
@@ -49,7 +76,7 @@ public class JaCoCoArgumentsBuilderTest {
 
   @Test
   public void shouldReturnNullByDefault() {
-    Configuration config = Configuration.create(new HashMap<String, String>());
+    Configuration config = Configuration.create(new HashMap<>());
 
     assertThat(JaCoCoArgumentsBuilder.getJaCoCoArgument(config)).isNull();
   }

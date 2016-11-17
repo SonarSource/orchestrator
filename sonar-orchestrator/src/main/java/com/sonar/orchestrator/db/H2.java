@@ -34,6 +34,21 @@ public final class H2 extends DatabaseClient {
     return builder().build();
   }
 
+  @Override
+  public String[] getDropDdl() {
+    return new String[]{ "DROP ALL OBJECTS" };
+  }
+
+  @Override
+  public String getSelectConnectionIdsSql() {
+    return "select id from information_schema.sessions where user_name <> '" + getRootLogin() + "'";
+  }
+
+  @Override
+  public String getKillConnectionSql(String connectionId) {
+    return "CALL CANCEL_SESSION(" + connectionId + ")";
+  }
+
   public static H2Builder builder() {
     return new H2Builder();
   }

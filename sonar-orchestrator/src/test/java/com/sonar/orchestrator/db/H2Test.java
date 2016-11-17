@@ -40,11 +40,32 @@ public class H2Test {
   }
 
   @Test
-  public void ddlShouldNotBeDefined() {
+  public void createDdl_is_not_defined() {
     H2 h2 = H2.builder().build();
 
     assertThat(h2.getCreateDdl()).isEmpty();
-    assertThat(h2.getDropDdl()).isEmpty();
+  }
+
+  @Test
+  public void dropDdl_is_defined() {
+    H2 h2 = H2.builder().build();
+
+    assertThat(h2.getDropDdl()).containsOnly("DROP ALL OBJECTS");
+  }
+
+  @Test
+  public void getSelectConnectionIdsSql_is_defined_and_excludes_root_login() {
+    H2 h2 = H2.builder().setLogin("foo").setRootLogin("bar").build();
+
+    assertThat(h2.getSelectConnectionIdsSql()).isEqualTo("select id from information_schema.sessions where user_name <> 'bar'");
+  }
+
+  @Test
+  public void getKillConnectionSql_is_defined() {
+    H2 h2 = H2.builder().build();
+
+    assertThat(h2.getKillConnectionSql("123")).isEqualTo("CALL CANCEL_SESSION(123)");
+
   }
 
   @Test

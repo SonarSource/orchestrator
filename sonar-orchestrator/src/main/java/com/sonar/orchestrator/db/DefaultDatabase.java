@@ -244,11 +244,6 @@ public final class DefaultDatabase implements Database {
 
   @Override
   public void killOtherConnections() {
-    if ("h2".equals(databaseClient.getDialect())) {
-      // in h2 killing's not meaning full
-      return;
-    }
-
     Connection connection = null;
     try {
       // get a connection as root, to be be allowed to kill the other connections
@@ -271,11 +266,6 @@ public final class DefaultDatabase implements Database {
    * some of the databases requires some delay to kill the connections, let's give several tries
    */
   void killOtherConnections(Connection connection) throws SQLException, InterruptedException {
-
-    if ("h2".equals(databaseClient.getDialect())) {
-      // in h2 killing's not meaning ful
-      return;
-    }
 
     final long kNbAttempts = 3;
     final long kSecBetweenKillFactor = 5;

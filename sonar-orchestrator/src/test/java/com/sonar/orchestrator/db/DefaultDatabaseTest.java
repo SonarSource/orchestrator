@@ -19,17 +19,20 @@
  */
 package com.sonar.orchestrator.db;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +40,8 @@ public class DefaultDatabaseTest {
 
   private static DefaultDatabase db;
 
+  @ClassRule
+  public static TemporaryFolder temporaryFolder = new TemporaryFolder();
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
@@ -71,6 +76,111 @@ public class DefaultDatabaseTest {
     if (db != null) {
       db.stop();
       db = null;
+    }
+  }
+
+  @Test
+  public void test_drop_and_create() throws IOException {
+    File h2Folder = temporaryFolder.newFolder();
+    String url = "jdbc:h2:file:" + h2Folder.getAbsolutePath() + "/test;DB_CLOSE_DELAY=-1";
+    // create DB with some tables
+    DefaultDatabase db = null;
+    try {
+      db = new DefaultDatabase(H2.builder()
+        .setUrl(url)
+        .setLogin("")
+        .setPassword("")
+        .setRootUrl(url)
+        .setRootLogin("")
+        .setRootPassword("")
+        .setDropAndCreate(false)
+        .build());
+      db.start();
+      db.executeDdl(
+          "CREATE TABLE \"METRICS\"( \"KEE\" VARCHAR(10), \"NAME\" VARCHAR(50))",
+          "CREATE TABLE \"PROJECTS\"( \"KEE\" VARCHAR(10), \"NAME\" VARCHAR(50))",
+          "CREATE TABLE \"PROPERTIES\"( \"ID\" DECIMAL, \"RESOURCE_ID\" DECIMAL)");
+
+      List<Map<String, String>> maps = db.executeSql("SHOW TABLES");
+      assertThat(maps).hasSize(3);
+    } finally {
+      if (db != null) {
+        db.stop();
+      }
+    }
+
+    testCreatingConcurrentDb(url);
+  }
+
+  private void testCreatingConcurrentDb(String url) {
+    // testing killOtherConnections, it won't succeed on H2 because we are not running in multithreaded mode
+    // but the method will not hang and return without error
+    DefaultDatabase db = null;
+    try {
+      db = new DefaultDatabase(H2.builder()
+          .setUrl(url)
+          .setLogin("")
+          .setPassword("")
+          .setRootUrl(url)
+          .setRootLogin("")
+          .setRootPassword("")
+          .setDropAndCreate(false)
+          .build());
+
+      db.start();
+      db.killOtherConnections();
+    } finally {
+      if (db != null) {
+        db.stop();
+      }
+    }
+
+    // testing dropAndCreate option
+    db = null;
+    try {
+      db = new DefaultDatabase(H2.builder()
+        .setUrl(url)
+        .setLogin("")
+        .setPassword("")
+        .setRootUrl(url)
+        .setRootLogin("")
+        .setRootPassword("")
+        .setDropAndCreate(true)
+        .build());
+
+      db.start();
+      List<Map<String, String>> maps = db.executeSql("SHOW TABLES");
+      assertThat(maps).isEmpty();
+    } finally {
+      if (db != null) {
+        db.stop();
+      }
+    }
+  }
+
+  @Test
+  public void drop_and_create_throws_ISE_if_root_password_is_incorrect() throws IOException {
+    File h2Folder = temporaryFolder.newFolder();
+    String url = "jdbc:h2:file:" + h2Folder.getAbsolutePath() + "/test;DB_CLOSE_DELAY=-1";
+    DefaultDatabase db = null;
+    try {
+      db = new DefaultDatabase(H2.builder()
+        .setUrl(url)
+        .setLogin("")
+        .setPassword("")
+        .setRootUrl(url)
+        .setRootLogin("foo")
+        .setRootPassword("")
+        .setDropAndCreate(true)
+        .build());
+
+      db.start();
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Fail to dropAndCreate database");
+    } finally {
+      if (db != null) {
+        db.stop();
+      }
     }
   }
 
