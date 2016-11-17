@@ -26,7 +26,6 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
@@ -53,22 +52,23 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return scannerVersion;
   }
 
-  public void setUseOldRunnerScript(boolean useOldRunnerScript) {
+  public ScannerForMSBuild setUseOldRunnerScript(boolean useOldRunnerScript) {
     this.useOldRunnerScript = useOldRunnerScript;
+    return this;
   }
 
   public boolean isUseOldRunnerScript() {
-    if(scannerVersion == null) {
+    if (scannerVersion == null) {
       return useOldRunnerScript;
     }
-    
+
     return !scannerVersion.isGreaterThanOrEquals("2.2") || useOldRunnerScript;
   }
 
   public File getProjectDir() {
     return projectDir;
   }
-  
+
   @CheckForNull
   public Location getLocation() {
     return location;
@@ -83,7 +83,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     this.scannerVersion = Version.create(s);
     return this;
   }
-  
+
   public ScannerForMSBuild setScannerLocation(Location location) {
     Preconditions.checkNotNull(location);
     this.location = location;
