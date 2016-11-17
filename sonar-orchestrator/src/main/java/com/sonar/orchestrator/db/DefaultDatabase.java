@@ -29,6 +29,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -286,7 +287,7 @@ public final class DefaultDatabase implements Database {
       TimeUnit.SECONDS.sleep(kSecBetweenKillFactor * (kNbAttempts - attemptToGo));
 
       for (String spid : spids) {
-        try(Statement stmt = connection.createStatement()) {
+        try (Statement stmt = connection.createStatement()) {
           String sql = databaseClient.getKillConnectionSql(spid);
           LOG.warn("Kill JDBC orphan " + sql);
           stmt.execute(sql);
@@ -318,22 +319,17 @@ public final class DefaultDatabase implements Database {
     LOG.info("Query of opened connection");
     String sql = databaseClient.getSelectConnectionIdsSql();
     LOG.debug("Execute: " + sql);
+    if (sql == null) {
+      return Collections.emptyList();
+    }
     List<String> spids = Lists.newArrayList();
-    if (sql != null) {
-      Statement stmt = null;
-      ResultSet rs = null;
-      try {
-        stmt = connection.createStatement();
-        rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-          String spid = rs.getString(1);
-          if (StringUtils.isNotBlank(spid)) {
-            spids.add(spid);
-          }
+    try (Statement stmt = connection.createStatement();
+      ResultSet rs = stmt.executeQuery(sql)) {
+      while (rs.next()) {
+        String spid = rs.getString(1);
+        if (StringUtils.isNotBlank(spid)) {
+          spids.add(spid);
         }
-      } finally {
-        closeQuietly(rs);
-        closeQuietly(stmt);
       }
     }
     return spids;

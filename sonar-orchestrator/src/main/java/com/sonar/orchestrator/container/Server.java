@@ -224,8 +224,8 @@ public class Server {
       HttpHost targetHost = new HttpHost(LOCALHOST, new URL(url).getPort(), "http");
 
       HttpParams params = client.getParams();
-      HttpConnectionParams.setConnectionTimeout(params, 60000);
-      HttpConnectionParams.setSoTimeout(params, 120000);
+      HttpConnectionParams.setConnectionTimeout(params, 60_000);
+      HttpConnectionParams.setSoTimeout(params, 120_000);
 
       client.getCredentialsProvider().setCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()), new UsernamePasswordCredentials(ADMIN_LOGIN, ADMIN_PASSWORD));
 

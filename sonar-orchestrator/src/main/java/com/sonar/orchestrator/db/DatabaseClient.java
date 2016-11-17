@@ -31,6 +31,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public abstract class DatabaseClient {
 
@@ -167,7 +168,7 @@ public abstract class DatabaseClient {
     return props;
   }
 
-  private static void addProperty(Map<String, String> props, String key, String value) {
+  private static void addProperty(Map<String, String> props, String key, @Nullable String value) {
     if (value != null) {
       props.put(key, value);
     }

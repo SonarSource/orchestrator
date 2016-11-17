@@ -82,6 +82,9 @@ public class StartServerCommand extends Command {
   }
 
   public static class Plugin {
+    public String key;
+    public String version;
+
     public Plugin(String key, String version) {
       Preconditions.checkArgument(StringUtils.isNotBlank(key), "Plugin key can't be blank");
       Preconditions.checkArgument(StringUtils.isNotBlank(version), "Plugin version can't be blank");
@@ -89,8 +92,6 @@ public class StartServerCommand extends Command {
       this.version = version;
     }
 
-    public String key;
-    public String version;
   }
 
   public List<Plugin> getPlugins() {

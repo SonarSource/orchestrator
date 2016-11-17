@@ -27,13 +27,13 @@ public class Version implements Comparable<Version> {
   // Internally we use Version from update center but don't want to expose it
   private final org.sonar.updatecenter.common.Version sonarVersion;
 
-  public static Version create(String version) {
-    return new Version(version);
-  }
-
   private Version(String version) {
     this.version = version;
     this.sonarVersion = org.sonar.updatecenter.common.Version.create(version);
+  }
+
+  public static Version create(String version) {
+    return new Version(version);
   }
 
   public boolean isGreaterThan(String other) {

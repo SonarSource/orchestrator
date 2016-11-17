@@ -45,7 +45,8 @@ public class FileSystem {
     this.config = config;
     this.locators = new Locators(config);
     initWorkspace();
-    initMavenHomeAndBinary();
+    initMavenHome();
+    initMavenBinary();
     initAntHome();
     initUserHome();
     initJavaHome();
@@ -58,8 +59,8 @@ public class FileSystem {
   }
 
   private void initMavenLocalRepository() {
-    String value = config.getStringByKeys("maven.localRepository", "MAVEN_LOCAL_REPOSITORY");
-    if (StringUtils.isNotBlank(value)) {
+    String value = config.getStringByKeys(StringUtils::isNotBlank, "maven.localRepository", "MAVEN_LOCAL_REPOSITORY");
+    if (value != null) {
       mavenLocalRepository = new File(value);
       if (!mavenLocalRepository.isDirectory() || !mavenLocalRepository.exists()) {
         throw new IllegalArgumentException("Maven local repository is not valid: " + value);
@@ -68,8 +69,8 @@ public class FileSystem {
   }
 
   private void initJavaHome() {
-    String value = config.getStringByKeys("java.home", "JAVA_HOME");
-    if (StringUtils.isNotBlank(value)) {
+    String value = config.getStringByKeys(StringUtils::isNotBlank, "java.home", "JAVA_HOME");
+    if (value != null) {
       javaHome = new File(value);
       if (!javaHome.isDirectory() || !javaHome.exists()) {
         throw new IllegalArgumentException("Java home is not valid: " + value);
@@ -95,20 +96,19 @@ public class FileSystem {
     }
   }
 
-  private void initMavenHomeAndBinary() {
-    String value = config.getStringByKeys("maven.home", "MAVEN_HOME");
-    if (StringUtils.isBlank(value)) {
-      value = config.getStringByKeys("maven.home", "M2_HOME");
-    }
-    if (StringUtils.isNotBlank(value)) {
-      mavenHome = new File(value);
+  private void initMavenHome() {
+    String propertyValue = config.getStringByKeys(StringUtils::isNotBlank, "maven.home", "MAVEN_HOME", "M2_HOME");
+    if (propertyValue != null) {
+      mavenHome = new File(propertyValue);
       if (!mavenHome.isDirectory() || !mavenHome.exists()) {
-        throw new IllegalArgumentException("Maven home is not valid: " + value);
+        throw new IllegalArgumentException("Maven home is not valid: " + propertyValue);
       }
     }
+  }
 
-    String binary = config.getStringByKeys("maven.binary", "MAVEN_BINARY");
-    if (StringUtils.isNotBlank(binary)) {
+  private void initMavenBinary() {
+    String binary = config.getStringByKeys(StringUtils::isNotBlank, "maven.binary", "MAVEN_BINARY");
+    if (binary != null) {
       mavenBinary = binary;
       File completePath = new File(mavenHome, "bin/" + mavenBinary);
       List<String> binaryExtension = new ArrayList<>();

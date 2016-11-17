@@ -85,23 +85,17 @@ public class VerifyCommand extends Command {
     }
     Object expected = expectedValue;
     Object got = measure.getData();
-    if (isNumeric(expectedValue)) {
+    try {
       expected = Double.valueOf(expectedValue);
       got = measure.getValue();
+    } catch (NumberFormatException e) {
+      // expected is not a numeric value, check below will fail
     }
     if (!expected.equals(got)) {
       throw new AssertionError(String.format(
-        "Measure mismatch for '%s' on metric '%s'. Expected '%s' but was '%s'.", resourceKey, metricKey, expected, got
+          "Measure mismatch for '%s' on metric '%s'. Expected '%s' but was '%s'.", resourceKey, metricKey, expected, got
       ));
     }
   }
 
-  private static boolean isNumeric(String s) {
-    try {
-      Double.valueOf(s);
-      return true;
-    } catch (NumberFormatException e) {
-      return false;
-    }
-  }
 }

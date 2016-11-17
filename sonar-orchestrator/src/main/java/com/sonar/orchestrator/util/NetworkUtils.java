@@ -43,7 +43,7 @@ public final class NetworkUtils {
 
   @VisibleForTesting
   static class TravisIncrementalPortFinder {
-    private final AtomicInteger nextPort = new AtomicInteger(20000);
+    private final AtomicInteger nextPort = new AtomicInteger(20_000);
 
     public int getNextAvailablePort() {
       return nextPort.getAndIncrement();
@@ -54,7 +54,7 @@ public final class NetworkUtils {
   static class RandomPortFinder {
     private static final int MAX_TRY = 10;
     // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
-    private static final int[] BLOCKED_PORTS = {2049, 4045, 6000};
+    private static final int[] BLOCKED_PORTS = {2_049, 4_045, 6_000};
 
     public int getNextAvailablePort() {
       for (int i = 0; i < MAX_TRY; i++) {

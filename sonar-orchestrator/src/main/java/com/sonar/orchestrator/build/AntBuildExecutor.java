@@ -28,6 +28,7 @@ import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
     }
   }
 
-  static String getAntPath(File antHome) throws IOException {
+  private static String getAntPath(@Nullable File antHome) throws IOException {
     String program = "ant";
     if (SystemUtils.IS_OS_WINDOWS) {
       program += ".bat";

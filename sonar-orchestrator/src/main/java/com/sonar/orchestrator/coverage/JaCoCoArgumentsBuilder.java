@@ -41,6 +41,10 @@ public class JaCoCoArgumentsBuilder {
   @VisibleForTesting
   static MavenLocation agentLocation;
 
+  private JaCoCoArgumentsBuilder() {
+    // prevents instantiation
+  }
+
   static {
     Properties props = readProperties("jacoco.properties");
     jaCoCoVersion = props.getProperty("jacoco.version");
@@ -61,9 +65,6 @@ public class JaCoCoArgumentsBuilder {
       throw new IllegalStateException("Unable to load JaCoCo version to be used", e);
     }
     return props;
-  }
-
-  private JaCoCoArgumentsBuilder() {
   }
 
   /**

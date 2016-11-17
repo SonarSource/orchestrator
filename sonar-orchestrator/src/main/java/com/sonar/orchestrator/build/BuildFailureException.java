@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class BuildFailureException extends RuntimeException {
-  private final Build build;
-  private final BuildResult result;
+  private final transient Build build;
+  private final transient BuildResult result;
 
   public BuildFailureException(Build<?> build, BuildResult result) {
     this.build = checkNotNull(build, "build is null");

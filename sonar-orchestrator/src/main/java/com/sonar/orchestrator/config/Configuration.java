@@ -27,7 +27,10 @@ import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Predicate;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -107,10 +110,16 @@ public class Configuration {
     return StringUtils.defaultString(props.get(key), defaultValue);
   }
 
+  @CheckForNull
   public String getStringByKeys(String... keys) {
+    return getStringByKeys(Objects::nonNull, keys);
+  }
+
+  @CheckForNull
+  public String getStringByKeys(Predicate<String> validator, String... keys) {
     for (String key : keys) {
       String result = getString(key);
-      if (result != null) {
+      if (validator.test(result)) {
         return result;
       }
     }
@@ -150,6 +159,8 @@ public class Configuration {
   }
 
   public static final class Builder {
+    private static final String MAVEN_LOCAL_REPOSITORY_PROPERTY = "maven.localRepository";
+
     private Map<String, String> props = Maps.newHashMap();
     private UpdateCenter updateCenter;
 
@@ -214,10 +225,10 @@ public class Configuration {
         setPropertyIfAbsent("orchestrator.updateCenterUrl", "http://update.sonarsource.org/update-center-dev.properties");
         if (System.getenv("SONAR_MAVEN_REPOSITORY") != null) {
           // For Jenkins
-          setPropertyIfAbsent("maven.localRepository", System.getenv("SONAR_MAVEN_REPOSITORY"));
+          setPropertyIfAbsent(MAVEN_LOCAL_REPOSITORY_PROPERTY, System.getenv("SONAR_MAVEN_REPOSITORY"));
         } else {
-          setPropertyIfAbsent("maven.localRepository",
-            StringUtils.defaultIfBlank(System.getProperty("maven.localRepository"), System.getProperty("user.home") + "/.m2/repository"));
+          setPropertyIfAbsent(MAVEN_LOCAL_REPOSITORY_PROPERTY,
+            StringUtils.defaultIfBlank(System.getProperty(MAVEN_LOCAL_REPOSITORY_PROPERTY), System.getProperty("user.home") + "/.m2/repository"));
         }
 
         return this;

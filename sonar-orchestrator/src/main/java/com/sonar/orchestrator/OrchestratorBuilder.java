@@ -257,12 +257,10 @@ public class OrchestratorBuilder {
 
     // Now try to install all other plugins if it is an ecosystem
     Release release = getPluginRelease(pluginKey);
-    if (release != null) {
-      for (Release children : release.getChildren()) {
-        addPluginLocation(children.getKey(), version);
-        // Set plugin version with actual value to allow later check (assumeThat)
-        setOrchestratorProperty(getPluginVersionPropertyKey(children.getKey()), version);
-      }
+    for (Release children : release.getChildren()) {
+      addPluginLocation(children.getKey(), version);
+      // Set plugin version with actual value to allow later check (assumeThat)
+      setOrchestratorProperty(getPluginVersionPropertyKey(children.getKey()), version);
     }
     return this;
   }
