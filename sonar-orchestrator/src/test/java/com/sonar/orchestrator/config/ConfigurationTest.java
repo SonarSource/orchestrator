@@ -23,18 +23,18 @@ import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.test.MockHttpServer;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import java.net.InetAddress;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,11 +133,11 @@ public class ConfigurationTest extends PropertyAndEnvTest {
   }
 
   @Test
-  public void getFileLocationOfShared() {
-    URL url= getClass().getResource("/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
+  public void getFileLocationOfShared() throws URISyntaxException {
+    URL url = getClass().getResource("/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
     Properties props = new Properties();
     props.setProperty("orchestrator.configUrl", url.toString());
-    props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.getPath()));
+    props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
     Configuration config = Configuration.create(props);
 
     FileLocation location = config.getFileLocationOfShared("sample.properties");
@@ -147,14 +147,14 @@ public class ConfigurationTest extends PropertyAndEnvTest {
   }
 
   @Test
-  public void getFileLocationOfSharedApplyPriority() {
+  public void getFileLocationOfSharedApplyPriority() throws URISyntaxException {
     URL url = getClass().getResource("/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
     Properties props = new Properties();
     props.setProperty("orchestrator.configUrl", url.toString());
-    Map<String,String> envVariables = new HashMap<>(System.getenv());
-    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.getPath()));
+    Map<String, String> envVariables = new HashMap<>(System.getenv());
+    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
     setEnv(ImmutableMap.copyOf(envVariables));
-    props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.getPath()));
+    props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
     Configuration config = Configuration.create(props);
 
     FileLocation location = config.getFileLocationOfShared("sample.properties");
@@ -181,7 +181,7 @@ public class ConfigurationTest extends PropertyAndEnvTest {
     URL url = getClass().getResource("/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
     Properties props = new Properties();
     props.setProperty("orchestrator.configUrl", url.toString());
-    props.setProperty("orchestrator.it_sources", "/com/sonar/orchestrator/config/ConfigurationTest/sample.properties" );
+    props.setProperty("orchestrator.it_sources", "/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
     Configuration config = Configuration.create(props);
 
     config.getFileLocationOfShared(".");

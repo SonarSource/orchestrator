@@ -124,8 +124,13 @@ public class MavenBuildExecutorTest {
       @Override
       public boolean matches(Object o) {
         Command c = (Command) o;
+        // Windows directory with space use case
+        String quote = "";
+        if (pom.getAbsolutePath().contains(" ")) {
+          quote = "\"";
+        }
         return c.toCommandLine().contains("mvn")
-          && c.toCommandLine().contains("-f " + pom.getAbsolutePath())
+          && c.toCommandLine().contains("-f " + quote + pom.getAbsolutePath())
           && c.toCommandLine().contains("-X")
           && c.toCommandLine().contains(goal);
       }
