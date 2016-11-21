@@ -8,7 +8,7 @@
   </parent>
   <groupId>org.sonarsource.orchestrator</groupId>
   <artifactId>orchestrator-parent</artifactId>
-  <version>3.13-SNAPSHOT</version>
+  <version>3.14-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Orchestrator :: Parent</name>
   <inceptionYear>2011</inceptionYear>
