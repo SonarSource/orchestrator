@@ -34,8 +34,6 @@ import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.selenium.Selenese;
-import com.sonar.orchestrator.selenium.SeleneseRunner;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
 import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
@@ -66,7 +64,6 @@ public class Orchestrator extends SingleStartExternalResource {
 
   private DefaultDatabase database;
   private Server server;
-  private SeleneseRunner seleniumRunner;
   private BuildRunner buildRunner;
   private ServerProcess process;
   private StartupLogWatcher startupLogWatcher;
@@ -139,7 +136,6 @@ public class Orchestrator extends SingleStartExternalResource {
     }
 
     buildRunner = new BuildRunner(config);
-    seleniumRunner = new SeleneseRunner(config);
   }
 
   /**
@@ -193,12 +189,6 @@ public class Orchestrator extends SingleStartExternalResource {
 
   public SonarDistribution getDistribution() {
     return distribution;
-  }
-
-  public Orchestrator executeSelenese(Selenese selenese) {
-    Preconditions.checkNotNull(seleniumRunner, ORCHESTRATOR_IS_NOT_STARTED);
-    seleniumRunner.runHtmlSuite(server, selenese);
-    return this;
   }
 
   public BuildResult executeBuild(Build<?> build) {
