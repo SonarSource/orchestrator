@@ -51,20 +51,6 @@ public class SynchronousAnalyzer {
   }
 
   public void waitForDone() {
-    if (server.version().isGreaterThanOrEquals("5.0")) {
-      doWaitForDone();
-    }
-  }
-
-  long getDelayMs() {
-    return delayMs;
-  }
-
-  int getLogFrequency() {
-    return logFrequency;
-  }
-
-  private void doWaitForDone() {
     boolean empty = false;
     int count = 0;
     while (!empty) {
@@ -77,4 +63,13 @@ public class SynchronousAnalyzer {
       count++;
     }
   }
+
+  long getDelayMs() {
+    return delayMs;
+  }
+
+  int getLogFrequency() {
+    return logFrequency;
+  }
+
 }

@@ -121,11 +121,11 @@ public class ServerProcessImplTest {
   }
 
   @Test
-  public void fail_if_server_version_is_older_than_4_5() throws Exception {
-    when(server.version()).thenReturn(Version.create("4.4"));
+  public void fail_if_server_version_is_older_than_5_2() throws Exception {
+    when(server.version()).thenReturn(Version.create("5.1"));
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Minimum supported version of SonarQube is 4.5. Got 4.4.");
+    expectedException.expectMessage("Minimum supported version of SonarQube is 5.2. Got 5.1.");
     underTest.start();
   }
 

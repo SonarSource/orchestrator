@@ -61,7 +61,6 @@ import org.sonar.wsclient.Host;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.connectors.HttpClient4Connector;
-import org.sonar.wsclient.services.PropertyCreateQuery;
 
 public class Server {
   private static final String LOCALHOST = "localhost";
@@ -234,10 +233,7 @@ public class Server {
       localcontext.setAttribute("preemptive-auth", basicAuth);
       client.addRequestInterceptor(new PreemptiveAuth(), 0);
 
-      String wsUrl = url + "/profiles/restore";
-      if (version().isGreaterThanOrEquals("3.1")) {
-        wsUrl = url + "/api/profiles/restore";
-      }
+      String wsUrl = url + "/api/profiles/restore";
       LOG.info("POST " + wsUrl);
       HttpPost post = new HttpPost(wsUrl);
       MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -280,14 +276,10 @@ public class Server {
    * @since 2.17
    */
   public void associateProjectToQualityProfile(String projectKey, String languageKey, String profileName) {
-    if (version().isGreaterThanOrEquals("5.2")) {
-      adminWsClient().post("api/qualityprofiles/add_project",
-        "projectKey", projectKey,
-        "language", languageKey,
-        "profileName", profileName);
-    } else {
-      getAdminWsClient().create(new PropertyCreateQuery("sonar.profile." + languageKey, profileName, projectKey));
-    }
+    adminWsClient().post("api/qualityprofiles/add_project",
+      "projectKey", projectKey,
+      "language", languageKey,
+      "profileName", profileName);
   }
 
   static final class PreemptiveAuth implements HttpRequestInterceptor {

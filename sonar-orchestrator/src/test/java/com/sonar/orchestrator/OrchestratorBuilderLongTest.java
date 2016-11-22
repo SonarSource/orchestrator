@@ -26,7 +26,7 @@ public class OrchestratorBuilderLongTest {
   @Test
   public void start_sonarqube() {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-      .setSonarVersion("5.1.2")
+      .setSonarVersion("5.6")
       .build();
 
     try {

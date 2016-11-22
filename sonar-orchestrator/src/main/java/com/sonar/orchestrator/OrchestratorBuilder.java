@@ -362,10 +362,7 @@ public class OrchestratorBuilder {
     checkState(!isEmpty(version), "Missing Sonar version");
 
     this.distribution.setVersion(Version.create(version));
-
-    if (this.distribution.version().isGreaterThanOrEquals("5.0")) {
-      this.distribution.addPluginLocation(ResourceLocation.create("/com/sonar/orchestrator/sonar-reset-data-plugin-1.0-SNAPSHOT.jar"));
-    }
+    this.distribution.addPluginLocation(ResourceLocation.create("/com/sonar/orchestrator/sonar-reset-data-plugin-1.0-SNAPSHOT.jar"));
     if (this.distribution.version().isGreaterThanOrEquals("5.4")) {
       this.distribution.setContext("/");
     }

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.dsl;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.sonar.orchestrator.Orchestrator;
@@ -28,7 +27,6 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.net.URL;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,7 +43,7 @@ public class StartServerCommandTest {
   public static void prepare() {
     updateCenterUrl = OrchestratorBuilderTest.class.getResource("/update-center-test.properties");
     SETTINGS = ImmutableMap.of(
-      "sonar.runtimeVersion", "4.5.6",
+      "sonar.runtimeVersion", "5.6",
       "sonar.jdbc.dialect", "h2",
       "orchestrator.updateCenterUrl", updateCenterUrl.toString()
       );
@@ -61,7 +59,7 @@ public class StartServerCommandTest {
     Orchestrator orchestrator = command.initOrchestrator(context);
 
     assertThat(orchestrator).isNotNull();
-    assertThat(orchestrator.getConfiguration().getString("sonar.runtimeVersion")).isEqualTo("4.5.6");
+    assertThat(orchestrator.getConfiguration().getString("sonar.runtimeVersion")).isEqualTo("5.6");
     assertThat(orchestrator.getConfiguration().getString("sonar.jdbc.dialect")).isEqualTo("h2");
   }
 
@@ -73,15 +71,10 @@ public class StartServerCommandTest {
     Orchestrator orchestrator = command.initOrchestrator(context);
 
     List<Location> plugins = orchestrator.getDistribution().getPluginLocations();
-    // cobol
-    assertThat(plugins).hasSize(1);
+    // cobol and orchestrator reset-data
+    assertThat(plugins).hasSize(2);
 
-    Location plugin = Iterables.find(plugins, new Predicate<Location>() {
-      @Override
-      public boolean apply(@Nullable Location location) {
-        return location instanceof MavenLocation;
-      }
-    });
+    Location plugin = Iterables.find(plugins, location -> location instanceof MavenLocation);
     assertThat(plugin).isNotNull();
     MavenLocation pluginLocation = (MavenLocation) plugin;
     assertThat(pluginLocation.getGroupId()).isEqualTo("com.sonarsource.cobol");

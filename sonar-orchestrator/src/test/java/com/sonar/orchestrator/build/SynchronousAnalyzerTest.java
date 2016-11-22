@@ -21,18 +21,14 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.version.Version;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,27 +39,16 @@ public class SynchronousAnalyzerTest {
   public Timeout timeout = new Timeout(3000, TimeUnit.MILLISECONDS);
 
   @Test
-  public void do_nothing_before_5_0() {
-    Server server = mock(Server.class);
-    when(server.version()).thenReturn(Version.create("4.5"));
-
-    new SynchronousAnalyzer(server).waitForDone();
-
-    // fast enough to finish before junit timeout
-    verify(server, never()).post(anyString(), anyMap());
-  }
-
-  @Test
   public void wait_as_long_queue_is_not_empty() {
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.0"));
-    when(server.post(SynchronousAnalyzer.RELATIVE_URL, Collections.<String, Object>emptyMap()))
+    when(server.post(SynchronousAnalyzer.RELATIVE_URL, Collections.emptyMap()))
       .thenReturn("false", "false", "true");
 
     new SynchronousAnalyzer(server, 10L, 2).waitForDone();
 
     // fast enough to finish before junit timeout
-    verify(server, times(3)).post(SynchronousAnalyzer.RELATIVE_URL, Collections.<String, Object>emptyMap());
+    verify(server, times(3)).post(SynchronousAnalyzer.RELATIVE_URL, Collections.emptyMap());
   }
 
   @Test

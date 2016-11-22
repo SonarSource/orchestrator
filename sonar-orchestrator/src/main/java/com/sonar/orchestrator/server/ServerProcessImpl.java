@@ -45,7 +45,7 @@ import static java.util.Objects.requireNonNull;
 
 public class ServerProcessImpl implements ServerProcess {
 
-  private static final String MIN_SQ_SUPPORTED_VERSION = "4.5";
+  private static final String MIN_SQ_SUPPORTED_VERSION = "5.2";
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerProcessImpl.class);
   private static final long START_RETRY_TIMEOUT_MS = 100L;
   private static final long START_TIMEOUT_MS = 300_000L;
