@@ -19,8 +19,10 @@
  */
 package com.sonar.orchestrator.dsl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Rule;
@@ -32,10 +34,6 @@ import org.sonar.wsclient.services.Model;
 import org.sonar.wsclient.services.Query;
 import org.sonar.wsclient.services.Resource;
 import org.sonar.wsclient.services.ResourceQuery;
-
-import javax.annotation.Nullable;
-
-import java.util.List;
 
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -51,7 +49,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "250");
     command.setExpectedMeasure("coverage", "60.75");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "coverage"}))))
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "coverage"}))))
       .thenReturn(newResource(250, 60.75, null));
     command.verifyMeasures(client);
   }
@@ -65,7 +63,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "251");
     command.setExpectedMeasure("coverage", "60.75");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "coverage"}))))
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "coverage"}))))
       .thenReturn(newResource(250, 60.75, null));
     command.verifyMeasures(client);
   }
@@ -79,7 +77,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "250");
     command.setExpectedMeasure("coverage", "60.75");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "coverage"}))))
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "coverage"}))))
       .thenReturn(newResource(250, 20.0, null));
     command.verifyMeasures(client);
   }
@@ -93,7 +91,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "250");
     command.setExpectedMeasure("coverage", "60.75");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "coverage"}))))
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "coverage"}))))
       .thenReturn(newResource(250, null, null));
     command.verifyMeasures(client);
   }
@@ -107,7 +105,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "250");
     command.setExpectedMeasure("coverage", "60.75");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "coverage"})))).thenReturn(null);
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "coverage"})))).thenReturn(null);
     command.verifyMeasures(client);
   }
 
@@ -117,7 +115,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "250");
     command.setExpectedMeasure("profile", "Sonar way");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "profile"}))))
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "profile"}))))
       .thenReturn(newResource(250, null, "Sonar way"));
     command.verifyMeasures(client);
   }
@@ -131,7 +129,7 @@ public class VerifyCommandTest {
     command.setExpectedMeasure("ncloc", "250");
     command.setExpectedMeasure("profile", "Sonar way");
     Sonar client = mock(Sonar.class);
-    when(client.find(argThat(new QueryMatcher("struts", new String[]{"ncloc", "profile"}))))
+    when(client.find(argThat(new QueryMatcher("struts", new String[] {"ncloc", "profile"}))))
       .thenReturn(newResource(250, null, "Other profile"));
     command.verifyMeasures(client);
   }
@@ -158,7 +156,7 @@ public class VerifyCommandTest {
 
   Resource newResource(int ncloc, @Nullable Double coverage, @Nullable String profile) {
     Resource resource = new Resource();
-    List<Measure> measures = Lists.newArrayList();
+    List<Measure> measures = new ArrayList<>();
     measures.add(new Measure().setMetricKey("ncloc").setValue(new Double(ncloc)));
     if (coverage != null) {
       measures.add(new Measure().setMetricKey("coverage").setValue(new Double(coverage)));

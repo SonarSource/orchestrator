@@ -21,12 +21,13 @@ package com.sonar.orchestrator.db;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import org.apache.commons.lang.StringUtils;
+
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public final class DatabaseFactory {
 
@@ -44,35 +45,35 @@ public final class DatabaseFactory {
     DatabaseClient.Builder builder = newBuilderForUrl(url);
 
     String s = config.getString("sonar.jdbc.schema");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setSchema(s);
     }
     s = config.getString("sonar.jdbc.username");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setLogin(s);
     }
     s = config.getString("sonar.jdbc.password");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setPassword(s);
     }
     s = config.getString("sonar.jdbc.rootUrl");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setRootUrl(s);
     }
     s = config.getString("sonar.jdbc.rootUsername");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setRootLogin(s);
     }
     s = config.getString("sonar.jdbc.rootPassword");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setRootPassword(s);
     }
     s = config.getString("sonar.jdbc.driverFile");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       builder.setDriverFile(new File(s));
     }
     s = config.getString("sonar.jdbc.driverMavenKey");
-    if (!Strings.isNullOrEmpty(s)) {
+    if (!isEmpty(s)) {
       feedDriverMavenKey(fileSystem, builder, s);
     }
 
@@ -96,7 +97,7 @@ public final class DatabaseFactory {
 
   private static DatabaseClient.Builder newBuilderForUrl(String url) {
     DatabaseClient.Builder builder;
-    if (Strings.isNullOrEmpty(url) || url.startsWith("jdbc:h2:")) {
+    if (isEmpty(url) || url.startsWith("jdbc:h2:")) {
       builder = H2.builder();
     } else if (url.startsWith("jdbc:oracle:")) {
       builder = Oracle.builder();
@@ -111,7 +112,7 @@ public final class DatabaseFactory {
     } else {
       throw new IllegalArgumentException("Unsupported DB: " + url);
     }
-    if (!Strings.isNullOrEmpty(url)) {
+    if (!isEmpty(url)) {
       builder.setUrl(url);
     }
     return builder;

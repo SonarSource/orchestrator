@@ -20,13 +20,11 @@
 package com.sonar.orchestrator.dsl;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
-
-import javax.annotation.Nullable;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public class Dsl {
 
@@ -66,8 +64,8 @@ public class Dsl {
 
   public static class Context {
     private Orchestrator orchestrator = null;
-    private Map<String, String> settings = Maps.newHashMap();
-    private Map<String, Object> state = Maps.newHashMap();
+    private Map<String, String> settings = new HashMap<>();
+    private Map<String, Object> state = new HashMap<>();
 
     public Orchestrator getOrchestrator() {
       return orchestrator;
@@ -84,7 +82,7 @@ public class Dsl {
 
     public Context setSettings(Map<String, String> settings) {
       this.settings.clear();
-      this.settings.putAll(Maps.newHashMap(settings));
+      this.settings.putAll(new HashMap<>(settings));
       return this;
     }
 

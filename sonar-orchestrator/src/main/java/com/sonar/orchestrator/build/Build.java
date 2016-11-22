@@ -20,10 +20,9 @@
 package com.sonar.orchestrator.build;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,9 +34,9 @@ public abstract class Build<T extends Build<T>> {
   public static final long DEFAULT_TIMEOUT_SECONDS = 7L * 24 * 60 * 60;
 
   protected long timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
-  protected Map<String, String> properties = Maps.newHashMap();
-  private Map<String, String> env = Maps.newHashMap();
-  private List<String> additionalArguments = Lists.newArrayList();
+  protected Map<String, String> properties = new HashMap<>();
+  private Map<String, String> env = new HashMap<>();
+  private List<String> additionalArguments = new ArrayList<>();
 
   /**
    * see setTimeoutSeconds()

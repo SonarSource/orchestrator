@@ -20,9 +20,9 @@
 package com.sonar.orchestrator.build;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
+import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -49,7 +49,7 @@ public class BuildRunner {
 
   @VisibleForTesting
   Map<String, String> adjustProperties(@Nullable Server server, Build<?> build) {
-    Map<String, String> adjustedProperties = Maps.newHashMap();
+    Map<String, String> adjustedProperties = new HashMap<>();
     if (!(build instanceof ScannerForMSBuild) || !build.arguments().contains("end")) {
       if (server != null) {
         adjustedProperties.put(SONAR_HOST_URL, server.getUrl());

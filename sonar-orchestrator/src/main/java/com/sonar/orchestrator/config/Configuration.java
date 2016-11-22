@@ -21,11 +21,11 @@ package com.sonar.orchestrator.config;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -161,7 +161,7 @@ public class Configuration {
   public static final class Builder {
     private static final String MAVEN_LOCAL_REPOSITORY_PROPERTY = "maven.localRepository";
 
-    private Map<String, String> props = Maps.newHashMap();
+    private Map<String, String> props = new HashMap<>();
     private UpdateCenter updateCenter;
 
     private Builder() {
@@ -258,7 +258,7 @@ public class Configuration {
     }
 
     private Builder interpolateProperties() {
-      Map<String, String> copy = Maps.newHashMap();
+      Map<String, String> copy = new HashMap<>();
       for (Map.Entry<String, String> entry : props.entrySet()) {
         copy.put(entry.getKey(), interpolate(entry.getValue(), props));
       }

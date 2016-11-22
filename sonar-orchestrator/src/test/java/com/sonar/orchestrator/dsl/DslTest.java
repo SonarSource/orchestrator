@@ -19,12 +19,11 @@
  */
 package com.sonar.orchestrator.dsl;
 
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
-import org.junit.Test;
-
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import org.junit.Test;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,7 +89,7 @@ public class DslTest {
     Dsl.Context context = new Dsl.Context();
     assertThat(context.getSettings()).isEmpty();
 
-    Map<String, String> settings = Maps.newHashMap();
+    Map<String, String> settings = new HashMap<>();
     context.setSettings(settings);
     assertThat(context.getSettings()).isEqualTo(settings);
   }

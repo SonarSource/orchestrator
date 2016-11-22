@@ -20,13 +20,15 @@
 package com.sonar.orchestrator.build;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
 import javax.annotation.Nullable;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * Executes the sonar-runner script. In-process mode is not supported yet.
@@ -82,7 +84,7 @@ public class SonarRunner extends Build<SonarRunner> {
   }
 
   public SonarRunner setRunnerVersion(String s) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(s), "version must be set");
+    checkArgument(!isEmpty(s), "version must be set");
     this.scannerVersion = Version.create(s);
     return this;
   }
@@ -176,7 +178,7 @@ public class SonarRunner extends Build<SonarRunner> {
 
   private static void checkProjectDir(File dir) {
     Preconditions.checkNotNull(dir, "Project directory must be set");
-    Preconditions.checkArgument(dir.exists(), "Project directory must exist");
-    Preconditions.checkArgument(dir.isDirectory(), "Project directory must be... a directory");
+    checkArgument(dir.exists(), "Project directory must exist");
+    checkArgument(dir.isDirectory(), "Project directory must be... a directory");
   }
 }

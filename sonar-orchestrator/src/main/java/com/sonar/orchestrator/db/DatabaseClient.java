@@ -20,17 +20,14 @@
 package com.sonar.orchestrator.db;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-
-import javax.annotation.CheckForNull;
-
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 public abstract class DatabaseClient {
@@ -151,7 +148,7 @@ public abstract class DatabaseClient {
   }
 
   public final Map<String, String> getProperties() {
-    Map<String, String> props = Maps.newHashMap();
+    Map<String, String> props = new HashMap<>();
     props.putAll(additionalProperties);
     addProperty(props, "sonar.jdbc.dialect", getDialect());
     addProperty(props, "sonar.jdbc.url", url);
@@ -217,7 +214,7 @@ public abstract class DatabaseClient {
     private String rootUrl;
     private String rootLogin;
     private String rootPassword;
-    private Map<String, String> additionalProperties = Maps.newHashMap();
+    private Map<String, String> additionalProperties = new HashMap<>();
 
     protected Builder() {
     }

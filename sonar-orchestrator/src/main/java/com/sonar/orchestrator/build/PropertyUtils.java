@@ -20,8 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-
+import java.util.HashMap;
 import java.util.Map;
 
 final class PropertyUtils {
@@ -31,7 +30,7 @@ final class PropertyUtils {
 
   static Map<String, String> toMap(String[] keyValues) {
     Preconditions.checkArgument(keyValues.length % 2 == 0, "Must be an even number of key/values");
-    Map<String, String> map = Maps.newHashMap();
+    Map<String, String> map = new HashMap<>();
     int index = 0;
     while (index < keyValues.length) {
       String key = keyValues[index++];

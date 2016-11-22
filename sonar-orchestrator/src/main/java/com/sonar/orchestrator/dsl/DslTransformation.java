@@ -20,10 +20,9 @@
 package com.sonar.orchestrator.dsl;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.sonar.orchestrator.dsl.StartServerCommand.Plugin;
 import com.sonar.sslr.api.AstNode;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class DslTransformation {
@@ -34,7 +33,7 @@ public class DslTransformation {
 
   private static List<Command> dslUnit(AstNode node) {
     Preconditions.checkArgument(node.is(SonarItDslGrammar.DSL_UNIT));
-    List<Command> commands = Lists.newArrayList();
+    List<Command> commands = new ArrayList<>();
     for (AstNode commandNode : node.getChildren()) {
       if (commandNode.is(SonarItDslGrammar.START_SERVER_COMMAND)) {
         commands.add(startServerCommand(commandNode));

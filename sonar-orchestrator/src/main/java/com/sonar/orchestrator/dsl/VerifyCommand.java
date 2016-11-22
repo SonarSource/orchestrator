@@ -21,19 +21,18 @@ package com.sonar.orchestrator.dsl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
+import java.util.HashMap;
+import java.util.Map;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.services.Measure;
 import org.sonar.wsclient.services.Resource;
 import org.sonar.wsclient.services.ResourceQuery;
 
-import java.util.Map;
-
 public class VerifyCommand extends Command {
 
   private String resourceKey;
-  private Map<String, String> expectedMeasures = Maps.newHashMap();
+  private Map<String, String> expectedMeasures = new HashMap<>();
 
   public VerifyCommand(String resourceKey) {
     this.resourceKey = resourceKey;

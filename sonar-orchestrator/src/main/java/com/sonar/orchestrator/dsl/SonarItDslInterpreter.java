@@ -19,19 +19,19 @@
  */
 package com.sonar.orchestrator.dsl;
 
-import com.google.common.base.Charsets;
 import com.sonar.sslr.api.AstNode;
+import java.util.List;
 import org.sonar.sslr.parser.LexerlessGrammar;
 import org.sonar.sslr.parser.ParserAdapter;
 
-import java.util.List;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class SonarItDslInterpreter {
 
   private final LexerlessGrammar grammar = SonarItDslGrammar.createGrammar();
 
   public List<Command> interpret(String dsl) {
-    ParserAdapter<LexerlessGrammar> parser = new ParserAdapter<>(Charsets.UTF_8, grammar);
+    ParserAdapter<LexerlessGrammar> parser = new ParserAdapter<>(UTF_8, grammar);
     AstNode ast = parser.parse(dsl);
     DslTransformation transformation = new DslTransformation();
     return transformation.transform(ast);

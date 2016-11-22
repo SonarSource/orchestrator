@@ -20,25 +20,23 @@
 package com.sonar.orchestrator.container;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
-
-import javax.annotation.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import javax.annotation.Nullable;
 
 public final class SonarDistribution {
 
   private Version version;
   private int port;
   private String context = "/sonar";
-  private List<Location> pluginLocations = Lists.newArrayList();
-  private List<Location> profileBackups = Lists.newArrayList();
+  private List<Location> pluginLocations = new ArrayList<>();
+  private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
-  private List<String> licensedPluginKeys = Lists.newArrayList();
+  private List<String> licensedPluginKeys = new ArrayList<>();
   private boolean removeDistributedPlugins = true;
 
   public SonarDistribution() {

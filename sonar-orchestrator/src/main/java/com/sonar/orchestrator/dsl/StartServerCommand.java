@@ -21,11 +21,11 @@ package com.sonar.orchestrator.dsl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.OrchestratorBuilder;
 import com.sonar.orchestrator.config.Configuration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -33,8 +33,8 @@ import org.apache.commons.lang.StringUtils;
 
 public class StartServerCommand extends Command {
 
-  private List<Plugin> plugins = Lists.newArrayList();
-  private Map<String, String> properties = Maps.newHashMap();
+  private List<Plugin> plugins = new ArrayList<>();
+  private Map<String, String> properties = new HashMap<>();
 
   public void addPlugin(Plugin plugin) {
     plugins.add(plugin);

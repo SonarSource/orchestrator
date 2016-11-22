@@ -19,17 +19,16 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
+import java.util.Map;
+import java.util.TreeMap;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
-
-import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -44,11 +43,11 @@ public class AntBuildExecutorTest {
   public void execute_command() {
     final FileLocation buildFile = FileLocation.of("src/test/resources/com/sonar/orchestrator/build/AntBuildTest/build.xml");
     AntBuild build = AntBuild.create()
-            .setBuildLocation(buildFile)
-            .setTimeoutSeconds(30)
-            .setTargets("sonar");
+      .setBuildLocation(buildFile)
+      .setTimeoutSeconds(30)
+      .setTargets("sonar");
 
-    Map<String, String> props = Maps.newTreeMap();
+    Map<String, String> props = new TreeMap<>();
     props.put("sonar.jdbc.dialect", "h2");
 
     CommandExecutor executor = mock(CommandExecutor.class);

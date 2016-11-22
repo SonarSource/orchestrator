@@ -22,11 +22,11 @@ package com.sonar.orchestrator.util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
@@ -44,9 +44,9 @@ public class Command {
 
   private final Os os;
   private String executable;
-  private List<String> arguments = Lists.newArrayList();
+  private List<String> arguments = new ArrayList<>();
   private File directory;
-  private Map<String, String> env = Maps.newHashMap(System.getenv());
+  private Map<String, String> env = new HashMap<>(System.getenv());
 
   @VisibleForTesting
   Command(String executable, Os os) {
@@ -119,7 +119,7 @@ public class Command {
   }
 
   String[] toStrings() {
-    List<String> command = Lists.newArrayList();
+    List<String> command = new ArrayList<>();
     if (os.isWindows()) {
       StringBuilder sb = new StringBuilder();
       sb.append(DOUBLE_QUOTE);

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
@@ -28,7 +27,9 @@ import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import org.apache.commons.lang.SystemUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -65,7 +66,7 @@ public class MavenBuildExecutorTest {
     Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
     MavenBuild build = MavenBuild.create(pom).addGoal("clean");
 
-    BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), Maps.<String, String>newHashMap());
+    BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), new HashMap<>());
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
     assertThat(result.getLogs()).containsSequence("[INFO] Scanning for projects...", "[INFO] Total time");
@@ -82,7 +83,7 @@ public class MavenBuildExecutorTest {
     BuildResult result = new MavenBuildExecutor().execute(build,
       Configuration.builder().addEnvVariables().addSystemProperties().setProperty("maven.home", mavenHome.getAbsolutePath())
         .setProperty("maven.binary", "").build(),
-      Maps.<String, String>newHashMap());
+      new HashMap<>());
 
     assertThat(result.getLogs()).contains("M2_HOME=" + mavenHome.getPath());
   }
@@ -93,7 +94,7 @@ public class MavenBuildExecutorTest {
     Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
     MavenBuild build = MavenBuild.create(pom).addGoal("clean").addArguments("-PnotExists");
 
-    BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), Maps.<String, String>newHashMap());
+    BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), new HashMap<>());
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
     assertThat(result.getLogs()).contains("[WARNING] The requested profile \"notExists\" could not be activated because it does not exist.");
@@ -107,7 +108,7 @@ public class MavenBuildExecutorTest {
       .addSonarGoal()
       .setDebugLogs(true)
       .setTimeoutSeconds(30);
-    Map<String, String> props = Maps.newTreeMap();
+    Map<String, String> props = new TreeMap<>();
     props.put("sonar.jdbc.dialect", "h2");
 
     CommandExecutor executor = mock(CommandExecutor.class);

@@ -19,10 +19,10 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.Lists;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +64,7 @@ public final class AntBuild extends Build<AntBuild> {
 
   public AntBuild addTarget(String s) {
     if (this.targets == null) {
-      this.targets = Lists.newArrayList();
+      this.targets = new ArrayList<>();
     }
     this.targets.add(s);
     return this;

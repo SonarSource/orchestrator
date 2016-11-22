@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -27,6 +26,7 @@ import com.sonar.orchestrator.util.StreamConsumer;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
+import java.util.TreeMap;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class ScannerForMSBuildExecutorTest {
       .setDebugLogs(true)
       .setScannerVersion("2.2")
       .setEnvironmentVariable("FOO", "BAR");
-    Map<String, String> props = Maps.newTreeMap();
+    Map<String, String> props = new TreeMap<>();
     props.put("sonar.jdbc.dialect", "h2");
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
@@ -87,7 +87,7 @@ public class ScannerForMSBuildExecutorTest {
     ScannerForMSBuild build = ScannerForMSBuild.create()
       .setProjectDir(new File("."))
       .setTimeoutSeconds(30);
-    Map<String, String> props = Maps.newTreeMap();
+    Map<String, String> props = new TreeMap<>();
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
     when(installer.install(eq(null), eq(null), any(File.class), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));

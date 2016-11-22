@@ -21,15 +21,15 @@ package com.sonar.orchestrator.build;
 
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 public class BuildFailureException extends RuntimeException {
   private final transient Build build;
   private final transient BuildResult result;
 
   public BuildFailureException(Build<?> build, BuildResult result) {
-    this.build = checkNotNull(build, "build is null");
-    this.result = checkNotNull(result, "result is null");
+    this.build = requireNonNull(build, "build is null");
+    this.result = requireNonNull(result, "result is null");
   }
 
   public Build getBuild() {

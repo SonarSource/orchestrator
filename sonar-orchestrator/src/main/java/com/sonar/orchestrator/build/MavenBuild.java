@@ -19,24 +19,24 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public final class MavenBuild extends Build<MavenBuild> {
 
   private Location pom;
   private File executionDir;
-  private List<String> goals = Lists.newArrayList();
+  private List<String> goals = new ArrayList<>();
   private boolean debugLogs = false;
 
   private MavenBuild() {
@@ -78,7 +78,7 @@ public final class MavenBuild extends Build<MavenBuild> {
   }
 
   public MavenBuild addGoal(String goal) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(goal), "Maven goal must be set");
+    checkArgument(!isEmpty(goal), "Maven goal must be set");
     this.goals.add(goal);
     return this;
   }
@@ -106,7 +106,7 @@ public final class MavenBuild extends Build<MavenBuild> {
   }
 
   public MavenBuild setGoals(List<String> goals) {
-    Preconditions.checkArgument(!goals.isEmpty(), "At least one goal must be set");
+    checkArgument(!goals.isEmpty(), "At least one goal must be set");
     this.goals = goals;
     return this;
   }

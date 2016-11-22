@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.google.common.collect.Lists;
 import com.sonar.orchestrator.config.Configuration;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -312,7 +311,7 @@ public final class DefaultDatabase implements Database {
     if (sql == null) {
       return Collections.emptyList();
     }
-    List<String> spids = Lists.newArrayList();
+    List<String> spids = new ArrayList<>();
     try (Statement stmt = connection.createStatement();
       ResultSet rs = stmt.executeQuery(sql)) {
       while (rs.next()) {

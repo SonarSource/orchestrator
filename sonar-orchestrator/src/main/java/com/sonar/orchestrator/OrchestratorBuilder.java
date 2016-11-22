@@ -20,8 +20,6 @@
 package com.sonar.orchestrator;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
@@ -36,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
@@ -48,6 +47,10 @@ import org.sonar.updatecenter.common.Release;
 import org.sonar.updatecenter.common.UpdateCenter;
 import org.sonar.updatecenter.common.UpdateCenterDeserializer;
 import org.sonar.updatecenter.common.UpdateCenterDeserializer.Mode;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public class OrchestratorBuilder {
 
@@ -65,11 +68,11 @@ public class OrchestratorBuilder {
   OrchestratorBuilder(Configuration initialConfig) {
     this.config = initialConfig;
     this.distribution = new SonarDistribution();
-    this.overriddenProperties = Maps.newHashMap();
+    this.overriddenProperties = new HashMap<>();
   }
 
   public OrchestratorBuilder setSonarVersion(String s) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(s), "Empty SonarQube version");
+    checkArgument(!isEmpty(s), "Empty SonarQube version");
     this.overriddenProperties.put(Configuration.SONAR_VERSION_PROPERTY, s);
     return this;
   }
@@ -297,7 +300,7 @@ public class OrchestratorBuilder {
   }
 
   private static void checkNotEmpty(String key) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(key), "Empty property key");
+    checkArgument(!isEmpty(key), "Empty property key");
   }
 
   public String getServerProperty(String key) {
@@ -356,7 +359,7 @@ public class OrchestratorBuilder {
       .setUpdateCenter(getUpdateCenter())
       .build();
 
-    Preconditions.checkState(!Strings.isNullOrEmpty(version), "Missing Sonar version");
+    checkState(!isEmpty(version), "Missing Sonar version");
 
     this.distribution.setVersion(Version.create(version));
 

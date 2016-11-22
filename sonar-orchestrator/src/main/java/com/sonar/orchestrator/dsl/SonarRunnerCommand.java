@@ -20,16 +20,15 @@
 package com.sonar.orchestrator.dsl;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SonarRunner;
-
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SonarRunnerCommand extends Command {
 
-  private Map<String, String> properties = Maps.newHashMap();
+  private final Map<String, String> properties = new HashMap<>();
 
   public void setProperty(String key, String value) {
     properties.put(key, value);
