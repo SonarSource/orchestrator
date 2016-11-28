@@ -20,17 +20,15 @@
 package com.sonar.orchestrator.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.Closeables;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.SystemUtils;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SystemUtils;
 
 public final class ZipUtils {
   private ZipUtils() {
@@ -56,7 +54,7 @@ public final class ZipUtils {
   @VisibleForTesting
   static void javaUnzip(File zip, File toDir) {
     try {
-      try(ZipFile zipFile = new ZipFile(zip)) {
+      try (ZipFile zipFile = new ZipFile(zip)) {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
           ZipEntry entry = entries.nextElement();
@@ -69,11 +67,8 @@ public final class ZipUtils {
               FileUtils.forceMkdir(parent);
             }
 
-            OutputStream fos = new FileOutputStream(to);
-            try {
+            try (OutputStream fos = new FileOutputStream(to)) {
               IOUtils.copy(zipFile.getInputStream(entry), fos);
-            } finally {
-              Closeables.close(fos, true);
             }
           }
         }

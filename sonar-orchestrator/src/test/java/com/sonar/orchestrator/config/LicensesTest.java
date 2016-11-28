@@ -36,7 +36,7 @@ public class LicensesTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  Licenses underTest;
+  private Licenses underTest;
 
   @Before
   public void setUp() {
