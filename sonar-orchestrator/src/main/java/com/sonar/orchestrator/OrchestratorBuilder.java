@@ -42,7 +42,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.updatecenter.common.Plugin;
 import org.sonar.updatecenter.common.Release;
 import org.sonar.updatecenter.common.UpdateCenter;
 import org.sonar.updatecenter.common.UpdateCenterDeserializer;
@@ -56,13 +55,13 @@ public class OrchestratorBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrchestratorBuilder.class);
 
-  private static final String LTS_OR_OLDEST_COMPATIBLE = "LTS_OR_OLDEST_COMPATIBLE";
+  private static final String ALIAS_LTS_OR_OLDEST_COMPATIBLE = "LTS_OR_OLDEST_COMPATIBLE";
+  private static final String ALIAS_OLDEST_COMPATIBLE = "OLDEST_COMPATIBLE";
 
   private final Configuration config;
   private final SonarDistribution distribution;
   private final Map<String, String> overriddenProperties;
   private UpdateCenter updateCenter;
-  private String mainPluginKey;
   private StartupLogWatcher startupLogWatcher;
 
   OrchestratorBuilder(Configuration initialConfig) {
@@ -101,10 +100,7 @@ public class OrchestratorBuilder {
    * <ul>
    *   <li>DEV: Return dev version of SonarQube as defined in update center</li>
    *   <li>LTS: Return LTS version of SonarQube as defined in update center</li>
-   *   <li>LTS_OR_OLDEST_COMPATIBLE: Return LTS version of SonarQube if compatible with main plugin. If not
-   *   compatible then fallback to use oldest version of SQ compatible with main plugin (including dev version of SQ)</li>
    * </ul>
-   * @see #setMainPluginKey(String)
    */
   public String getSonarVersion() {
     String requestedVersion = getOrchestratorProperty(Configuration.SONAR_VERSION_PROPERTY);
@@ -112,33 +108,18 @@ public class OrchestratorBuilder {
       throw new IllegalStateException("Missing SonarQube version. Please define property " + Configuration.SONAR_VERSION_PROPERTY);
     }
     String version;
-    if (LTS_OR_OLDEST_COMPATIBLE.equals(requestedVersion)) {
-      version = getLtsOrOldestCompatible();
-    } else {
-      try {
-        Release sonarRelease = getUpdateCenter().getSonar().getRelease(requestedVersion);
-        version = sonarRelease.getVersion().toString();
-      } catch (NoSuchElementException e) {
-        LOG.warn("Version " + requestedVersion + " of SonarQube was not found in update center. Fallback to blindly use " + requestedVersion);
-        version = requestedVersion;
-      }
+    if (ALIAS_LTS_OR_OLDEST_COMPATIBLE.equals(requestedVersion)) {
+      throw new IllegalArgumentException("Alias '" + ALIAS_LTS_OR_OLDEST_COMPATIBLE + "' is not supported anymore for SonarQube versions");
+    }
+    try {
+      Release sonarRelease = getUpdateCenter().getSonar().getRelease(requestedVersion);
+      version = sonarRelease.getVersion().toString();
+    } catch (NoSuchElementException e) {
+      LOG.warn("Version " + requestedVersion + " of SonarQube was not found in update center. Fallback to blindly use " + requestedVersion);
+      version = requestedVersion;
     }
     setOrchestratorProperty("sonar.runtimeVersion", version);
     return version;
-  }
-
-  private String getLtsOrOldestCompatible() {
-    if (StringUtils.isBlank(mainPluginKey)) {
-      throw new IllegalStateException("You must define the main plugin when using " + LTS_OR_OLDEST_COMPATIBLE + " alias as SQ version");
-    }
-    org.sonar.updatecenter.common.Version sqLts = getUpdateCenter().getSonar().getLtsRelease().getVersion();
-    Plugin mainPlugin = getUpdateCenter().getUpdateCenterPluginReferential().findPlugin(mainPluginKey);
-    Release mainPluginRelease = mainPlugin.getRelease(getRequestedPluginVersion(mainPluginKey));
-    if (mainPluginRelease.supportSonarVersion(sqLts)) {
-      return sqLts.toString();
-    } else {
-      return mainPluginRelease.getMinimumRequiredSonarVersion().toString();
-    }
   }
 
   public String getPluginVersion(String pluginKey) {
@@ -167,15 +148,8 @@ public class OrchestratorBuilder {
   }
 
   private Release resolvePluginVersion(String pluginKey, String version) {
-    if ("OLDEST_COMPATIBLE".equals(version)) {
-      Plugin plugin = getUpdateCenter().getUpdateCenterPluginReferential().findPlugin(pluginKey);
-      String sonarVersion = getSonarVersion();
-      for (Release r : plugin.getAllReleases()) {
-        if (r.supportSonarVersion(org.sonar.updatecenter.common.Version.create(sonarVersion)) && !r.isArchived()) {
-          return r;
-        }
-      }
-      throw new IllegalStateException("No version of " + pluginKey + " plugin is compatible with SonarQube " + sonarVersion);
+    if (ALIAS_OLDEST_COMPATIBLE.equals(version)) {
+      throw new IllegalArgumentException("Alias " + ALIAS_OLDEST_COMPATIBLE + " is not supported anymore (plugin " + pluginKey + ")");
     }
     Release release = getUpdateCenter().getUpdateCenterPluginReferential().findPlugin(pluginKey).getRelease(version);
     if (release == null) {
@@ -247,7 +221,7 @@ public class OrchestratorBuilder {
    * <p/>
    * If plugin is the parent of an ecosystem (java, dotnet, ...) then all child plugins will also be installed using the same algorithm.
    * <p/>
-   * This method requires the property &lt;pluginKey&gt;Version to be set, for example "fortifyVersion". Aliases like DEV and OLDEST_COMPATIBLE are supported.
+   * This method requires the property &lt;pluginKey&gt;Version to be set, for example "fortifyVersion". Aliases like DEV are supported.
    * <p/>
    * Example: {@code addPlugin("fortify")}
    *
@@ -336,16 +310,6 @@ public class OrchestratorBuilder {
   @Deprecated
   public OrchestratorBuilder removeDistributedPlugins() {
     distribution.setRemoveDistributedPlugins(true);
-    return this;
-  }
-
-  /**
-   * Define main plugin key.
-   * @see OrchestratorBuilder#getSonarVersion()
-   * @since 2.13
-   */
-  public OrchestratorBuilder setMainPluginKey(String pluginKey) {
-    this.mainPluginKey = pluginKey;
     return this;
   }
 

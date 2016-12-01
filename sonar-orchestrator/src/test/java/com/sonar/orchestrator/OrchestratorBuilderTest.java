@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrchestratorBuilderTest {
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException expectedException = ExpectedException.none();
   private static URL updateCenterUrl;
 
   @BeforeClass
@@ -44,8 +44,8 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void sonarVersionIsMandatory() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Missing SonarQube version");
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Missing SonarQube version");
 
     new OrchestratorBuilder(Configuration.create())
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
@@ -101,42 +101,34 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
-  public void sonarVersionIsSetToLtsOrOldestCompatible() {
+  public void throw_IAE_if_alias_LTS_OR_OLDEST_COMPATIBLE_is_used_for_sonarqube() {
     Configuration config = Configuration.builder()
       .setProperty(Configuration.SONAR_VERSION_PROPERTY, "LTS_OR_OLDEST_COMPATIBLE")
       .setProperty("abapVersion", "2.2")
       .build();
-    Orchestrator orchestrator = new OrchestratorBuilder(config)
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Alias 'LTS_OR_OLDEST_COMPATIBLE' is not supported anymore for SonarQube versions");
+
+    new OrchestratorBuilder(config)
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
-      .setMainPluginKey("abap")
       .build();
-    assertThat(orchestrator.getDistribution().version().toString()).isEqualTo("3.0");
   }
 
   @Test
-  public void sonarVersionIsSetToLtsOrOldestCompatible_Cobol_Dont_Support_LTS() {
-    Configuration config = Configuration.builder()
-      .setProperty(Configuration.SONAR_VERSION_PROPERTY, "LTS_OR_OLDEST_COMPATIBLE")
-      .setProperty("cobolVersion", "1.14")
-      .build();
-    Orchestrator orchestrator = new OrchestratorBuilder(config)
-      .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
-      .setMainPluginKey("cobol")
-      .build();
-    assertThat(orchestrator.getDistribution().version().toString()).isEqualTo("3.2");
-  }
-
-  @Test
-  public void pluginVersionIsSetToOldestCompatible() {
+  public void throw_IAE_if_alias_OLDEST_COMPATIBLE_is_used() {
     Configuration config = Configuration.builder()
       .setProperty(Configuration.SONAR_VERSION_PROPERTY, "3.0")
       .setProperty("cobolVersion", "OLDEST_COMPATIBLE")
       .build();
-    Orchestrator orchestrator = new OrchestratorBuilder(config)
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Alias OLDEST_COMPATIBLE is not supported anymore (plugin cobol)");
+
+    new OrchestratorBuilder(config)
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
       .addPlugin("cobol")
       .build();
-    assertThat(orchestrator.getConfiguration().getPluginVersion("cobol").toString()).isEqualTo("1.12");
   }
 
   @Test
@@ -147,47 +139,6 @@ public class OrchestratorBuilderTest {
       .build();
     // ask for version 10000, must get at least the version at the time of writing this test, this is 4.5.2
     assertThat(orchestrator.getConfiguration().getSonarVersion().isGreaterThan("4.5.2")).isTrue();
-  }
-
-  @Test
-  public void pluginVersionIsSetToOldestCompatibleButNoVersionCompatible() {
-    Configuration config = Configuration.builder()
-      .setProperty(Configuration.SONAR_VERSION_PROPERTY, "3.6.2")
-      .setProperty("cobolVersion", "OLDEST_COMPATIBLE")
-      .build();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("No version of cobol plugin is compatible with SonarQube 3.6.2");
-    new OrchestratorBuilder(config)
-      .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
-      .addPlugin("cobol")
-      .build();
-  }
-
-  @Test
-  public void sonarVersionIsSetToLtsOrOldestCompatibleButNoMainPlugin() {
-    Configuration config = Configuration.builder()
-      .setProperty(Configuration.SONAR_VERSION_PROPERTY, "LTS_OR_OLDEST_COMPATIBLE")
-      .setProperty("abapVersion", "2.2")
-      .build();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("You must define the main plugin when using LTS_OR_OLDEST_COMPATIBLE alias as SQ version");
-    new OrchestratorBuilder(config)
-      .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
-      .build();
-  }
-
-  @Test
-  public void sonarVersionIsSetToLtsOrOldestCompatibleButUnableToResolveMainPlugin() {
-    Configuration config = Configuration.builder()
-      .setProperty(Configuration.SONAR_VERSION_PROPERTY, "LTS_OR_OLDEST_COMPATIBLE")
-      .setProperty("abapVersion", "OLDEST_COMPATIBLE")
-      .build();
-    thrown.expect(NoSuchElementException.class);
-    thrown.expectMessage("Unable to find a release of plugin abap with version OLDEST_COMPATIBLE");
-    new OrchestratorBuilder(config)
-      .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
-      .setMainPluginKey("abap")
-      .build();
   }
 
   @Test
@@ -243,8 +194,8 @@ public class OrchestratorBuilderTest {
   public void addPluginNotFound() {
     Configuration config = Configuration.builder().setProperty("xooVersion", "RELEASE").build();
 
-    thrown.expect(NoSuchElementException.class);
-    thrown.expectMessage("Unable to find plugin with key xoo");
+    expectedException.expect(NoSuchElementException.class);
+    expectedException.expectMessage("Unable to find plugin with key xoo");
 
     new OrchestratorBuilder(config)
       .setSonarVersion("3.0")
@@ -257,8 +208,8 @@ public class OrchestratorBuilderTest {
   public void addPluginWithoutVersion() {
     Configuration config = Configuration.builder().setProperty("ldapVersion", "").build();
 
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Missing ldap plugin version. Please define property ldapVersion");
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Missing ldap plugin version. Please define property ldapVersion");
 
     new OrchestratorBuilder(config)
       .setSonarVersion("3.0")
@@ -312,8 +263,8 @@ public class OrchestratorBuilderTest {
   @Test
   public void addPluginDevNotAvailable() {
     Configuration config = Configuration.builder().setProperty("abapVersion", "DEV").build();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Unable to resolve abap plugin version DEV");
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Unable to resolve abap plugin version DEV");
     new OrchestratorBuilder(config)
       .setSonarVersion("3.0")
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
