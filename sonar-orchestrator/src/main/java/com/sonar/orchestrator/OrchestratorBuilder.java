@@ -292,9 +292,10 @@ public class OrchestratorBuilder {
   }
 
   /**
-   * Set the root context for the webapp. Default value is "/sonar" on SonarQube < 5.4.
-   * Value is forced to "/" on SonarQube >= 5.4, as the feature is not supported anymore
-   * (see https://jira.sonarsource.com/browse/SONAR-7122)
+   * Set the root context for the webapp. Default value is {@code ""}. Value cannot be
+   * overridden on version 5.4 of SonarQube (feature was disabled then re-introduced
+   * in 5.5, see https://jira.sonarsource.com/browse/SONAR-7122 and
+   * https://jira.sonarsource.com/browse/SONAR-7494)
    * @since 2.8
    */
   public OrchestratorBuilder setContext(String context) {
@@ -327,9 +328,6 @@ public class OrchestratorBuilder {
 
     this.distribution.setVersion(Version.create(version));
     this.distribution.addPluginLocation(ResourceLocation.create("/com/sonar/orchestrator/sonar-reset-data-plugin-1.0-SNAPSHOT.jar"));
-    if (this.distribution.version().isGreaterThanOrEquals("5.4")) {
-      this.distribution.setContext("/");
-    }
     return new Orchestrator(finalConfig, distribution, startupLogWatcher);
   }
 }

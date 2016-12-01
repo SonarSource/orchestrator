@@ -30,9 +30,11 @@ import javax.annotation.Nullable;
 
 public final class SonarDistribution {
 
+  private static final String DEFAULT_WEB_CONTEXT = "";
+
   private Version version;
   private int port;
-  private String context = "/sonar";
+  private String context = DEFAULT_WEB_CONTEXT;
   private List<Location> pluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
