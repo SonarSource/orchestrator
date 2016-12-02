@@ -38,6 +38,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,10 +80,10 @@ public class ServerInstallerTest {
 
   @Test
   public void test_install() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
     Server server = underTest.install(new SonarDistribution(VERSION_4_5_6));
-    assertThat(server.getDistribution().version()).isEqualTo(VERSION_4_5_6);
+    assertThat(server.getDistribution().version().get()).isEqualTo(VERSION_4_5_6);
     // installed in a unique location. Home directory is the name defined in zip structure
     assertThat(server.getHome().getParentFile().getParentFile()).isEqualTo(workspaceDir);
     Properties props = openPropertiesFile(server);
@@ -91,7 +92,7 @@ public class ServerInstallerTest {
 
   @Test
   public void installations_do_not_overlap() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
     Server server1 = underTest.install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "1"));
     Server server2 = underTest.install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "2"));
@@ -104,7 +105,7 @@ public class ServerInstallerTest {
 
   @Test
   public void copy_jdbc_driver_if_defined() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     when(dbClient.getDriverFile()).thenReturn(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-oracle-driver.jar")));
     when(dbClient.getDialect()).thenReturn("oracle");
 
@@ -117,7 +118,7 @@ public class ServerInstallerTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Fail to copy JDBC driver");
 
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     File invalidDriver = temp.newFile();
     invalidDriver.delete();
     when(dbClient.getDriverFile()).thenReturn(invalidDriver);
@@ -128,7 +129,7 @@ public class ServerInstallerTest {
 
   @Test
   public void copy_plugins() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
     distrib.addPluginLocation(FileLocation.of(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-plugin.jar"))));
 
@@ -142,7 +143,7 @@ public class ServerInstallerTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Can not find the plugin");
 
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
     File invalidPlugin = temp.newFile("plugin.jar");
     invalidPlugin.delete();
@@ -153,7 +154,7 @@ public class ServerInstallerTest {
 
   @Test
   public void remove_bundled_plugins_by_default() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
 
     Server server = underTest.install(distrib);
@@ -163,7 +164,7 @@ public class ServerInstallerTest {
 
   @Test
   public void do_not_remove_bundled_plugins() throws Exception {
-    when(zipFinder.find(VERSION_4_5_6)).thenReturn(ZIP_4_5_6);
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6).setRemoveDistributedPlugins(false);
 
     Server server = underTest.install(distrib);

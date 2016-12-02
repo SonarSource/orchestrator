@@ -22,6 +22,7 @@ package com.sonar.orchestrator.server;
 import com.google.common.collect.ImmutableSortedSet;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
@@ -56,13 +57,13 @@ public class ServerZipFinderTest {
   @Rule
   public MockWebServer updateCenterServer = new MockWebServer();
 
-  FileSystem fs;
-  File installsDir;
-  File workspaceDir;
-  File mavenLocalDir;
-  UpdateCenter updateCenter = mock(UpdateCenter.class, Mockito.RETURNS_DEEP_STUBS);
-  ServerZipCache cache;
-  ServerZipFinder underTest;
+  private FileSystem fs;
+  private File installsDir;
+  private File workspaceDir;
+  private File mavenLocalDir;
+  private UpdateCenter updateCenter = mock(UpdateCenter.class, Mockito.RETURNS_DEEP_STUBS);
+  private ServerZipCache cache;
+  private ServerZipFinder underTest;
 
   @Before
   public void setUp() throws IOException {
@@ -80,23 +81,23 @@ public class ServerZipFinderTest {
   }
 
   @Test
-  public void find_zip_in_cache() {
+  public void find_zip_version_in_cache() {
     File cached = cache.copyToCache(VERSION_4_5_6, ZIP_4_5_6);
-    assertThat(underTest.find(VERSION_4_5_6)).isEqualTo(cached);
+    assertThat(underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6))).isEqualTo(cached);
   }
 
   @Test
-  public void find_zip_in_maven_local_repository() throws Exception {
+  public void find_zip_version_in_maven_local_repository() throws Exception {
     File mavenArtifact = new File(mavenLocalDir, "org/sonarsource/sonarqube/sonar-application/4.5.6/sonar-application-4.5.6.zip");
     FileUtils.copyFile(ZIP_4_5_6, mavenArtifact);
-    assertThat(underTest.find(VERSION_4_5_6)).exists().isEqualTo(mavenArtifact);
+    assertThat(underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6))).exists().isEqualTo(mavenArtifact);
   }
 
   @Test
   public void find_old_codehaus_zip_in_maven_local_repository() throws Exception {
     File mavenArtifact = new File(mavenLocalDir, "org/codehaus/sonar/sonar-application/4.5.6/sonar-application-4.5.6.zip");
     FileUtils.copyFile(ZIP_4_5_6, mavenArtifact);
-    assertThat(underTest.find(VERSION_4_5_6)).exists().isEqualTo(mavenArtifact);
+    assertThat(underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6))).exists().isEqualTo(mavenArtifact);
   }
 
   @Test
@@ -108,7 +109,7 @@ public class ServerZipFinderTest {
     updateCenterServer.enqueue(new MockResponse()
       .addHeader("Content-Disposition", "attachment; filename=sonarqube-4.5.6.zip")
       .setBody("<content>"));
-    File zip = underTest.find(VERSION_4_5_6);
+    File zip = underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
     assertThat(zip).exists().isFile();
     assertThat(zip.getName()).isEqualTo("sonarqube-4.5.6.zip");
     assertThat(zip.getParentFile()).isEqualTo(installsDir);
@@ -124,7 +125,7 @@ public class ServerZipFinderTest {
     when(updateCenter.getSonar().getAllReleases()).thenReturn(ImmutableSortedSet.of(updateCenterRelease));
 
     updateCenterServer.enqueue(new MockResponse().setResponseCode(500));
-    underTest.find(VERSION_4_5_6);
+    underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
   }
 
   @Test
@@ -136,7 +137,7 @@ public class ServerZipFinderTest {
       .setDownloadUrl(null);
     when(updateCenter.getSonar().getAllReleases()).thenReturn(ImmutableSortedSet.of(updateCenterRelease));
 
-    underTest.find(VERSION_4_5_6);
+    underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
   }
 
   @Test
@@ -144,6 +145,6 @@ public class ServerZipFinderTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("SonarQube 4.5.6 not found");
 
-    underTest.find(VERSION_4_5_6);
+    underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
   }
 }

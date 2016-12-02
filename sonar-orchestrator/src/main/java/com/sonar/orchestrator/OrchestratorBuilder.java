@@ -37,6 +37,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -49,6 +50,7 @@ import org.sonar.updatecenter.common.UpdateCenterDeserializer.Mode;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public class OrchestratorBuilder {
@@ -68,6 +70,13 @@ public class OrchestratorBuilder {
     this.config = initialConfig;
     this.distribution = new SonarDistribution();
     this.overriddenProperties = new HashMap<>();
+  }
+
+  public OrchestratorBuilder setZipFile(File zip) {
+    checkArgument(zip.exists(), "SonarQube ZIP file does not exist: %s", zip.getAbsolutePath());
+    checkArgument(zip.isFile(), "SonarQube ZIP is not a file: %s", zip.getAbsolutePath());
+    this.distribution.setZipFile(zip);
+    return this;
   }
 
   public OrchestratorBuilder setSonarVersion(String s) {
@@ -102,24 +111,24 @@ public class OrchestratorBuilder {
    *   <li>LTS: Return LTS version of SonarQube as defined in update center</li>
    * </ul>
    */
-  public String getSonarVersion() {
+  public Optional<String> getSonarVersion() {
     String requestedVersion = getOrchestratorProperty(Configuration.SONAR_VERSION_PROPERTY);
-    if (StringUtils.isBlank(requestedVersion)) {
-      throw new IllegalStateException("Missing SonarQube version. Please define property " + Configuration.SONAR_VERSION_PROPERTY);
+    if (isBlank(requestedVersion)) {
+      return Optional.empty();
     }
-    String version;
     if (ALIAS_LTS_OR_OLDEST_COMPATIBLE.equals(requestedVersion)) {
       throw new IllegalArgumentException("Alias '" + ALIAS_LTS_OR_OLDEST_COMPATIBLE + "' is not supported anymore for SonarQube versions");
     }
+    String version;
     try {
       Release sonarRelease = getUpdateCenter().getSonar().getRelease(requestedVersion);
       version = sonarRelease.getVersion().toString();
     } catch (NoSuchElementException e) {
-      LOG.warn("Version " + requestedVersion + " of SonarQube was not found in update center. Fallback to blindly use " + requestedVersion);
+      LOG.warn("Version " + requestedVersion + " of SonarQube does not exist in update center. Fallback to blindly use " + requestedVersion);
       version = requestedVersion;
     }
-    setOrchestratorProperty("sonar.runtimeVersion", version);
-    return version;
+    setOrchestratorProperty(Configuration.SONAR_VERSION_PROPERTY, version);
+    return Optional.of(version);
   }
 
   public String getPluginVersion(String pluginKey) {
@@ -130,7 +139,7 @@ public class OrchestratorBuilder {
   private String getRequestedPluginVersion(String pluginKey) {
     String pluginVersionPropertyKey = getPluginVersionPropertyKey(pluginKey);
     String pluginVersion = getOrchestratorProperty(pluginVersionPropertyKey);
-    if (StringUtils.isBlank(pluginVersion)) {
+    if (isBlank(pluginVersion)) {
       throw new IllegalStateException("Missing " + pluginKey + " plugin version. Please define property " + pluginVersionPropertyKey);
     }
     return pluginVersion;
@@ -315,8 +324,8 @@ public class OrchestratorBuilder {
   }
 
   public Orchestrator build() {
-    String version = getSonarVersion();
-
+    getSonarVersion().ifPresent(s -> this.distribution.setVersion(Version.create(s)));
+    checkState(distribution.getZipFile().isPresent() || distribution.version().isPresent(), "Version or path to ZIP of SonarQube is missing");
     Configuration.Builder configBuilder = Configuration.builder();
     Configuration finalConfig = configBuilder
       .addConfiguration(config)
@@ -324,9 +333,6 @@ public class OrchestratorBuilder {
       .setUpdateCenter(getUpdateCenter())
       .build();
 
-    checkState(!isEmpty(version), "Missing Sonar version");
-
-    this.distribution.setVersion(Version.create(version));
     this.distribution.addPluginLocation(ResourceLocation.create("/com/sonar/orchestrator/sonar-reset-data-plugin-1.0-SNAPSHOT.jar"));
     return new Orchestrator(finalConfig, distribution, startupLogWatcher);
   }

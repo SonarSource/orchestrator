@@ -30,7 +30,7 @@ public class SonarDistributionTest {
   @Test
   public void shouldCreate() {
     SonarDistribution distribution = new SonarDistribution().setVersion(Version.create("2.7"));
-    assertThat(distribution.version().toString()).isEqualTo("2.7");
+    assertThat(distribution.version().get().toString()).isEqualTo("2.7");
     assertThat(distribution.getPluginLocations().size()).isEqualTo(0);
     assertThat(distribution.getProfileBackups().size()).isEqualTo(0);
     assertThat(distribution.removeDistributedPlugins()).isTrue();

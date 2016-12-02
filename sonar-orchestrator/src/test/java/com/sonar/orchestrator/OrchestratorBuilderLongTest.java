@@ -20,7 +20,10 @@
 package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.version.Version;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderLongTest {
   @Test
@@ -31,6 +34,7 @@ public class OrchestratorBuilderLongTest {
 
     try {
       orchestrator.start();
+      assertThat(orchestrator.getServer().version()).isEqualTo(Version.create("5.6"));
     } finally {
       orchestrator.stop();
     }

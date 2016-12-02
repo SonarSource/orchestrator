@@ -60,7 +60,7 @@ public class ServerInstaller {
   }
 
   private File locateAndUnzip(SonarDistribution distrib) {
-    File zip = zipFinder.find(distrib.version());
+    File zip = zipFinder.find(distrib);
     File toDir = new File(fs.workspace(), String.valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);

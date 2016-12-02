@@ -21,6 +21,7 @@ package com.sonar.orchestrator.container;
 
 import com.google.common.io.Closeables;
 import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
@@ -29,6 +30,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -61,6 +63,9 @@ import org.sonar.wsclient.Host;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.connectors.HttpClient4Connector;
+
+import static com.google.common.base.Preconditions.checkState;
+import static org.apache.commons.lang.StringUtils.substringAfter;
 
 public class Server {
   private static final String LOCALHOST = "localhost";
@@ -108,8 +113,16 @@ public class Server {
     return distribution;
   }
 
+  /**
+   * Effective version of SonarQube, for example "6.3.0.1234" but not alias like "DEV".
+   * This method does not need the server to be up (Orchestrator to be started). It
+   * introspects the installation file system.
+   */
   public Version version() {
-    return distribution.version();
+    File libsDir = new File(home, "lib");
+    checkState(libsDir.exists(), "Installation incomplete, missing directory " + libsDir);
+    File appJar = FileLocation.byWildcardFilename(libsDir, "sonar-application-*.jar").getFile();
+    return Version.create(substringAfter(FilenameUtils.getBaseName(appJar.getName()), "sonar-application-"));
   }
 
   /**

@@ -22,12 +22,14 @@ package com.sonar.orchestrator.server;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.URLLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Optional;
 import javax.annotation.CheckForNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +62,12 @@ public class ServerZipFinder {
    * Warning - name of returned zip file can be inconsistent with requested version, for example
    * {@code find(Version.of("5.4-SNAPSHOT")).getName()} may equal {@code "5.4-build1234"}
    */
-  public synchronized File find(Version version) {
+  public File find(SonarDistribution distrib) {
+    Optional<File> localZip = distrib.getZipFile();
+    if (localZip.isPresent()) {
+      return localZip.get();
+    }
+    Version version = distrib.version().orElseThrow(() -> new IllegalStateException("Missing SonarQube version"));
     File cached = cache.get(version);
     if (cached != null) {
       return cached;

@@ -22,9 +22,11 @@ package com.sonar.orchestrator.container;
 import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import javax.annotation.Nullable;
 
@@ -40,6 +42,7 @@ public final class SonarDistribution {
   private Properties serverProperties = new Properties();
   private List<String> licensedPluginKeys = new ArrayList<>();
   private boolean removeDistributedPlugins = true;
+  private File zipFile;
 
   public SonarDistribution() {
     // A distribution without a version yet
@@ -49,7 +52,15 @@ public final class SonarDistribution {
     this.version = version;
   }
 
-  public SonarDistribution setVersion(Version s) {
+  public Optional<File> getZipFile() {
+    return Optional.ofNullable(zipFile);
+  }
+
+  public SonarDistribution setZipFile(@Nullable File zip) {
+    this.zipFile = zip;
+    return this;
+  }
+  public SonarDistribution setVersion(@Nullable Version s) {
     this.version = s;
     return this;
   }
@@ -59,8 +70,13 @@ public final class SonarDistribution {
     return this;
   }
 
-  public Version version() {
-    return version;
+  /**
+   * Version of SonarQube as defined by {@link com.sonar.orchestrator.OrchestratorBuilder}.
+   * When using local zip (see {@link com.sonar.orchestrator.OrchestratorBuilder#setZipFile(File)},
+   * then returned version is {@code null}.
+   */
+  public Optional<Version> version() {
+    return Optional.ofNullable(version);
   }
 
   public List<Location> getPluginLocations() {

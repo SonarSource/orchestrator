@@ -22,20 +22,26 @@ package com.sonar.orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.PluginLocation;
+import java.io.File;
 import java.net.URL;
 import java.util.NoSuchElementException;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderTest {
 
+  private static URL updateCenterUrl;
+
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-  private static URL updateCenterUrl;
+
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
 
   @BeforeClass
   public static void prepare() {
@@ -43,13 +49,25 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
-  public void sonarVersionIsMandatory() {
+  public void throw_IAE_if_both_zip_path_and_version_of_sonarqube_are_missing() {
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Missing SonarQube version");
+    expectedException.expectMessage("Version or path to ZIP of SonarQube is missing");
 
     new OrchestratorBuilder(Configuration.create())
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
       .build();
+  }
+
+  @Test
+  public void install_sonarqube_from_local_zip_file() throws Exception {
+    File zip = temp.newFile("sonarqube-6.3.1.4567.zip");
+
+    // version is not set
+    Orchestrator orch = new OrchestratorBuilder(Configuration.create())
+      .setZipFile(zip)
+      .build();
+
+    assertThat(orch.getDistribution().getZipFile().get()).isEqualTo(zip);
   }
 
   @Test
@@ -67,7 +85,7 @@ public class OrchestratorBuilderTest {
     Orchestrator orchestrator = new OrchestratorBuilder(config)
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
       .build();
-    assertThat(orchestrator.getDistribution().version().toString()).isEqualTo("3.0");
+    assertThat(orchestrator.getDistribution().version().get().toString()).isEqualTo("3.0");
   }
 
   @Test
@@ -76,7 +94,7 @@ public class OrchestratorBuilderTest {
       .setSonarVersion("LATEST_RELEASE")
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
       .build();
-    assertThat(orchestrator.getDistribution().version().toString()).isEqualTo("3.6.2");
+    assertThat(orchestrator.getDistribution().version().get().toString()).isEqualTo("3.6.2");
   }
 
   @Test
@@ -85,7 +103,7 @@ public class OrchestratorBuilderTest {
       .setSonarVersion("LTS")
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
       .build();
-    assertThat(orchestrator.getDistribution().version().toString()).isEqualTo("3.0");
+    assertThat(orchestrator.getDistribution().version().get().toString()).isEqualTo("3.0");
     assertThat(orchestrator.getConfiguration().getSonarVersion().toString()).isEqualTo("3.0");
   }
 
@@ -96,7 +114,7 @@ public class OrchestratorBuilderTest {
       .setSonarVersion("DEV")
       .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
       .build();
-    assertThat(orchestrator.getDistribution().version().toString()).startsWith("3.").endsWith("-SNAPSHOT");
+    assertThat(orchestrator.getDistribution().version().get().toString()).startsWith("3.").endsWith("-SNAPSHOT");
     assertThat(orchestrator.getConfiguration().getSonarVersion().toString()).startsWith("3.").endsWith("-SNAPSHOT");
   }
 
