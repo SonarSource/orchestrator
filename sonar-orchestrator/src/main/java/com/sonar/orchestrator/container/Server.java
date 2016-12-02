@@ -246,7 +246,7 @@ public class Server {
       localcontext.setAttribute("preemptive-auth", basicAuth);
       client.addRequestInterceptor(new PreemptiveAuth(), 0);
 
-      String wsUrl = url + "/api/profiles/restore";
+      String wsUrl = url + "/api/qualityprofiles/restore";
       LOG.info("POST " + wsUrl);
       HttpPost post = new HttpPost(wsUrl);
       MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
