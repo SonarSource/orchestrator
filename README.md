@@ -19,3 +19,9 @@ export MAVEN_REMOTE_REPOSITORY=http://nexus.internal.sonarsource.com/nexus/conte
 -Dmaven.home="C:/your/mavenX"
 -Dmaven.binary=mvnDebug   (binary located in [maven.home]/bin/, without .bat or .cmd extension on Windows)
 ```
+
+### License
+
+Copyright 2008-2016 SonarSource.
+
+Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
