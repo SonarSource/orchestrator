@@ -20,6 +20,7 @@
 package com.sonar.orchestrator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
@@ -49,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -128,14 +130,20 @@ public class Orchestrator extends SingleStartExternalResource {
 
     for (String pluginKey : distribution.getLicensedPluginKeys()) {
       String license = licenses.get(pluginKey);
-      if (license != null) {
-        server.getAdminWsClient().update(new PropertyUpdateQuery(
-          licenses.licensePropertyKey(pluginKey),
-          license));
+      if (!isNullOrEmpty(license)) {
+        updateSetting(licenses.licensePropertyKey(pluginKey), license);
       }
     }
 
     buildRunner = new BuildRunner(config);
+  }
+
+  private void updateSetting(String key, String value) {
+    if (getServer().version().isGreaterThanOrEquals("6.1")) {
+      server.adminWsClient().post("api/settings/set", ImmutableMap.of("key", key, "value", value));
+    } else {
+      server.getAdminWsClient().update(new PropertyUpdateQuery(key, value));
+    }
   }
 
   /**
