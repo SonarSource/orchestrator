@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
@@ -38,6 +37,9 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.UpdateCenter;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 public class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
@@ -89,11 +91,11 @@ public class Configuration {
     if (rootPath == null) {
       rootPath = System.getenv(ENV_SHARED_DIR);
     }
-    Preconditions.checkNotNull(rootPath, String.format("Property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
+    checkNotNull(rootPath, "Property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR);
 
     File rootDir = new File(rootPath);
-    Preconditions.checkState(rootDir.isDirectory() && rootDir.exists(),
-      String.format("Please check the definition of it_sources (%s or %s) because the directory does not exist: %s", PROP_SHARED_DIR, ENV_SHARED_DIR, rootDir));
+    checkState(rootDir.isDirectory() && rootDir.exists(),
+      "Please check the definition of it_sources (%s or %s) because the directory does not exist: %s", PROP_SHARED_DIR, ENV_SHARED_DIR, rootDir);
 
     return FileLocation.of(new File(rootDir, relativePath));
   }
@@ -252,7 +254,7 @@ public class Configuration {
 
     private void setPropertyIfAbsent(String key, String value) {
       if (StringUtils.isBlank(props.get(key))) {
-        LOG.warn("Using default value for orchestrator.properties: " + key + "=" + value);
+        LOG.warn("Using default value for orchestrator.properties: %s=%s", key, value);
         props.put(key, value);
       }
     }

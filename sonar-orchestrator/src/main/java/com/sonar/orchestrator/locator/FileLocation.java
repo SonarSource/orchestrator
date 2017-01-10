@@ -32,6 +32,7 @@ import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static org.apache.commons.io.filefilter.FileFilterUtils.and;
 import static org.apache.commons.io.filefilter.FileFilterUtils.notFileFilter;
@@ -141,8 +142,8 @@ public class FileLocation implements Location {
   static FileLocation ofShared(String relativePath, String rootPath) {
     Preconditions.checkNotNull(rootPath, format("System property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
     File rootDir = new File(rootPath);
-    Preconditions.checkState(rootDir.isDirectory() && rootDir.exists(),
-      format("Please check the system property '%s' or the env variable '%s'. Directory does not exist: %s", PROP_SHARED_DIR, ENV_SHARED_DIR, rootDir));
+    checkState(rootDir.isDirectory() && rootDir.exists(),
+      "Please check the system property '%s' or the env variable '%s'. Directory does not exist: %s", PROP_SHARED_DIR, ENV_SHARED_DIR, rootDir);
     return of(new File(rootDir, relativePath));
   }
 

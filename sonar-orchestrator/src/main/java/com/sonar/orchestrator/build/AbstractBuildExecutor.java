@@ -54,7 +54,7 @@ abstract class AbstractBuildExecutor<T extends Build<T>> {
       }
     }
     if (environmentVariables.containsKey(optsVariableName)) {
-      LOG.info(optsVariableName + ": " + environmentVariables.get(optsVariableName));
+      LOG.info("{}: {}", optsVariableName, environmentVariables.get(optsVariableName));
     }
   }
 

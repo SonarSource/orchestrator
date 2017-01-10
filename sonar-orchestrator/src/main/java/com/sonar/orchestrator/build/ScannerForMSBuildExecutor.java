@@ -43,7 +43,7 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
     File runnerScript = installer.install(build.scannerVersion(), build.getLocation(), config.fileSystem().workspace(), build.isUseOldRunnerScript());
     try {
       Command command = createCommand(build, adjustedProperties, runnerScript);
-      LoggerFactory.getLogger(ScannerForMSBuild.class).info("Execute: " + command);
+      LoggerFactory.getLogger(ScannerForMSBuild.class).info("Execute: {}", command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);

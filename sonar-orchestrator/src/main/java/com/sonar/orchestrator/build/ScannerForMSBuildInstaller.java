@@ -68,7 +68,7 @@ public class ScannerForMSBuildInstaller {
   private File install(Location location, File toDir, boolean useOldScript) {
     clearCachedSnapshot(null, toDir);
     if (!isInstalled(null, toDir)) {
-      LOG.info("Installing Scanner for MSBuild from " + location);
+      LOG.info("Installing Scanner for MSBuild from {}", location);
       File zipFile = locators.locate(location);
 
       if (zipFile == null || !zipFile.exists()) {
@@ -82,7 +82,7 @@ public class ScannerForMSBuildInstaller {
   private File install(Version scannerVersion, File toDir, boolean useOldScript) {
     clearCachedSnapshot(scannerVersion, toDir);
     if (!isInstalled(scannerVersion, toDir)) {
-      LOG.info("Installing Scanner for MSBuild " + scannerVersion);
+      LOG.info("Installing Scanner for MSBuild {}", scannerVersion);
       File zipFile = locateZip(scannerVersion);
 
       if (zipFile == null || !zipFile.exists()) {
@@ -116,7 +116,7 @@ public class ScannerForMSBuildInstaller {
         throw new IllegalStateException("Fail to unzip " + zip + " to " + zipFile, e);
       }
     } else {
-      LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Searching for scanner for MSBuild " + scannerVersion.toString() + " in maven repositories");
+      LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Searching for scanner for MSBuild {} in maven repositories", scannerVersion);
       zipFile = fileSystem.locate(mavenLocation(scannerVersion));
     }
     return zipFile;

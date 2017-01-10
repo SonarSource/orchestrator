@@ -100,7 +100,7 @@ public final class DefaultDatabase implements Database {
     ResultSet rs = null;
     try {
       statement = connection.createStatement();
-      LOG.debug("Execute: " + sql);
+      LOG.debug("Execute: {}", sql);
       rs = statement.executeQuery(sql);
       rs.next();
       return rs.getInt(1);
@@ -278,7 +278,7 @@ public final class DefaultDatabase implements Database {
       for (String spid : spids) {
         try (Statement stmt = connection.createStatement()) {
           String sql = databaseClient.getKillConnectionSql(spid);
-          LOG.warn("Kill JDBC orphan " + sql);
+          LOG.warn("Kill JDBC orphan {}", sql);
           stmt.execute(sql);
           // commit is useless on some databases
           connection.commit();
@@ -291,7 +291,7 @@ public final class DefaultDatabase implements Database {
       spids = selectOtherConnections(connection);
       if (!spids.isEmpty()) {
         attemptToGo--;
-        LOG.warn("Killing of orphan requires additionnal attempt " + spids.toString());
+        LOG.warn("Killing of orphan requires additional attempt {}", spids);
       } else {
         // we are finished.
         break;
@@ -307,7 +307,7 @@ public final class DefaultDatabase implements Database {
   private List<String> selectOtherConnections(Connection connection) throws SQLException {
     LOG.info("Query of opened connection");
     String sql = databaseClient.getSelectConnectionIdsSql();
-    LOG.debug("Execute: " + sql);
+    LOG.debug("Execute: {}", sql);
     if (sql == null) {
       return Collections.emptyList();
     }
@@ -356,7 +356,7 @@ public final class DefaultDatabase implements Database {
     try {
       stmt = connection.createStatement();
       for (String ddl : ddls) {
-        LOG.debug("Execute: " + ddl);
+        LOG.debug("Execute: {}", ddl);
         stmt.executeUpdate(ddl);
       }
     } catch (Exception e) {
@@ -370,8 +370,8 @@ public final class DefaultDatabase implements Database {
 
   private void registerDriver() {
     try {
-      LOG.info("Register JDBC driver: " + databaseClient.getDriverClassName());
-      LOG.debug("Connection data: " + databaseClient.toString());
+      LOG.info("Register JDBC driver: {}", databaseClient.getDriverClassName());
+      LOG.debug("Connection data: {}", databaseClient);
       DriverManager.registerDriver((Driver) Class.forName(databaseClient.getDriverClassName()).newInstance());
 
     } catch (Exception e) {
@@ -388,7 +388,7 @@ public final class DefaultDatabase implements Database {
     }
     if (driver != null) {
       try {
-        LOG.info("Deregistering jdbc driver: " + driver);
+        LOG.info("Deregistering jdbc driver: {}", driver);
         DriverManager.deregisterDriver(driver);
       } catch (SQLException e) {
         LOG.error("Fail to deregister driver " + driver, e);

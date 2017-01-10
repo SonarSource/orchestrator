@@ -55,7 +55,7 @@ public class SonarScannerInstaller {
   public File install(Version scannerVersion, File toDir, boolean useOldScript) {
     clearCachedSnapshot(scannerVersion, toDir);
     if (!isInstalled(scannerVersion, toDir)) {
-      LOG.info("Installing sonar-scanner " + scannerVersion);
+      LOG.info("Installing sonar-scanner {}", scannerVersion);
       doInstall(scannerVersion, toDir);
     }
     return locateInstalledScript(scannerVersion, toDir, useOldScript);
@@ -88,7 +88,7 @@ public class SonarScannerInstaller {
         throw new IllegalStateException("Fail to unzip " + zip + " to " + zipFile, e);
       }
     } else {
-      LoggerFactory.getLogger(SonarScannerInstaller.class).info("Searching for sonar-scanner " + scannerVersion.toString() + " in maven repositories");
+      LoggerFactory.getLogger(SonarScannerInstaller.class).info("Searching for sonar-scanner {} in maven repositories", scannerVersion);
       zipFile = fileSystem.locate(mavenLocation(scannerVersion));
     }
     return zipFile;

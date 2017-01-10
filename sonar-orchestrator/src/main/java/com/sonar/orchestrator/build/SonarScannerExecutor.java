@@ -47,7 +47,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
     try {
       appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, build.isUseOldSonarRunnerScript() ? SONAR_RUNNER_OPTS : SONAR_SCANNER_OPTS);
       Command command = createCommand(build, adjustedProperties, runnerScript);
-      LoggerFactory.getLogger(SonarRunner.class).info("Execute: " + command);
+      LoggerFactory.getLogger(SonarRunner.class).info("Execute: {}", command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);

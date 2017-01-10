@@ -20,13 +20,14 @@
 package com.sonar.orchestrator.db;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import org.apache.commons.lang.StringUtils;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public final class DatabaseFactory {
@@ -88,10 +89,10 @@ public final class DatabaseFactory {
 
   private static void feedDriverMavenKey(FileSystem fileSystem, DatabaseClient.Builder builder, String propertyValue) {
     String[] fields = StringUtils.split(propertyValue, ':');
-    Preconditions.checkArgument(fields.length == 3, "Format is groupId:artifactId:version. Please check the property sonar.jdbc.driverMavenKey: " + propertyValue);
+    checkArgument(fields.length == 3, "Format is groupId:artifactId:version. Please check the property sonar.jdbc.driverMavenKey: %s", propertyValue);
     MavenLocation location = MavenLocation.create(fields[0], fields[1], fields[2]);
     File file = fileSystem.locate(location);
-    Preconditions.checkState(file.exists(), "Driver file does not exist: " + location);
+    checkState(file.exists(), "Driver file does not exist: %s", location);
     builder.setDriverFile(file);
   }
 

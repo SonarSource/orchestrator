@@ -118,7 +118,7 @@ public class ServerInstaller {
 
   private void configure(SonarDistribution distribution, File sonarHome) {
     File propertiesFile = new File(sonarHome, "conf/sonar.properties");
-    LOG.info("Configuring " + propertiesFile);
+    LOG.info("Configuring {}", propertiesFile);
     configureProperties(distribution, propertiesFile);
   }
 

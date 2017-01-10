@@ -120,7 +120,7 @@ public class Server {
    */
   public Version version() {
     File libsDir = new File(home, "lib");
-    checkState(libsDir.exists(), "Installation incomplete, missing directory " + libsDir);
+    checkState(libsDir.exists(), "Installation incomplete, missing directory %s", libsDir);
     File appJar = FileLocation.byWildcardFilename(libsDir, "sonar-application-*.jar").getFile();
     return Version.create(substringAfter(FilenameUtils.getBaseName(appJar.getName()), "sonar-application-"));
   }
@@ -226,7 +226,7 @@ public class Server {
   }
 
   Server restoreProfiles(ContentBody backup) {
-    LOG.info("Restoring profiles: " + backup);
+    LOG.info("Restoring profiles: {}", backup);
     if (url == null) {
       throw new IllegalStateException("Can not restore profiles backup if the server is not started");
     }
@@ -247,7 +247,7 @@ public class Server {
       client.addRequestInterceptor(new PreemptiveAuth(), 0);
 
       String wsUrl = url + "/api/qualityprofiles/restore";
-      LOG.info("POST " + wsUrl);
+      LOG.info("POST {}", wsUrl);
       HttpPost post = new HttpPost(wsUrl);
       MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
       entity.addPart("backup", backup);

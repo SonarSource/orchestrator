@@ -81,7 +81,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
         command.addSystemArgument(entry.getKey(), entry.getValue());
       }
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
-      LoggerFactory.getLogger(getClass()).info("Execute: " + command);
+      LoggerFactory.getLogger(getClass()).info("Execute: {}", command);
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);
 

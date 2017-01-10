@@ -63,7 +63,7 @@ class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
       for (Map.Entry entry : adjustedProperties.entrySet()) {
         command.addSystemArgument(entry.getKey().toString(), entry.getValue().toString());
       }
-      LoggerFactory.getLogger(getClass()).info("Execute: " + command);
+      LoggerFactory.getLogger(getClass()).info("Execute: {}", command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);

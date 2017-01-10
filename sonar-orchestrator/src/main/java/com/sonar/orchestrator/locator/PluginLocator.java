@@ -82,7 +82,7 @@ public class PluginLocator implements Locator<PluginLocation> {
   }
 
   private static void logFallbackToUpdateCenter(PluginLocation location) {
-    LOG.info("Unable to find plugin " + location.key() + " in Maven repository. Fallback to use update center URL");
+    LOG.info("Unable to find plugin {} in Maven repository. Fallback to use update center URL", location.key());
   }
 
   private URLLocation findInUpdateCenter(PluginLocation location) {

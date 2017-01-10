@@ -113,7 +113,7 @@ public class CommandExecutor {
     }
   }
 
-  private void verifyGobbler(Command command, StreamGobbler gobbler) {
+  private static void verifyGobbler(Command command, StreamGobbler gobbler) {
     if (gobbler.getException() != null) {
       throw new CommandException(command, gobbler.getException());
     }
@@ -127,7 +127,7 @@ public class CommandExecutor {
    * @throws CommandException
    */
   public int execute(Command command, long timeoutMilliseconds) {
-    LOG.info("Executing command: " + command);
+    LOG.info("Executing command: {}", command);
     return execute(command, new DefaultConsumer(), timeoutMilliseconds);
   }
 

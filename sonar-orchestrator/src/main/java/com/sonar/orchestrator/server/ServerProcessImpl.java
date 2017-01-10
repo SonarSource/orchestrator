@@ -90,7 +90,7 @@ public class ServerProcessImpl implements ServerProcess {
     checkState(server.version().isGreaterThanOrEquals(MIN_SQ_SUPPORTED_VERSION),
       "Minimum supported version of SonarQube is %s. Got %s.", MIN_SQ_SUPPORTED_VERSION, server.version());
 
-    LOGGER.info("Start server " + server.version() + " from " + server.getHome().getAbsolutePath());
+    LOGGER.info("Start server {} from {}", server.version(), server.getHome().getAbsolutePath());
     CommandLine command = serverCommandLineFactory.create(server);
     executor = new DefaultExecutor();
     executor.setWatchdog(new ExecuteWatchdog(-1L));
