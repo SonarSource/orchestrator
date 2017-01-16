@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,20 +62,20 @@ public class FileLocationTest extends PropertyAndEnvTest {
   }
 
   @Test
-  public void ofShared() {
+  public void ofShared() throws URISyntaxException {
     URL url = getClass().getResource("/com/sonar/orchestrator/locator/FileLocationTest/index.txt");
-    FileLocation location = FileLocation.ofShared("abap/foo.txt", FilenameUtils.getFullPath(url.getPath()));
+    FileLocation location = FileLocation.ofShared("abap/foo.txt", FilenameUtils.getFullPath(url.toURI().getPath()));
     assertThat(location.getFile().isFile()).isTrue();
     assertThat(location.getFile().exists()).isTrue();
     assertThat(location.getFile().getName()).isEqualTo("foo.txt");
   }
 
   @Test
-  public void ofSharedWithEnv() {
+  public void ofSharedWithEnv() throws URISyntaxException {
     URL url = getClass().getResource("/com/sonar/orchestrator/locator/FileLocationTest/index.txt");
 
     Map<String, String> envVariables = new HashMap<>(System.getenv());
-    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.getPath()));
+    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
     setEnv(ImmutableMap.copyOf(envVariables));
 
     FileLocation location = FileLocation.ofShared("abap/foo.txt");
@@ -84,9 +85,9 @@ public class FileLocationTest extends PropertyAndEnvTest {
   }
 
   @Test
-  public void ofSharedWithSystemProperty() {
+  public void ofSharedWithSystemProperty() throws URISyntaxException {
     URL url = getClass().getResource("/com/sonar/orchestrator/locator/FileLocationTest/index.txt");
-    System.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.getPath()));
+    System.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
     FileLocation location = FileLocation.ofShared("abap/foo.txt");
     assertThat(location.getFile().isFile()).isTrue();
     assertThat(location.getFile().exists()).isTrue();

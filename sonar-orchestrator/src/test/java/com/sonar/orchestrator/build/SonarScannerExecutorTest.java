@@ -99,8 +99,13 @@ public class SonarScannerExecutorTest {
       @Override
       public boolean matches(Object o) {
         Command c = (Command) o;
+        // Windows directory with space use case
+        String quote = "";
+        if (c.getDirectory().getAbsolutePath().contains(" ")) {
+          quote = "\"";
+        }
         return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("sonar-runner.sh my-task")
+          && c.toCommandLine().contains("sonar-runner.sh" + quote + " my-task")
           && c.toCommandLine().contains("-e")
           && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
           && c.toCommandLine().contains("-Dsonar.projectKey");
