@@ -22,10 +22,12 @@ package com.sonar.orchestrator.locator;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -101,9 +103,21 @@ class URLLocator implements Locator<URLLocation> {
   private static Response sendHttpRequest(URLLocation location) throws IOException {
     LOG.info("Downloading: " + location.getURL());
 
-    OkHttpClient httpClient = new OkHttpClient.Builder()
-      .readTimeout(60, TimeUnit.SECONDS)
-      .build();
+    OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder().readTimeout(60, TimeUnit.SECONDS);
+
+    // OkHttp detect 'http.proxyHost' java property, but credentials should be filled
+    final String proxyUser = System.getProperty("http.proxyUser");
+    if (StringUtils.isNotBlank(System.getProperty("http.proxyHost")) && StringUtils.isNotBlank(proxyUser)) {
+      httpClientBuilder.proxyAuthenticator((route, response) -> {
+        if (HttpURLConnection.HTTP_PROXY_AUTH == response.code()) {
+          String credential = Credentials.basic(proxyUser, System.getProperty("http.proxyPassword"));
+          return response.request().newBuilder().header("Proxy-Authorization", credential).build();
+        }
+        return null;
+      });
+    }
+
+    OkHttpClient httpClient = httpClientBuilder.build();
     Request httpRequest = new Request.Builder()
       .url(location.getURL())
       .header("User-Agent", USER_AGENT)

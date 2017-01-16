@@ -19,19 +19,40 @@
  */
 package com.sonar.orchestrator.locator;
 
+import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import okhttp3.Credentials;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.assertj.core.api.Fail;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mortbay.jetty.Handler;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.DefaultHandler;
+import org.mortbay.jetty.handler.HandlerCollection;
+import org.mortbay.jetty.servlet.ServletHandler;
+import org.mortbay.servlet.ProxyServlet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,6 +61,19 @@ public class URLLocatorTest {
   URLLocator urlLocator = new URLLocator();
   URLLocation location;
   URLLocation locationWithFilename;
+
+  private static final String PROXY_PROP_HOST = "http.proxyHost";
+  private static final String PROXY_PROP_PORT = "http.proxyPort";
+  private static final String PROXY_PROP_USER = "http.proxyUser";
+  private static final String PROXY_PROP_PASSWORD = "http.proxyPassword";
+  private static final String PROXY_PROP_NON_PROXY_HOST = "http.nonProxyHosts";
+
+  private static final String PROXY_AUTH_TEST_USER = "scott";
+  private static final String PROXY_AUTH_TEST_PASSWORD = "tiger";
+
+  private static Map<String, String> proxyPropertiesBackup;
+  private static Server server;
+  private static int httpProxyPort;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -172,5 +206,145 @@ public class URLLocatorTest {
     urlLocator.copyToDirectory(URLLocation.create(webServer.url("/foo.txt").url()), toDir);
     File toFile = new File(toDir, "foo.txt");
     assertThat(toFile).exists().isFile().hasContent("hello world");
+  }
+
+  @Test
+  public void copyToFile_with_proxy_not_started() throws IOException {
+    saveProxyProperties();
+    File toFile = temp.newFile();
+    webServer.enqueue(new MockResponse().setBody("hello world"));
+    System.setProperty(PROXY_PROP_NON_PROXY_HOST, "");
+    System.setProperty(PROXY_PROP_HOST, "localhost");
+    System.setProperty(PROXY_PROP_PORT, String.valueOf(NetworkUtils.getNextAvailablePort()));
+    try {
+      urlLocator.copyToFile(URLLocation.create(webServer.url("/").url()), toFile);
+      Fail.fail("Proxy is not started, connection can't be establised");
+    } catch (IllegalStateException e) {
+      assertThat(e.getCause()).isNotNull();
+      assertThat(e.getCause().getClass()).isEqualTo(ConnectException.class);
+      assertThat(e.getCause().getMessage()).contains("connect");
+    } finally {
+      System.clearProperty(PROXY_PROP_NON_PROXY_HOST);
+      System.clearProperty(PROXY_PROP_HOST);
+      System.clearProperty(PROXY_PROP_PORT);
+      restoreProxyProperties();
+    }
+  }
+
+  @Test
+  public void copyToFile_adds_authentication_header_if_system_properties_proxy_host_and_user_are_set() throws Exception {
+    saveProxyProperties();
+    startProxy();
+    File toFile = temp.newFile();
+    webServer.enqueue(new MockResponse().setBody("hello world"));
+    System.setProperty(PROXY_PROP_NON_PROXY_HOST, "");
+    System.setProperty(PROXY_PROP_HOST, "localhost");
+    System.setProperty(PROXY_PROP_PORT, String.valueOf(httpProxyPort));
+    System.setProperty(PROXY_PROP_USER, PROXY_AUTH_TEST_USER);
+    System.setProperty(PROXY_PROP_PASSWORD, PROXY_AUTH_TEST_PASSWORD);
+    try {
+      urlLocator.copyToFile(URLLocation.create(webServer.url("/").url()), toFile);
+      assertThat(toFile).exists().isFile().hasContent("hello world");
+    } finally {
+      System.clearProperty(PROXY_PROP_NON_PROXY_HOST);
+      System.clearProperty(PROXY_PROP_HOST);
+      System.clearProperty(PROXY_PROP_PORT);
+      System.clearProperty(PROXY_PROP_USER);
+      System.clearProperty(PROXY_PROP_PASSWORD);
+      restoreProxyProperties();
+    }
+  }
+
+  @Test
+  public void copyToFile_adds_authentication_header_if_system_properties_proxy_host_and_user_are_set_bad_auth() throws Exception {
+    saveProxyProperties();
+    startProxy();
+    File toFile = temp.newFile();
+    webServer.enqueue(new MockResponse().setBody("hello world"));
+    System.setProperty(PROXY_PROP_NON_PROXY_HOST, "");
+    System.setProperty(PROXY_PROP_HOST, "localhost");
+    System.setProperty(PROXY_PROP_PORT, String.valueOf(httpProxyPort));
+    System.setProperty(PROXY_PROP_USER, PROXY_AUTH_TEST_USER);
+    System.setProperty(PROXY_PROP_PASSWORD, PROXY_AUTH_TEST_PASSWORD + "bad");
+    try {
+      urlLocator.copyToFile(URLLocation.create(webServer.url("/").url()), toFile);
+      Fail.fail("Proxy auth is bad");
+    } catch (IllegalStateException e) {
+      assertThat(e.getMessage()).contains(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED));
+    } finally {
+      System.clearProperty(PROXY_PROP_NON_PROXY_HOST);
+      System.clearProperty(PROXY_PROP_HOST);
+      System.clearProperty(PROXY_PROP_PORT);
+      System.clearProperty(PROXY_PROP_USER);
+      System.clearProperty(PROXY_PROP_PASSWORD);
+      restoreProxyProperties();
+    }
+  }
+
+  /**
+   * Save Proxy Properties (required if unit test executed behind a real proxy)
+   */
+  private void saveProxyProperties() {
+    proxyPropertiesBackup = new HashMap<>();
+    for (Entry<Object, Object> e : System.getProperties().entrySet()) {
+      String key = e.getKey().toString();
+      if (key.contains("proxy")) {
+        continue;
+      }
+      proxyPropertiesBackup.put(key, (String) e.getValue());
+    }
+  }
+
+  private void restoreProxyProperties() {
+    if (proxyPropertiesBackup == null || proxyPropertiesBackup.isEmpty()) {
+      return;
+    }
+    for (Entry<String, String> e : proxyPropertiesBackup.entrySet()) {
+      System.setProperty(e.getKey(), e.getValue());
+    }
+  }
+
+  private static void startProxy() throws Exception {
+    httpProxyPort = NetworkUtils.getNextAvailablePort();
+    server = new Server(httpProxyPort);
+
+    ServletHandler handlerProxy = new ServletHandler();
+    handlerProxy.addServletWithMapping(AuthProxyServlet.class, "/*");
+    HandlerCollection handlers = new HandlerCollection();
+    handlers.setHandlers(new Handler[] {handlerProxy, new DefaultHandler()});
+    server.addHandler(handlers);
+    server.start();
+  }
+
+  public static class AuthProxyServlet extends ProxyServlet {
+
+    @Override
+    public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
+      HttpServletRequest request = (HttpServletRequest) req;
+      HttpServletResponse response = (HttpServletResponse) res;
+      String proxyAuth = request.getHeader("proxy-authorization");
+      if (StringUtils.isBlank(proxyAuth)) {
+        response.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
+      } else if (!Credentials.basic(PROXY_AUTH_TEST_USER, PROXY_AUTH_TEST_PASSWORD).equals(proxyAuth)) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      } else {
+        // Proxy properties should be deleted, otherwise the proxified connection is proxified too => infinite loop
+        System.clearProperty(PROXY_PROP_NON_PROXY_HOST);
+        System.clearProperty(PROXY_PROP_HOST);
+        System.clearProperty(PROXY_PROP_PORT);
+        System.clearProperty(PROXY_PROP_USER);
+        System.clearProperty(PROXY_PROP_PORT);
+
+        super.service(req, res);
+      }
+    }
+
+  }
+
+  @After
+  public void stopProxy() throws Exception {
+    if (server != null && server.isStarted()) {
+      server.stop();
+    }
   }
 }
