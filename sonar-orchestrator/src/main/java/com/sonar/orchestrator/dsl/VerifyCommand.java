@@ -22,12 +22,20 @@ package com.sonar.orchestrator.dsl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.Orchestrator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.sonar.wsclient.Sonar;
-import org.sonar.wsclient.services.Measure;
-import org.sonar.wsclient.services.Resource;
-import org.sonar.wsclient.services.ResourceQuery;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import org.sonarqube.ws.WsMeasures;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.HttpException;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.measure.ComponentWsRequest;
+
+import static org.sonarqube.ws.WsMeasures.Measure;
 
 public class VerifyCommand extends Command {
 
@@ -56,45 +64,51 @@ public class VerifyCommand extends Command {
     Orchestrator orchestrator = context.getOrchestrator();
     Preconditions.checkState(orchestrator != null, "The command 'start server' has not been executed");
 
-    Sonar client = orchestrator.getServer().getWsClient();
+    WsClient client = newWsClient(orchestrator);
     verifyMeasures(client);
   }
 
   @VisibleForTesting
-  void verifyMeasures(Sonar client) {
-    ResourceQuery query = ResourceQuery.create(resourceKey);
-    query.setMetrics((String[]) expectedMeasures.keySet().toArray(new String[expectedMeasures.size()]));
-    Resource resource = client.find(query);
-
-    if (resource == null) {
-      throw new AssertionError("Resource does not exist: " + resourceKey);
-    }
+  void verifyMeasures(WsClient client) {
+    Map<String, WsMeasures.Measure> measures = execute(client, new ComponentWsRequest().setComponentKey(resourceKey).setMetricKeys(new ArrayList<>(expectedMeasures.keySet())))
+      .getComponent().getMeasuresList()
+      .stream()
+      .collect(Collectors.toMap(Measure::getMetric, Function.identity()));
 
     for (Map.Entry<String, String> assertion : expectedMeasures.entrySet()) {
-      verifyMeasure(resource, assertion.getKey(), assertion.getValue());
+      verifyMeasure(measures.get(assertion.getKey()), assertion.getKey(), assertion.getValue());
     }
   }
 
-  private void verifyMeasure(Resource resource, String metricKey, String expectedValue) {
-    Measure measure = resource.getMeasure(metricKey);
+  private WsMeasures.ComponentWsResponse execute(WsClient client, ComponentWsRequest request) {
+    try {
+      return client.measures().component(request);
+    } catch (HttpException e) {
+      if (e.code() == 404) {
+        throw new AssertionError("Resource does not exist: " + resourceKey);
+      } else {
+        throw new AssertionError("Error when getting measures of : " + resourceKey, e);
+      }
+    }
+  }
+
+  private void verifyMeasure(@Nullable Measure measure, String metricKey, String expectedValue) {
     if (measure == null) {
       throw new AssertionError(String.format(
-        "Measure mismatch for '%s' on metric '%s'. Expected '%s' but was null.", resourceKey, metricKey, expectedValue
-      ));
+        "Measure mismatch for '%s' on metric '%s'. Expected '%s' but was null.", resourceKey, metricKey, expectedValue));
     }
     Object expected = expectedValue;
-    Object got = measure.getData();
-    try {
-      expected = Double.valueOf(expectedValue);
-      got = measure.getValue();
-    } catch (NumberFormatException e) {
-      // expected is not a numeric value, check below will fail
-    }
+    Object got = measure.getValue();
     if (!expected.equals(got)) {
       throw new AssertionError(String.format(
-          "Measure mismatch for '%s' on metric '%s'. Expected '%s' but was '%s'.", resourceKey, metricKey, expected, got
-      ));
+        "Measure mismatch for '%s' on metric '%s'. Expected '%s' but was '%s'.", resourceKey, metricKey, expected, got));
     }
+  }
+
+  private static WsClient newWsClient(Orchestrator orchestrator) {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(orchestrator.getServer().getUrl())
+      .build());
   }
 
 }
