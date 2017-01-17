@@ -10,4 +10,7 @@ function configureTravis {
 configureTravis
 . installJDK8
 
-regular_mvn_build_deploy_analyze
+ . set_maven_build_version $TRAVIS_BUILD_NUMBER
+    mvn deploy \
+      -Pdeploy-sonarsource \
+      -B -e -V $*
