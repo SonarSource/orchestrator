@@ -73,6 +73,11 @@
       <version>${sonarWsClient.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.sonarsource.sonarqube</groupId>
+      <artifactId>sonar-ws</artifactId>
+      <version>${sonarWs.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.codehaus.sonar</groupId>
       <artifactId>sonar-update-center-common</artifactId>
       <version>1.12.1</version>

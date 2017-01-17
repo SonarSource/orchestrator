@@ -17,6 +17,7 @@
 
   <properties>
     <sonarWsClient.version>4.5</sonarWsClient.version>
+    <sonarWs.version>5.6</sonarWs.version>
     <httpclient.version>4.3.2</httpclient.version>
     <commonsIO.version>2.4</commonsIO.version>
     <commonsLang.version>2.6</commonsLang.version>
