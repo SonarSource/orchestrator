@@ -254,7 +254,7 @@ public class Configuration {
 
     private void setPropertyIfAbsent(String key, String value) {
       if (StringUtils.isBlank(props.get(key))) {
-        LOG.warn("Using default value for orchestrator.properties: %s=%s", key, value);
+        LOG.warn("Using default value for orchestrator.properties: {}={}", key, value);
         props.put(key, value);
       }
     }
