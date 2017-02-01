@@ -51,6 +51,8 @@ import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
+import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -247,7 +249,12 @@ public class Orchestrator extends SingleStartExternalResource {
   public void resetData() {
     LOG.info("Reset data");
     // temporary increase timeout - experimental test for SonarSource environment
-    SonarClient client = SonarClient.builder().url(server.getUrl()).connectTimeoutMilliseconds(300_000).readTimeoutMilliseconds(600_000).build();
+    SonarClient client = SonarClient.builder()
+      .url(server.getUrl())
+      .login(ADMIN_LOGIN)
+      .password(ADMIN_PASSWORD)
+      .connectTimeoutMilliseconds(300_000)
+      .readTimeoutMilliseconds(600_000).build();
     client.post("/api/orchestrator/reset");
   }
 
