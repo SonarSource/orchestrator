@@ -42,12 +42,12 @@ import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.ServerZipFinder;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.util.NetworkUtils;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -246,7 +246,9 @@ public class Orchestrator extends SingleStartExternalResource {
    */
   public void resetData() {
     LOG.info("Reset data");
-    getServer().post("/api/orchestrator/reset", Collections.emptyMap());
+    // temporary increase timeout - experimental test for SonarSource environment
+    SonarClient client = SonarClient.builder().url(server.getUrl()).connectTimeoutMilliseconds(300_000).readTimeoutMilliseconds(600_000).build();
+    client.post("/api/orchestrator/reset");
   }
 
   /**
