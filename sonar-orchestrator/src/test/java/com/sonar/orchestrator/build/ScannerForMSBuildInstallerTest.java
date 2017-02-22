@@ -26,7 +26,6 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URL;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -79,7 +78,7 @@ public class ScannerForMSBuildInstallerTest {
   @Test
   public void install_zip() throws Exception {
     File toDir = temp.newFolder();
-    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/MSBuild.SonarQube.Runner-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
+    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
     File script = installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
 
     assertThat(script).isFile().exists();
@@ -104,7 +103,7 @@ public class ScannerForMSBuildInstallerTest {
   @Test
   public void do_install_twice_with_location() throws Exception {
     File toDir = temp.newFolder();
-    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/MSBuild.SonarQube.Runner-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
+    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
 
     File script = installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
     File txt = new File(script.getParentFile(), "text.txt");
@@ -136,7 +135,7 @@ public class ScannerForMSBuildInstallerTest {
   @Test
   public void corrupted_zip() throws Exception {
     thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Fail to unzip scanner for MSBuild");
+    thrown.expectMessage("Fail to unzip Scanner for MSBuild");
     installer.install(Version.create("corrupted"), null, temp.newFolder(), true);
   }
 }

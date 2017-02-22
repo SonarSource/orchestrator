@@ -28,20 +28,18 @@ import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URL;
-
 import javax.annotation.Nullable;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Installs a given version of Scanner for MSBuild. It finds the zip into maven repositories
+ * Installs a given version of Scanner for MSBuild. It finds the zip into local maven repository
  *
  * @since 3.13
  */
 public class ScannerForMSBuildInstaller {
-  public static final String DEFAULT_SCANNER_VERSION = "2.1";
+  public static final String DEFAULT_SCANNER_VERSION = "2.2.0.24";
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuildInstaller.class);
 
   private final FileSystem fileSystem;
@@ -100,23 +98,23 @@ public class ScannerForMSBuildInstaller {
       scannerDir.mkdirs();
       ZipUtils.unzip(zipFile, scannerDir);
     } catch (Exception e) {
-      throw new IllegalStateException("Fail to unzip scanner for MSBuild  from" + zipFile + "  to " + toDir, e);
+      throw new IllegalStateException("Fail to unzip Scanner for MSBuild from " + zipFile + " to " + toDir, e);
     }
   }
 
   private File locateZip(Version scannerVersion) {
     File zipFile = null;
-    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/MSBuild.SonarQube.Runner-" + scannerVersion.toString() + ".zip");
+    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + scannerVersion.toString() + ".zip");
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
-        zipFile = File.createTempFile("MSBuild.SonarQube.Runner-" + scannerVersion, "zip");
+        zipFile = File.createTempFile("sonar-scanner-msbuild-" + scannerVersion, "zip");
         FileUtils.copyURLToFile(zip, zipFile);
       } catch (Exception e) {
         throw new IllegalStateException("Fail to unzip " + zip + " to " + zipFile, e);
       }
     } else {
-      LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Searching for scanner for MSBuild {} in maven repositories", scannerVersion);
+      LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Searching for Scanner for MSBuild {} in maven repository", scannerVersion);
       zipFile = fileSystem.locate(mavenLocation(scannerVersion));
     }
     return zipFile;
@@ -136,7 +134,7 @@ public class ScannerForMSBuildInstaller {
   private static void clearCachedSnapshot(@Nullable Version scannerVersion, File toDir) {
     File scannerDir = new File(toDir, directoryName(scannerVersion));
     if ((scannerVersion == null || scannerVersion.isSnapshot()) && scannerDir.exists()) {
-      LOG.info("Delete scanner for MSBuild cache: {}", scannerDir);
+      LOG.info("Delete Scanner for MSBuild cache: {}", scannerDir);
       FileUtils.deleteQuietly(scannerDir);
     }
   }
