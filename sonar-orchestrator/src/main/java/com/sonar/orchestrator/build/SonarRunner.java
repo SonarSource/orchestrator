@@ -39,7 +39,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 @Deprecated
 public class SonarRunner extends Build<SonarRunner> {
 
-  public static final String DEFAULT_SCANNER_VERSION = "2.4";
+  public static final String DEFAULT_SCANNER_VERSION = "2.8";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
   public static final String DEFAULT_SOURCE_ENCODING = "UTF-8";
 
