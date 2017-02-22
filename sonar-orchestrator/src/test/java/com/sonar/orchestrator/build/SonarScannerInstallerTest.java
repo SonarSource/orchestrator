@@ -74,7 +74,7 @@ public class SonarScannerInstallerTest {
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-runner");
     assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-runner-" + SonarRunner.DEFAULT_SCANNER_VERSION);
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + SonarRunner.DEFAULT_SCANNER_VERSION);
 
     verify(fileSystem, never()).locate(any(MavenLocation.class));
   }
