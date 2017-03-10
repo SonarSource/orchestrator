@@ -88,7 +88,7 @@ public class SonarScannerInstaller {
 
   private File locateZip(Version scannerVersion, @Nullable String classifier) {
     File zipFile = null;
-    String cl = classifier == null ? "" : "-" + classifier;
+    String cl = (classifier == null) ? "" : "-" + classifier;
     URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-" + scannerVersion.toString() + cl + ".zip");
     if (zip != null) {
       try {
