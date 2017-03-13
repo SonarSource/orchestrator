@@ -215,7 +215,7 @@ public class SonarScanner extends SonarRunner {
     if (SystemUtils.IS_OS_MAC_OSX) {
       return "macosx";
     }
-    return null;
+    throw new IllegalStateException("Unsupported OS: only Linux, Windows and Mac OS X are supported");
   }
 
   @Override
