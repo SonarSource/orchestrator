@@ -23,6 +23,7 @@ import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.nio.file.Path;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,6 +81,27 @@ public class SonarScannerInstallerTest {
   }
 
   @Test
+  public void install_self_contained() throws Exception {
+    File toDir = temp.newFolder();
+
+    String classifier = "linux";
+    String versionString = "2.9";
+    Version version = Version.create(versionString);
+
+    File script = installer.install(version, toDir, false, classifier);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("sonar-scanner");
+    assertThat(script.getParentFile().getName()).isEqualTo("bin");
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + versionString);
+
+    Path javaPath = script.toPath().getParent().resolve("../lib/jre/bin/java");
+    assertThat(javaPath).isRegularFile();
+
+    verify(fileSystem, never()).locate(any(MavenLocation.class));
+  }
+
+  @Test
   public void find_version_available_in_maven_repositories() throws Exception {
     File toDir = temp.newFolder();
     when(fileSystem.locate(SonarScannerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
@@ -115,7 +137,7 @@ public class SonarScannerInstallerTest {
     installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
     installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
 
-    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir);
+    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, null);
   }
 
   @Test
@@ -127,7 +149,7 @@ public class SonarScannerInstallerTest {
     installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
     installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
 
-    verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), toDir);
+    verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), toDir, null);
   }
 
   @Test

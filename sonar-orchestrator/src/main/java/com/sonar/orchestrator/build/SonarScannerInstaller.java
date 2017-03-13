@@ -26,6 +26,7 @@ import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URL;
+import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
@@ -53,17 +54,26 @@ public class SonarScannerInstaller {
    * Installs an ephemeral sonar-runner and returns the path to the script to execute
    */
   public File install(Version scannerVersion, File toDir, boolean useOldScript) {
+    return install(scannerVersion, toDir, useOldScript, null);
+  }
+
+  public File install(Version scannerVersion, File toDir, boolean useOldScript, @Nullable String classifier) {
     clearCachedSnapshot(scannerVersion, toDir);
     if (!isInstalled(scannerVersion, toDir)) {
       LOG.info("Installing sonar-scanner {}", scannerVersion);
-      doInstall(scannerVersion, toDir);
+      doInstall(scannerVersion, toDir, classifier);
     }
     return locateInstalledScript(scannerVersion, toDir, useOldScript);
   }
 
   @VisibleForTesting
   void doInstall(Version scannerVersion, File toDir) {
-    File zipFile = locateZip(scannerVersion);
+    doInstall(scannerVersion, toDir, null);
+  }
+
+  @VisibleForTesting
+  void doInstall(Version scannerVersion, File toDir, @Nullable String classifier) {
+    File zipFile = locateZip(scannerVersion, classifier);
 
     if (zipFile == null || !zipFile.exists()) {
       throw new IllegalArgumentException("Unsupported sonar-scanner version: " + scannerVersion);
@@ -76,9 +86,10 @@ public class SonarScannerInstaller {
     }
   }
 
-  private File locateZip(Version scannerVersion) {
+  private File locateZip(Version scannerVersion, @Nullable String classifier) {
     File zipFile = null;
-    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-" + scannerVersion.toString() + ".zip");
+    String cl = classifier == null ? "" : ("-" + classifier);
+    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-" + scannerVersion.toString() + cl + ".zip");
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
@@ -89,12 +100,16 @@ public class SonarScannerInstaller {
       }
     } else {
       LoggerFactory.getLogger(SonarScannerInstaller.class).info("Searching for sonar-scanner {} in local maven repository", scannerVersion);
-      zipFile = fileSystem.locate(mavenLocation(scannerVersion));
+      zipFile = fileSystem.locate(mavenLocation(scannerVersion, classifier));
     }
     return zipFile;
   }
 
   static MavenLocation mavenLocation(Version scannerVersion) {
+    return mavenLocation(scannerVersion, null);
+  }
+
+  static MavenLocation mavenLocation(Version scannerVersion, @Nullable String classifier) {
     String groupId;
     String artifactId;
     if (scannerVersion.isGreaterThanOrEquals("2.5")) {
@@ -107,12 +122,15 @@ public class SonarScannerInstaller {
       groupId = "org.codehaus.sonar-plugins";
       artifactId = "sonar-runner";
     }
-    return MavenLocation.builder()
+    MavenLocation.Builder builder = MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
       .setVersion(scannerVersion)
-      .withPackaging("zip")
-      .build();
+      .withPackaging("zip");
+    if (classifier != null) {
+      builder.setClassifier(classifier);
+    }
+    return builder.build();
   }
 
   private static void clearCachedSnapshot(Version runnerVersion, File toDir) {

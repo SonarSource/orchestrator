@@ -107,6 +107,15 @@ public class SonarScannerTest {
   }
 
   @Test
+  public void test_classifier() {
+    SonarScanner build = SonarScanner.create(new File("."));
+    assertThat(build.classifier()).isNull();
+
+    build.useNative();
+    assertThat(build.classifier()).isNotEmpty();
+  }
+
+  @Test
   public void fails_if_project_dir_not_set() {
     thrown.expect(NullPointerException.class);
     thrown.expectMessage("Project directory must be set");
