@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import org.apache.commons.lang.SystemUtils;
 
 /**
  * Executes the sonar-runner script. In-process mode is not supported yet.
@@ -35,6 +36,7 @@ import javax.annotation.Nullable;
 public class SonarScanner extends SonarRunner {
 
   private boolean useOldSonarRunnerScript = false;
+  private String classifier = null;
 
   SonarScanner() {
   }
@@ -193,6 +195,36 @@ public class SonarScanner extends SonarRunner {
   @Override
   public boolean isUseOldSonarRunnerScript() {
     return !scannerVersion().isGreaterThanOrEquals("2.6") || useOldSonarRunnerScript;
+  }
+
+  /**
+   * @since 3.15 used by SQ Scanner CLI ITs
+   */
+  public SonarScanner useNative(boolean useNative) {
+    this.classifier = determineClassifier();
+    if (useNative) {
+      // should use embedded JAVA_HOME
+      setEnvironmentVariable("JAVA_HOME", "nonexistent");
+    }
+    return this;
+  }
+
+  private String determineClassifier() {
+    if (SystemUtils.IS_OS_LINUX) {
+      return "linux";
+    }
+    if (SystemUtils.IS_OS_WINDOWS) {
+      return "windows";
+    }
+    if (SystemUtils.IS_OS_MAC_OSX) {
+      return "macosx";
+    }
+    return null;
+  }
+
+  @Override
+  public String classifier() {
+    return classifier;
   }
 
   public static SonarScanner create() {

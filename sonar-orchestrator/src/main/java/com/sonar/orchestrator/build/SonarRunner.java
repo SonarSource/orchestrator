@@ -25,6 +25,7 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -65,6 +66,11 @@ public class SonarRunner extends Build<SonarRunner> {
 
   public boolean isUseOldSonarRunnerScript() {
     return !runnerVersion().isGreaterThanOrEquals("2.6");
+  }
+
+  @CheckForNull
+  public String classifier() {
+    return null;
   }
 
   public File getProjectDir() {

@@ -107,6 +107,14 @@ public class SonarScannerTest {
   }
 
   @Test
+  public void test_create_native() {
+    SonarScanner build = SonarScanner.create(new File(".")).useNative(true);
+    String javaHome = build.getEffectiveEnvironmentVariables().get("JAVA_HOME");
+    assertThat(javaHome).isNotEmpty();
+    assertThat(new File(javaHome)).doesNotExist();
+  }
+
+  @Test
   public void fails_if_project_dir_not_set() {
     thrown.expect(NullPointerException.class);
     thrown.expectMessage("Project directory must be set");

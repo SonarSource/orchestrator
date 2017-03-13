@@ -43,7 +43,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
-    File runnerScript = installer.install(build.runnerVersion(), config.fileSystem().workspace(), build.isUseOldSonarRunnerScript());
+    File runnerScript = installer.install(build.runnerVersion(), config.fileSystem().workspace(), build.isUseOldSonarRunnerScript(), build.classifier());
     try {
       appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, build.isUseOldSonarRunnerScript() ? SONAR_RUNNER_OPTS : SONAR_SCANNER_OPTS);
       Command command = createCommand(build, adjustedProperties, runnerScript);
