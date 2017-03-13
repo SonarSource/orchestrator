@@ -200,16 +200,12 @@ public class SonarScanner extends SonarRunner {
   /**
    * @since 3.15 used by SQ Scanner CLI ITs
    */
-  public SonarScanner useNative(boolean useNative) {
+  public SonarScanner useNative() {
     this.classifier = determineClassifier();
-    if (useNative) {
-      // should use embedded JAVA_HOME
-      setEnvironmentVariable("JAVA_HOME", "nonexistent");
-    }
     return this;
   }
 
-  private String determineClassifier() {
+  private static String determineClassifier() {
     if (SystemUtils.IS_OS_LINUX) {
       return "linux";
     }

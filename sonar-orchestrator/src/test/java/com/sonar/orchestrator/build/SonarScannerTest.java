@@ -107,11 +107,12 @@ public class SonarScannerTest {
   }
 
   @Test
-  public void test_create_native() {
-    SonarScanner build = SonarScanner.create(new File(".")).useNative(true);
-    String javaHome = build.getEffectiveEnvironmentVariables().get("JAVA_HOME");
-    assertThat(javaHome).isNotEmpty();
-    assertThat(new File(javaHome)).doesNotExist();
+  public void test_classifier() {
+    SonarScanner build = SonarScanner.create(new File("."));
+    assertThat(build.classifier()).isNull();
+
+    build.useNative();
+    assertThat(build.classifier()).isNotEmpty();
   }
 
   @Test

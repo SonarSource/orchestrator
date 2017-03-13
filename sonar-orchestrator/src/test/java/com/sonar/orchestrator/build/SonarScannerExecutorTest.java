@@ -189,7 +189,7 @@ public class SonarScannerExecutorTest {
 
   @Test
   public void execute_native() {
-    SonarScanner build = SonarScanner.create().useNative(true);
+    SonarScanner build = SonarScanner.create().useNative();
     String classifier = build.classifier();
     assertThat(classifier).isNotEmpty();
 
