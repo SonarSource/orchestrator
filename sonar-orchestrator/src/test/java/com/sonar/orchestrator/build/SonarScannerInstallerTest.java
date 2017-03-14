@@ -88,12 +88,12 @@ public class SonarScannerInstallerTest {
     String versionString = "2.9";
     Version version = Version.create(versionString);
 
-    File script = installer.install(version, toDir, false, classifier);
+    File script = installer.install(version, classifier, toDir, false);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-scanner");
     assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + versionString);
+    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + versionString + "-linux");
 
     Path javaPath = script.toPath().getParent().resolve("../lib/jre/bin/java");
     assertThat(javaPath).isRegularFile();
@@ -137,7 +137,7 @@ public class SonarScannerInstallerTest {
     installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
     installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
 
-    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, null);
+    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), null, toDir);
   }
 
   @Test
@@ -149,7 +149,7 @@ public class SonarScannerInstallerTest {
     installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
     installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
 
-    verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), toDir, null);
+    verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), null, toDir);
   }
 
   @Test
