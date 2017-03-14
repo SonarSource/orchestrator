@@ -141,7 +141,7 @@ public class SonarScannerInstaller {
     }
   }
 
-  private static boolean isInstalled(Version runnerVersion, String classifier, File toDir) {
+  private static boolean isInstalled(Version runnerVersion, @Nullable String classifier, File toDir) {
     File runnerDir = new File(toDir, directoryName(runnerVersion, classifier));
     if (runnerDir.isDirectory() && runnerDir.exists()) {
       LOG.debug("SonarQube Scanner {} already exists at {}", runnerVersion, runnerDir);
@@ -150,7 +150,7 @@ public class SonarScannerInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(Version runnerVersion, String classifier, File toDir, boolean useOldScript) {
+  private static File locateInstalledScript(Version runnerVersion, @Nullable String classifier, File toDir, boolean useOldScript) {
     String filename = basename(runnerVersion, useOldScript);
     File script = new File(toDir, directoryName(runnerVersion, classifier) + "/bin/" + filename);
     if (!script.exists()) {
