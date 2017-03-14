@@ -9,8 +9,8 @@
   </parent>
 
   <artifactId>sonar-orchestrator-osgi</artifactId>
-  <name>Orchestrator :: OSGI Bundle</name>
   <packaging>bundle</packaging>
+  <name>Orchestrator :: OSGI Bundle</name>
 
   <dependencies>
     <dependency>

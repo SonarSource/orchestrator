@@ -15,6 +15,30 @@
   <name>Orchestrator :: Parent</name>
   <inceptionYear>2011</inceptionYear>
 
+  <organization>
+    <name>SonarSource</name>
+    <url>http://www.sonarsource.com</url>
+  </organization>
+
+  <modules>
+    <module>echo</module>
+    <module>sonar-orchestrator</module>
+    <module>sonar-orchestrator-osgi</module>
+    <module>orchestrator-maven-plugin</module>
+  </modules>
+
+  <scm>
+    <connection>scm:git:git@github.com:SonarSource/orchestrator.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/orchestrator.git</developerConnection>
+    <url>https://github.com/SonarSource/orchestrator</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://jira.sonarsource.com/browse/ORCH</url>
+  </issueManagement>
+
   <properties>
     <sonarWsClient.version>4.5</sonarWsClient.version>
     <httpclient.version>4.3.2</httpclient.version>
@@ -34,30 +58,6 @@
     <!-- required for deployment (no wagon hack in settings.xml). Parent 26 still declares 3.0.5. -->
     <maven.min.version>3.2</maven.min.version>
   </properties>
-
-  <modules>
-    <module>echo</module>
-    <module>sonar-orchestrator</module>
-    <module>sonar-orchestrator-osgi</module>
-    <module>orchestrator-maven-plugin</module>
-  </modules>
-
-  <organization>
-    <name>SonarSource</name>
-    <url>http://www.sonarsource.com</url>
-  </organization>
-
-  <scm>
-    <connection>scm:git:git@github.com:SonarSource/orchestrator.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarSource/orchestrator.git</developerConnection>
-    <url>https://github.com/SonarSource/orchestrator</url>
-    <tag>HEAD</tag>
-  </scm>
-
-  <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.sonarsource.com/browse/ORCH</url>
-  </issueManagement>
 
   <build>
     <pluginManagement>
