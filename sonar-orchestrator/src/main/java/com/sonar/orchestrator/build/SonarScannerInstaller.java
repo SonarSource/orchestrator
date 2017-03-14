@@ -54,25 +54,25 @@ public class SonarScannerInstaller {
    * Installs an ephemeral sonar-runner and returns the path to the script to execute
    */
   public File install(Version scannerVersion, File toDir, boolean useOldScript) {
-    return install(scannerVersion, toDir, useOldScript, null);
+    return install(scannerVersion, null, toDir, useOldScript);
   }
 
-  public File install(Version scannerVersion, File toDir, boolean useOldScript, @Nullable String classifier) {
-    clearCachedSnapshot(scannerVersion, toDir);
-    if (!isInstalled(scannerVersion, toDir)) {
+  public File install(Version scannerVersion, @Nullable String classifier, File toDir, boolean useOldScript) {
+    clearCachedSnapshot(scannerVersion, classifier, toDir);
+    if (!isInstalled(scannerVersion, classifier, toDir)) {
       LOG.info("Installing sonar-scanner {}", scannerVersion);
-      doInstall(scannerVersion, toDir, classifier);
+      doInstall(scannerVersion, classifier, toDir);
     }
-    return locateInstalledScript(scannerVersion, toDir, useOldScript);
+    return locateInstalledScript(scannerVersion, classifier, toDir, useOldScript);
   }
 
   @VisibleForTesting
   void doInstall(Version scannerVersion, File toDir) {
-    doInstall(scannerVersion, toDir, null);
+    doInstall(scannerVersion, null, toDir);
   }
 
   @VisibleForTesting
-  void doInstall(Version scannerVersion, File toDir, @Nullable String classifier) {
+  void doInstall(Version scannerVersion, @Nullable String classifier, File toDir) {
     File zipFile = locateZip(scannerVersion, classifier);
 
     if (zipFile == null || !zipFile.exists()) {
@@ -133,16 +133,16 @@ public class SonarScannerInstaller {
     return builder.build();
   }
 
-  private static void clearCachedSnapshot(Version runnerVersion, File toDir) {
-    File runnerDir = new File(toDir, directoryName(runnerVersion));
+  private static void clearCachedSnapshot(Version runnerVersion, @Nullable String classifier, File toDir) {
+    File runnerDir = new File(toDir, directoryName(runnerVersion, classifier));
     if (runnerVersion.isSnapshot() && runnerDir.exists()) {
       LOG.info("Delete sonar-scanner cache: {}", runnerDir);
       FileUtils.deleteQuietly(runnerDir);
     }
   }
 
-  private static boolean isInstalled(Version runnerVersion, File toDir) {
-    File runnerDir = new File(toDir, directoryName(runnerVersion));
+  private static boolean isInstalled(Version runnerVersion, String classifier, File toDir) {
+    File runnerDir = new File(toDir, directoryName(runnerVersion, classifier));
     if (runnerDir.isDirectory() && runnerDir.exists()) {
       LOG.debug("SonarQube Scanner {} already exists at {}", runnerVersion, runnerDir);
       return true;
@@ -150,25 +150,41 @@ public class SonarScannerInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(Version runnerVersion, File toDir, boolean useOldScript) {
-    String filename;
-    if (useOldScript) {
-      filename = SystemUtils.IS_OS_WINDOWS ? "sonar-runner.bat" : "sonar-runner";
-    } else {
-      filename = SystemUtils.IS_OS_WINDOWS ? "sonar-scanner.bat" : "sonar-scanner";
-    }
-    File script = new File(toDir, directoryName(runnerVersion) + "/bin/" + filename);
+  private static File locateInstalledScript(Version runnerVersion, String classifier, File toDir, boolean useOldScript) {
+    String filename = basename(runnerVersion, useOldScript);
+    File script = new File(toDir, directoryName(runnerVersion, classifier) + "/bin/" + filename);
     if (!script.exists()) {
       throw new IllegalStateException("File does not exist: " + script);
     }
     return script;
   }
 
-  private static String directoryName(Version runnerVersion) {
-    if (runnerVersion.isGreaterThanOrEquals("2.5")) {
-      return "sonar-scanner-" + runnerVersion.toString();
+  private static String directoryName(Version runnerVersion, @Nullable String classifier) {
+    return basename(runnerVersion) + "-" + runnerVersion + suffix(classifier);
+  }
+
+  private static String suffix(@Nullable String classifier) {
+    return classifier == null ? "" : ("-" + classifier);
+  }
+
+  private static String basename(Version runnerVersion, boolean useOldScript) {
+    String basename;
+    if (useOldScript) {
+      basename = "sonar-runner";
     } else {
-      return "sonar-runner-" + runnerVersion.toString();
+      basename = basename(runnerVersion);
     }
+
+    if (SystemUtils.IS_OS_WINDOWS) {
+      return basename + ".bat";
+    }
+    return basename;
+  }
+
+  private static String basename(Version runnerVersion) {
+    if (runnerVersion.isGreaterThanOrEquals("2.5")) {
+      return "sonar-scanner";
+    }
+    return "sonar-runner";
   }
 }
