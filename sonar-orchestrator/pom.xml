@@ -119,11 +119,6 @@
       <artifactId>log4j-over-slf4j</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.codehaus.sonar.sslr</groupId>
-      <artifactId>sslr-core</artifactId>
-      <version>1.19.2</version>
-    </dependency>
 
     <!-- unit tests -->
     <dependency>
@@ -155,18 +150,6 @@
       <artifactId>echo</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.sonar.sslr</groupId>
-      <artifactId>sslr-testing-harness</artifactId>
-      <version>1.19.2</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest-all</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
