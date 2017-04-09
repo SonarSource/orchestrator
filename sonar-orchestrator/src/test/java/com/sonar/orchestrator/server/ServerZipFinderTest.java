@@ -118,7 +118,7 @@ public class ServerZipFinderTest {
   @Test
   public void throw_ISE_if_fail_to_download_from_update_center() throws Exception {
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage(format("Fail to download http://localhost:%d/sq/sonarqube-4.5.6.zip. Received 500 [Server Error]", updateCenterServer.getPort()));
+    expectedException.expectMessage(format("Failed to download http://localhost:%d/sq/sonarqube-4.5.6.zip", updateCenterServer.getPort()));
 
     Release updateCenterRelease = new Release(null, org.sonar.updatecenter.common.Version.create(VERSION_4_5_6.toString()))
       .setDownloadUrl(updateCenterServer.url("/sq/sonarqube-4.5.6.zip").toString());

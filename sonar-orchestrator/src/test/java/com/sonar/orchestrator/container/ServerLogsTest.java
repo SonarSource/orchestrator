@@ -21,6 +21,7 @@ package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
+import okhttp3.HttpUrl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class ServerLogsTest {
   @Before
   public void setUp() throws Exception {
     home = temporaryFolder.newFolder();
-    server = new Server(fileSystem, home, new SonarDistribution());
+    server = new Server(fileSystem, home, new SonarDistribution(), HttpUrl.parse("http://localhost"));
   }
 
   @Test

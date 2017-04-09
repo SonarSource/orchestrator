@@ -34,6 +34,7 @@ import java.net.InetAddress;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.StringUtils;
@@ -67,9 +68,8 @@ public class ServerInstaller {
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
-    Server server = new Server(configuration.fileSystem(), homeDir, distrib);
-    server.setUrl(format("http://%s:%s%s", properties.getProperty(WEB_HOST_PROPERTY), properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY)));
-    return server;
+    String url = format("http://%s:%s%s", properties.getProperty(WEB_HOST_PROPERTY), properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
+    return new Server(configuration.fileSystem(), homeDir, distrib, HttpUrl.parse(url));
   }
 
   private File locateAndUnzip(SonarDistribution distrib) {

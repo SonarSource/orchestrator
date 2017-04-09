@@ -21,11 +21,9 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.sonar.orchestrator.container.Server;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 /**
  * See http://jira.sonarsource.com/browse/ORCH-263
@@ -33,7 +31,9 @@ import java.util.concurrent.TimeUnit;
 public class SynchronousAnalyzer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SynchronousAnalyzer.class);
-  static final String RELATIVE_URL = "/api/analysis_reports/is_queue_empty";
+
+
+  static final String RELATIVE_PATH = "/api/analysis_reports/is_queue_empty";
 
   private final Server server;
   private final long delayMs;
@@ -57,7 +57,7 @@ public class SynchronousAnalyzer {
       if (count % logFrequency == 0) {
         LOGGER.info("Waiting for analysis reports to be integrated");
       }
-      String response = server.post(RELATIVE_URL, Collections.emptyMap());
+      String response = server.newHttpCall(RELATIVE_PATH).execute().getBodyAsString();
       empty = "true".equals(response);
       Uninterruptibles.sleepUninterruptibly(delayMs, TimeUnit.MILLISECONDS);
       count++;

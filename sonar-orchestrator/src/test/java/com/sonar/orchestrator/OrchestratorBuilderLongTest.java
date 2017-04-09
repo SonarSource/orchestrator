@@ -21,22 +21,50 @@ package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
+import java.net.MalformedURLException;
+import java.net.URL;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderLongTest {
   @Test
-  public void start_sonarqube() {
+  public void start_lts_version_with_default_settings() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
       .setSonarVersion("5.6")
       .build();
 
     try {
       orchestrator.start();
-      assertThat(orchestrator.getServer().version()).isEqualTo(Version.create("5.6"));
+      verifyVersion(orchestrator, "5.6");
+      verifyWebContext(orchestrator, "");
     } finally {
       orchestrator.stop();
     }
+  }
+
+  @Test
+  public void start_6_3_with_web_context() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion("6.3")
+      .setServerProperty("sonar.web.context", "/sonarqube")
+      .build();
+
+    try {
+      orchestrator.start();
+      verifyVersion(orchestrator, "6.3");
+      verifyWebContext(orchestrator, "/sonarqube");
+    } finally {
+      orchestrator.stop();
+    }
+  }
+
+  private static void verifyWebContext(Orchestrator orchestrator, String expectedWebContext) throws MalformedURLException {
+    URL baseUrl = new URL(orchestrator.getServer().getUrl());
+    assertThat(baseUrl.getPath()).isEqualTo(expectedWebContext);
+  }
+
+  private static void verifyVersion(Orchestrator orchestrator, String expectedVersion) {
+    assertThat(orchestrator.getServer().version()).isEqualTo(Version.create(expectedVersion));
   }
 }

@@ -106,7 +106,6 @@ public class ServerInstallerTest {
 
     URL serverUrl = new URL(server.getUrl());
     assertThat(serverUrl.getPort()).isEqualTo(9999);
-    // no web context
     assertThat(serverUrl.getPath()).isEqualTo("/foo");
   }
 

@@ -20,7 +20,6 @@
 package com.sonar.orchestrator;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
@@ -32,6 +31,7 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
+import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
@@ -133,7 +133,12 @@ public class Orchestrator extends SingleStartExternalResource {
 
   private void updateSetting(String key, String value) {
     if (getServer().version().isGreaterThanOrEquals("6.1")) {
-      server.adminWsClient().post("api/settings/set", ImmutableMap.of("key", key, "value", value));
+      server.newHttpCall("/api/settings/set")
+        .setMethod(HttpMethod.POST)
+        .setAdminCredentials()
+        .setParam("key", key)
+        .setParam("value", value)
+        .execute();
     } else {
       server.getAdminWsClient().update(new PropertyUpdateQuery(key, value));
     }

@@ -20,12 +20,13 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.container.Server;
+import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.version.Version;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,19 +37,20 @@ import static org.mockito.Mockito.when;
 public class SynchronousAnalyzerTest {
 
   @Rule
-  public Timeout timeout = new Timeout(3000, TimeUnit.MILLISECONDS);
+  public Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
 
   @Test
   public void wait_as_long_queue_is_not_empty() {
     Server server = mock(Server.class);
+    HttpCall httpCall = mock(HttpCall.class, Mockito.RETURNS_DEEP_STUBS);
+    when(httpCall.execute().getBodyAsString()).thenReturn("false", "false", "true");
+    when(server.newHttpCall(SynchronousAnalyzer.RELATIVE_PATH)).thenReturn(httpCall);
     when(server.version()).thenReturn(Version.create("5.0"));
-    when(server.post(SynchronousAnalyzer.RELATIVE_URL, Collections.emptyMap()))
-      .thenReturn("false", "false", "true");
 
-    new SynchronousAnalyzer(server, 10L, 2).waitForDone();
+    new SynchronousAnalyzer(server, 1L, 2).waitForDone();
 
     // fast enough to finish before junit timeout
-    verify(server, times(3)).post(SynchronousAnalyzer.RELATIVE_URL, Collections.emptyMap());
+    verify(server, times(3)).newHttpCall(SynchronousAnalyzer.RELATIVE_PATH);
   }
 
   @Test

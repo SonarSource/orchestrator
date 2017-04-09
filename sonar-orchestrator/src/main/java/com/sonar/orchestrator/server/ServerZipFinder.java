@@ -27,7 +27,6 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.URLLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
@@ -127,8 +126,8 @@ public class ServerZipFinder {
     try {
       File tempDir = Files.createTempDir();
       return fs.copyToDirectory(URLLocation.create(new URL(url)), tempDir);
-    } catch (IOException e) {
-      throw new IllegalStateException("Unable to download " + url, e);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to download " + url, e);
     }
   }
 
