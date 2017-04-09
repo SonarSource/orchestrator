@@ -306,9 +306,11 @@ public class OrchestratorBuilder {
    * in 5.5, see https://jira.sonarsource.com/browse/SONAR-7122 and
    * https://jira.sonarsource.com/browse/SONAR-7494)
    * @since 2.8
+   * @deprecated in 3.15. Use the property "sonar.web.context" via {@link #setServerProperty(String, String)}.
    */
+  @Deprecated
   public OrchestratorBuilder setContext(String context) {
-    distribution.setContext(context);
+    setServerProperty("sonar.web.context", context);
     return this;
   }
 

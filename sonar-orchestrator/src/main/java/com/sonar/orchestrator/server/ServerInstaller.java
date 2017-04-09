@@ -138,7 +138,7 @@ public class ServerInstaller {
     InetAddress webHost = loadWebHost(properties, loopbackHost);
     properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
-    setIfNotPresent(properties, "sonar.web.context", distribution.getContext());
+    setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
     setIpv4IfNoJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
     setIpv4IfNoJavaOptions(properties, "sonar.search.javaAdditionalOpts");
     setIpv4IfNoJavaOptions(properties, "sonar.web.javaAdditionalOpts");

@@ -32,10 +32,7 @@ import javax.annotation.Nullable;
 
 public final class SonarDistribution {
 
-  private static final String DEFAULT_WEB_CONTEXT = "";
-
   private Version version;
-  private String context = DEFAULT_WEB_CONTEXT;
   private List<Location> pluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
@@ -130,15 +127,6 @@ public final class SonarDistribution {
 
   public List<String> getLicensedPluginKeys() {
     return licensedPluginKeys;
-  }
-
-  public String getContext() {
-    return context;
-  }
-
-  public SonarDistribution setContext(String context) {
-    this.context = context;
-    return this;
   }
 
   public boolean removeDistributedPlugins() {

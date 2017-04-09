@@ -296,13 +296,13 @@ public class OrchestratorBuilderTest {
     Orchestrator orch = new OrchestratorBuilder(config)
       .setContext("/foo")
       .build();
-    assertThat(orch.getDistribution().getContext()).isEqualTo("/foo");
+    assertThat(orch.getDistribution().getServerProperty("sonar.web.context")).isEqualTo("/foo");
   }
 
   @Test
-  public void default_web_context_is_empty() {
+  public void web_context_is_not_defined_by_default() {
     Configuration config = Configuration.builder().setProperty("sonar.runtimeVersion", "5.6").build();
     Orchestrator orch = new OrchestratorBuilder(config).build();
-    assertThat(orch.getDistribution().getContext()).isEqualTo("");
+    assertThat(orch.getDistribution().getServerProperty("sonar.web.context")).isNull();
   }
 }
