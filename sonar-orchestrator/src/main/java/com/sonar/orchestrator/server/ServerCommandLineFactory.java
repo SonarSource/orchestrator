@@ -42,6 +42,7 @@ public class ServerCommandLineFactory {
     command.addArgument("-server");
     command.addArgument("-Djava.awt.headless=true");
     command.addArgument("-Dsonar.enableStopCommand=true");
+    command.addArgument("-Djava.net.preferIPv4Stack=true");
     IOFileFilter appJarFilter = FileFilterUtils.and(FileFilterUtils.prefixFileFilter("sonar-application-"), FileFilterUtils.suffixFileFilter("jar"));
     File libDir = new File(server.getHome(), "lib");
     Collection<File> files = FileUtils.listFiles(libDir, appJarFilter, FileFilterUtils.trueFileFilter());

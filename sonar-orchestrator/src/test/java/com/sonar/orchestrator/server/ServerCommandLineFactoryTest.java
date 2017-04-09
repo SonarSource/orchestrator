@@ -53,7 +53,10 @@ public class ServerCommandLineFactoryTest {
 
     CommandLine commandLine = underTest.create(server);
     assertThat(commandLine.getExecutable()).isEqualTo("java");
-    assertThat(commandLine.getArguments()).contains("-Xmx32m", "lib/sonar-application-5.6.jar");
+    assertThat(commandLine.getArguments())
+      .contains("-Xmx32m")
+      .contains("-Djava.net.preferIPv4Stack=true")
+      .contains("lib/sonar-application-5.6.jar");
   }
 
   @Test
