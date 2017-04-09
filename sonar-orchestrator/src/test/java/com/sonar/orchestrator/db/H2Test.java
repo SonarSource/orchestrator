@@ -19,21 +19,23 @@
  */
 package com.sonar.orchestrator.db;
 
+import java.net.InetAddress;
 import org.junit.Test;
 
 import java.io.File;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class H2Test {
 
   @Test
-  public void testDefaultConfiguration() {
+  public void test_default_build() {
     H2 h2 = H2.builder().build();
 
     assertThat(h2.getDialect()).isEqualTo("h2");
     assertThat(h2.getDriverClassName()).isEqualTo("org.h2.Driver");
-    assertThat(h2.getUrl()).matches("jdbc:h2:tcp://localhost:[0-9]*/sonar;USER=sonar;PASSWORD=sonar");
+    assertThat(h2.getUrl()).matches(format("jdbc:h2:tcp://%s:[0-9]+/sonar;USER=sonar;PASSWORD=sonar", InetAddress.getLoopbackAddress().getHostAddress()));
     assertThat(h2.getLogin()).isEqualTo("sonar");
     assertThat(h2.getPassword()).isEqualTo("sonar");
     assertThat(h2.isDropAndCreate()).isFalse();
@@ -72,7 +74,7 @@ public class H2Test {
   public void shouldSetPortProperty() {
     H2 h2 = H2.builder().build();
 
-    assertThat(h2.getUrl()).matches("jdbc:h2:tcp://localhost:\\d*/sonar;USER=sonar;PASSWORD=sonar");
+    assertThat(h2.getUrl()).matches("jdbc:h2:tcp://.*:\\d*/sonar;USER=sonar;PASSWORD=sonar");
     assertThat(h2.getAdditionalProperties().get("sonar.embeddedDatabase.port")).isNotEmpty();
   }
 

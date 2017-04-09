@@ -57,7 +57,7 @@ public class SynchronousAnalyzer {
       if (count % logFrequency == 0) {
         LOGGER.info("Waiting for analysis reports to be integrated");
       }
-      String response = server.post(RELATIVE_URL, Collections.<String, Object>emptyMap());
+      String response = server.post(RELATIVE_URL, Collections.emptyMap());
       empty = "true".equals(response);
       Uninterruptibles.sleepUninterruptibly(delayMs, TimeUnit.MILLISECONDS);
       count++;

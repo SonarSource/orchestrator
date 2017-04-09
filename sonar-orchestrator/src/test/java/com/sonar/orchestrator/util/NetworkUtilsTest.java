@@ -19,70 +19,68 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.sonar.orchestrator.util.NetworkUtils.RandomPortFinder;
-import com.sonar.orchestrator.util.NetworkUtils.TravisIncrementalPortFinder;
+import java.net.InetAddress;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
-
+import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
+import static java.net.InetAddress.getLoopbackAddress;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NetworkUtilsTest {
 
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+
   @Test
-  public void shouldGetAvailablePortWithoutLockingHost() {
-    for (int i = 0; i < 1000; i++) {
-      /*
-       * The Well Known Ports are those from 0 through 1023.
-       * DCCP Well Known ports SHOULD NOT be used without IANA registration.
-       */
-      assertThat(NetworkUtils.getNextAvailablePort()).isGreaterThan(1023);
+  public void getNextAvailablePort_never_returns_the_same_port_in_current_jvm() {
+    Set<Integer> ports = new HashSet<>();
+    for (int i = 0; i < 100; i++) {
+      int port = getNextAvailablePort(getLoopbackAddress());
+      assertThat(port).isGreaterThan(1023);
+      ports.add(port);
     }
+    assertThat(ports).hasSize(100);
   }
 
   @Test
-  public void shouldGetRandomPort() {
-    assertThat(NetworkUtils.getNextAvailablePort()).isNotEqualTo(NetworkUtils.getNextAvailablePort());
+  public void getNextAvailablePort_retries_to_get_available_port_when_port_has_already_been_allocated() {
+    NetworkUtils.PortAllocator portAllocator = mock(NetworkUtils.PortAllocator.class);
+    when(portAllocator.getAvailable(any(InetAddress.class))).thenReturn(9_000, 9_000, 9_000, 9_100);
+
+    InetAddress address = getLoopbackAddress();
+    assertThat(getNextAvailablePort(address, portAllocator)).isEqualTo(9_000);
+    assertThat(getNextAvailablePort(address, portAllocator)).isEqualTo(9_100);
   }
 
   @Test
-  public void shouldNotBeValidPorts() {
-    assertThat(RandomPortFinder.isValidPort(0)).isFalse();// <=1023
-    assertThat(RandomPortFinder.isValidPort(50)).isFalse();// <=1023
-    assertThat(RandomPortFinder.isValidPort(1023)).isFalse();// <=1023
-    assertThat(RandomPortFinder.isValidPort(2049)).isFalse();// NFS
-    assertThat(RandomPortFinder.isValidPort(4045)).isFalse();// lockd
+  public void getNextAvailablePort_does_not_return_special_ports() {
+    NetworkUtils.PortAllocator portAllocator = mock(NetworkUtils.PortAllocator.class);
+    when(portAllocator.getAvailable(any(InetAddress.class))).thenReturn(900, 2_049, 4_045, 6_000, 1_059);
+
+    // the four first ports are banned, so 1_059 is returned
+    assertThat(getNextAvailablePort(getLoopbackAddress(), portAllocator)).isEqualTo(1_059);
   }
 
   @Test
-  public void shouldBeValidPorts() {
-    assertThat(RandomPortFinder.isValidPort(1059)).isTrue();
-  }
+  public void getNextAvailablePort_throws_ISE_if_too_many_attempts() {
+    NetworkUtils.PortAllocator portAllocator = mock(NetworkUtils.PortAllocator.class);
+    when(portAllocator.getAvailable(any(InetAddress.class))).thenReturn(900);
 
-  @Test(expected = IllegalStateException.class)
-  public void shouldFailWhenNoValidPortIsAvailable() throws IOException {
-    RandomPortFinder randomPortFinder = spy(new RandomPortFinder());
-    doReturn(0).when(randomPortFinder).getRandomUnusedPort();
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Fail to find an available port on ");
 
-    randomPortFinder.getNextAvailablePort();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void shouldFailWhenItsNotPossibleToOpenASocket() throws IOException {
-    RandomPortFinder randomPortFinder = spy(new RandomPortFinder());
-    doThrow(new IOException("Not possible")).when(randomPortFinder).getRandomUnusedPort();
-
-    randomPortFinder.getNextAvailablePort();
+    getNextAvailablePort(getLoopbackAddress(), portAllocator);
   }
 
   @Test
-  public void shouldIncrementPortOnTravis() {
-    TravisIncrementalPortFinder travisIncrementalPortFinder = new TravisIncrementalPortFinder();
-
-    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20000);
-    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20001);
-    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20002);
-    assertThat(travisIncrementalPortFinder.getNextAvailablePort()).isEqualTo(20003);
+  public void getLocalhost_returns_InetAddress_of_localhost() throws Exception {
+    assertThat(NetworkUtils.getLocalhost()).isEqualTo(InetAddress.getLocalHost());
   }
 }

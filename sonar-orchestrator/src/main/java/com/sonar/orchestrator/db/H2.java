@@ -19,10 +19,12 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.sonar.orchestrator.util.NetworkUtils;
+import java.io.File;
+import java.net.InetAddress;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.File;
+import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
+import static java.lang.String.format;
 
 public final class H2 extends DatabaseClient {
 
@@ -58,8 +60,10 @@ public final class H2 extends DatabaseClient {
       // set default values
       setDropAndCreate(false);
       setDriverClassName("org.h2.Driver");
-      int port = NetworkUtils.getNextAvailablePort();
-      setUrl("jdbc:h2:tcp://localhost:" + port + "/sonar;USER=sonar;PASSWORD=sonar");
+
+      InetAddress address = InetAddress.getLoopbackAddress();
+      int port = getNextAvailablePort(address);
+      setUrl(format("jdbc:h2:tcp://%s:%d/sonar;USER=sonar;PASSWORD=sonar", address.getHostAddress(), port));
     }
 
     @Override
@@ -69,16 +73,17 @@ public final class H2 extends DatabaseClient {
     }
 
     @Override
-    public Builder<H2> setUrl(String url) {
-      String port = StringUtils.substringBetween(url, "localhost:", "/");
-      addProperty("sonar.embeddedDatabase.port", port);
-      return super.setUrl(url);
-    }
-
-    @Override
     public Builder<H2> setDriverFile(File driverFile) {
       // Can not change driver on H2
       return this;
+    }
+
+    @Override
+    public Builder<H2> setUrl(String s) {
+      String path = StringUtils.substringAfterLast(s, ":");
+      String port = StringUtils.substringBefore(path, "/");
+      addProperty("sonar.embeddedDatabase.port", port);
+      return super.setUrl(s);
     }
 
     @Override

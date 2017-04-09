@@ -41,10 +41,8 @@ import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.ServerZipFinder;
 import com.sonar.orchestrator.server.StartupLogWatcher;
-import com.sonar.orchestrator.util.NetworkUtils;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.SonarClient;
@@ -111,17 +109,10 @@ public class Orchestrator extends SingleStartExternalResource {
     database = new DefaultDatabase(config);
     database.start();
 
-    int port = config.getInt("orchestrator.container.port", 0);
-    if (port <= 0) {
-      port = NetworkUtils.getNextAvailablePort();
-    }
-    distribution.setPort(port);
     FileSystem fs = config.fileSystem();
     ServerZipFinder zipFinder = new ServerZipFinder(fs, config.updateCenter());
-    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, fs, database.getClient());
+    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, config, database.getClient());
     server = serverInstaller.install(distribution);
-    server.setUrl(String.format("http://localhost:%d%s", port, StringUtils.removeEnd(distribution.getContext(), "/")));
-    server.setPort(port);
 
     process = new ServerProcessImpl(new ServerCommandLineFactory(fs), server, startupLogWatcher);
     process.start();

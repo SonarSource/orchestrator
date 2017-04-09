@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.sonar.orchestrator.util.NetworkUtils.getLocalhost;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicensesTest {
@@ -65,7 +66,7 @@ public class LicensesTest {
   public void failIfConnectionFailure() {
     thrown.expect(RuntimeException.class);
 
-    int freePort = NetworkUtils.getNextAvailablePort();
+    int freePort = NetworkUtils.getNextAvailablePort(getLocalhost());
     Licenses licenses = new Licenses("http://localhost:" + freePort + "/");
     licenses.get("sqale");
   }

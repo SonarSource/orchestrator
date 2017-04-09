@@ -77,7 +77,6 @@ public class Server {
   private final File home;
   private final SonarDistribution distribution;
   private String url;
-  private int port;
   private Sonar wsClient;
   private Sonar adminWsClient;
   private SonarClient sonarClient;
@@ -99,14 +98,6 @@ public class Server {
 
   public void setUrl(String url) {
     this.url = url;
-  }
-
-  public int port() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
   }
 
   public SonarDistribution getDistribution() {

@@ -21,67 +21,77 @@ package com.sonar.orchestrator.util;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.lang.ArrayUtils;
 
+import static java.lang.String.format;
+
 public final class NetworkUtils {
-  private static final TravisIncrementalPortFinder TRAVIS_INCREMENTAL_PORT_FINDER = new TravisIncrementalPortFinder();
-  private static final RandomPortFinder RANDOM_PORT_FINDER = new RandomPortFinder();
+
+  private static final Set<Integer> ALREADY_ALLOCATED = new HashSet<>();
+  private static final int MAX_TRIES = 50;
+
+  // Firefox blocks some reserved ports : https://developer.mozilla.org/en-US/docs/Mozilla/Mozilla_Port_Blocking
+  private static final int[] HTTP_BLOCKED_PORTS = {2_049, 4_045, 6_000};
 
   private NetworkUtils() {
+    // prevent instantiation
   }
 
-  public static int getNextAvailablePort() {
-    return isOnTravisCI() ? TRAVIS_INCREMENTAL_PORT_FINDER.getNextAvailablePort() : RANDOM_PORT_FINDER.getNextAvailablePort();
-  }
-
-  private static boolean isOnTravisCI() {
-    return "true".equals(System.getenv("TRAVIS"));
-  }
-
-  @VisibleForTesting
-  static class TravisIncrementalPortFinder {
-    private final AtomicInteger nextPort = new AtomicInteger(20_000);
-
-    public int getNextAvailablePort() {
-      return nextPort.getAndIncrement();
+  public static InetAddress getLocalhost() {
+    try {
+      return InetAddress.getLocalHost();
+    } catch (UnknownHostException e) {
+      throw new IllegalStateException("Fail to get localhost IP", e);
     }
   }
 
-  @VisibleForTesting
-  static class RandomPortFinder {
-    private static final int MAX_TRY = 10;
-    // Firefox blocks some reserved ports : http://www-archive.mozilla.org/projects/netlib/PortBanning.html
-    private static final int[] BLOCKED_PORTS = {2_049, 4_045, 6_000};
+  /**
+   * Same as {@link InetAddress#getByName(String)} but throws {@link IllegalStateException}
+   * instead of {@link UnknownHostException}
+   */
+  public static InetAddress getInetAddressByName(String name) {
+    try {
+      return InetAddress.getByName(name);
+    } catch (UnknownHostException e) {
+      throw new IllegalStateException(format("Fail to resolve address named [%s]", name), e);
+    }
+  }
 
-    public int getNextAvailablePort() {
-      for (int i = 0; i < MAX_TRY; i++) {
-        try {
-          int port = getRandomUnusedPort();
-          if (isValidPort(port)) {
-            return port;
-          }
-        } catch (Exception e) {
-          throw new IllegalStateException("Can't find an open network port", e);
-        }
+  public static int getNextAvailablePort(InetAddress address) {
+    return getNextAvailablePort(address, PortAllocator.INSTANCE);
+  }
+
+  @VisibleForTesting
+  static int getNextAvailablePort(InetAddress address, PortAllocator portAllocator) {
+    for (int i = 0; i < MAX_TRIES; i++) {
+      int port = portAllocator.getAvailable(address);
+      if (isValidPort(port)) {
+        ALREADY_ALLOCATED.add(port);
+        return port;
       }
-
-      throw new IllegalStateException("Can't find an open network port");
     }
+    throw new IllegalStateException("Fail to find an available port on " + address);
+  }
 
-    public int getRandomUnusedPort() throws IOException {
-      try (ServerSocket socket = new ServerSocket()) {
-        socket.bind(new InetSocketAddress("localhost", 0));
+  private static boolean isValidPort(int port) {
+    return port > 1023 && !ArrayUtils.contains(HTTP_BLOCKED_PORTS, port) && !ALREADY_ALLOCATED.contains(port);
+  }
+
+  @VisibleForTesting
+  static class PortAllocator {
+    private static final PortAllocator INSTANCE = new PortAllocator();
+
+    int getAvailable(InetAddress address) {
+      try (ServerSocket socket = new ServerSocket(0, 50, address)) {
         return socket.getLocalPort();
       } catch (IOException e) {
-        throw new IllegalStateException("Can not find a free network port", e);
+        throw new IllegalStateException("Fail to find an available port on " + address, e);
       }
-    }
-
-    public static boolean isValidPort(int port) {
-      return port > 1023 && !ArrayUtils.contains(BLOCKED_PORTS, port);
     }
   }
 }

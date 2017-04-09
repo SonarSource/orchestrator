@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
@@ -29,6 +28,8 @@ import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.URL;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -54,35 +55,26 @@ public class ServerInstallerTest {
   public TemporaryFolder temp = new TemporaryFolder();
 
   private ServerZipFinder zipFinder = mock(ServerZipFinder.class);
-  private FileSystem fs = mock(FileSystem.class);
   private DatabaseClient dbClient = mock(DatabaseClient.class);
   private File installsDir;
   private File workspaceDir;
   private File mavenLocalDir;
-  private ServerInstaller underTest;
 
   @Before
   public void setUp() throws IOException {
     installsDir = temp.newFolder();
     workspaceDir = temp.newFolder();
     mavenLocalDir = temp.newFolder();
-    Configuration config = Configuration.builder()
-      .setProperty("orchestrator.sonarInstallsDir", installsDir.getAbsolutePath())
-      .setProperty("orchestrator.workspaceDir", workspaceDir.getAbsolutePath())
-      .setProperty("maven.localRepository", mavenLocalDir.getAbsolutePath())
-      .build();
-    fs = new FileSystem(config);
     when(dbClient.getUrl()).thenReturn("jdbc:h2:mem");
     when(dbClient.getLogin()).thenReturn("sonar");
     when(dbClient.getPassword()).thenReturn("sonar");
-    underTest = new ServerInstaller(zipFinder, fs, dbClient);
   }
 
   @Test
   public void test_install() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
-    Server server = underTest.install(new SonarDistribution(VERSION_4_5_6));
+    Server server = newInstaller().install(new SonarDistribution(VERSION_4_5_6));
     assertThat(server.getDistribution().version().get()).isEqualTo(VERSION_4_5_6);
     // installed in a unique location. Home directory is the name defined in zip structure
     assertThat(server.getHome().getParentFile().getParentFile()).isEqualTo(workspaceDir);
@@ -91,11 +83,67 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void installations_do_not_overlap() throws Exception {
+  public void use_random_web_port_on_loopback_address_if_not_defined() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
-    Server server1 = underTest.install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "1"));
-    Server server2 = underTest.install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "2"));
+    Server server = newInstaller().install(new SonarDistribution(VERSION_4_5_6));
+
+    URL serverUrl = new URL(server.getUrl());
+    assertThat(InetAddress.getByName(serverUrl.getHost()).isLoopbackAddress()).isTrue();
+    assertThat(serverUrl.getPort()).isGreaterThan(1023);
+    // no web context
+    assertThat(serverUrl.getPath()).isEqualTo("");
+  }
+
+  @Test
+  public void web_server_is_configured_through_sonar_properties() throws Exception {
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
+    SonarDistribution distribution = new SonarDistribution(VERSION_4_5_6);
+    distribution
+      .setServerProperty("sonar.web.port", "9999")
+      .setServerProperty("sonar.web.context", "/foo");
+    Server server = newInstaller().install(distribution);
+
+    URL serverUrl = new URL(server.getUrl());
+    assertThat(serverUrl.getPort()).isEqualTo(9999);
+    // no web context
+    assertThat(serverUrl.getPath()).isEqualTo("/foo");
+  }
+
+  @Test
+  public void web_port_can_be_set_through_special_property_in_orchestrator_properties_file() throws Exception {
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
+    SonarDistribution distribution = new SonarDistribution(VERSION_4_5_6);
+    Configuration.Builder configBuilder = Configuration.builder()
+      .setProperty("orchestrator.container.port", "9999");
+    Server server = newInstaller(configBuilder).install(distribution);
+
+    URL serverUrl = new URL(server.getUrl());
+    assertThat(InetAddress.getByName(serverUrl.getHost()).isLoopbackAddress()).isTrue();
+    assertThat(serverUrl.getPort()).isEqualTo(9999);
+    assertThat(serverUrl.getPath()).isEqualTo("");
+  }
+
+  @Test
+  public void special_orchestrator_property_for_web_port_is_not_used_if_port_defined_explicitly() throws Exception {
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
+    SonarDistribution distribution = new SonarDistribution(VERSION_4_5_6)
+      .setServerProperty("sonar.web.port", "10000");
+
+    Configuration.Builder configBuilder = Configuration.builder()
+      .setProperty("orchestrator.container.port", "9999");
+    Server server = newInstaller(configBuilder).install(distribution);
+
+    URL serverUrl = new URL(server.getUrl());
+    assertThat(serverUrl.getPort()).isEqualTo(10000);
+  }
+
+  @Test
+  public void installation_directories_do_not_overlap() throws Exception {
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
+
+    Server server1 = newInstaller().install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "1"));
+    Server server2 = newInstaller().install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "2"));
     assertThat(server1.getHome()).exists().isDirectory();
     assertThat(server2.getHome()).exists().isDirectory();
     assertThat(server1.getHome()).isNotEqualTo(server2.getHome());
@@ -109,7 +157,7 @@ public class ServerInstallerTest {
     when(dbClient.getDriverFile()).thenReturn(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-oracle-driver.jar")));
     when(dbClient.getDialect()).thenReturn("oracle");
 
-    Server server = underTest.install(new SonarDistribution(VERSION_4_5_6));
+    Server server = newInstaller().install(new SonarDistribution(VERSION_4_5_6));
     assertThat(new File(server.getHome(), "extensions/jdbc-driver/oracle/fake-oracle-driver.jar")).exists().isFile();
   }
 
@@ -124,7 +172,7 @@ public class ServerInstallerTest {
     when(dbClient.getDriverFile()).thenReturn(invalidDriver);
     when(dbClient.getDialect()).thenReturn("oracle");
 
-    underTest.install(new SonarDistribution(VERSION_4_5_6));
+    newInstaller().install(new SonarDistribution(VERSION_4_5_6));
   }
 
   @Test
@@ -133,7 +181,7 @@ public class ServerInstallerTest {
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
     distrib.addPluginLocation(FileLocation.of(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-plugin.jar"))));
 
-    Server server = underTest.install(distrib);
+    Server server = newInstaller().install(distrib);
 
     assertThat(new File(server.getHome(), "extensions/downloads/fake-plugin.jar")).exists().isFile();
   }
@@ -149,7 +197,7 @@ public class ServerInstallerTest {
     invalidPlugin.delete();
     distrib.addPluginLocation(FileLocation.of(invalidPlugin));
 
-    underTest.install(distrib);
+    newInstaller().install(distrib);
   }
 
   @Test
@@ -157,7 +205,7 @@ public class ServerInstallerTest {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
 
-    Server server = underTest.install(distrib);
+    Server server = newInstaller().install(distrib);
 
     assertThat(bundledPlugin(server)).doesNotExist();
   }
@@ -167,7 +215,7 @@ public class ServerInstallerTest {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6).setRemoveDistributedPlugins(false);
 
-    Server server = underTest.install(distrib);
+    Server server = newInstaller().install(distrib);
 
     assertThat(bundledPlugin(server)).isFile().exists();
   }
@@ -176,11 +224,25 @@ public class ServerInstallerTest {
     return new File(server.getHome(), "lib/bundled-plugins/sonar-java-plugin-2.0.jar");
   }
 
+
   private static Properties openPropertiesFile(Server server) throws IOException {
     try (InputStream input = FileUtils.openInputStream(new File(server.getHome(), "conf/sonar.properties"))) {
       Properties conf = new Properties();
       conf.load(input);
       return conf;
     }
+  }
+
+  private ServerInstaller newInstaller() {
+    return newInstaller(Configuration.builder());
+  }
+
+  private ServerInstaller newInstaller(Configuration.Builder configBuilder) {
+    Configuration config = configBuilder
+      .setProperty("orchestrator.sonarInstallsDir", installsDir.getAbsolutePath())
+      .setProperty("orchestrator.workspaceDir", workspaceDir.getAbsolutePath())
+      .setProperty("maven.localRepository", mavenLocalDir.getAbsolutePath())
+      .build();
+    return new ServerInstaller(zipFinder, config, dbClient);
   }
 }

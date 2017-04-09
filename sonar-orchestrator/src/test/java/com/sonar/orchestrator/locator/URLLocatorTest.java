@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +53,8 @@ import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.servlet.ServletHandler;
 import org.mortbay.servlet.ProxyServlet;
 
+import static com.sonar.orchestrator.util.NetworkUtils.getLocalhost;
+import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class URLLocatorTest {
@@ -215,7 +216,7 @@ public class URLLocatorTest {
     webServer.enqueue(new MockResponse().setBody("hello world"));
     System.setProperty(PROXY_PROP_NON_PROXY_HOST, "");
     System.setProperty(PROXY_PROP_HOST, "localhost");
-    System.setProperty(PROXY_PROP_PORT, String.valueOf(NetworkUtils.getNextAvailablePort()));
+    System.setProperty(PROXY_PROP_PORT, String.valueOf(getNextAvailablePort(getLocalhost())));
     try {
       urlLocator.copyToFile(URLLocation.create(webServer.url("/").url()), toFile);
       Fail.fail("Proxy is not started, connection can't be establised");
@@ -305,7 +306,7 @@ public class URLLocatorTest {
   }
 
   private static void startProxy() throws Exception {
-    httpProxyPort = NetworkUtils.getNextAvailablePort();
+    httpProxyPort = getNextAvailablePort(getLocalhost());
     server = new Server(httpProxyPort);
 
     ServletHandler handlerProxy = new ServletHandler();

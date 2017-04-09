@@ -35,7 +35,6 @@ public final class SonarDistribution {
   private static final String DEFAULT_WEB_CONTEXT = "";
 
   private Version version;
-  private int port;
   private String context = DEFAULT_WEB_CONTEXT;
   private List<Location> pluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
@@ -131,15 +130,6 @@ public final class SonarDistribution {
 
   public List<String> getLicensedPluginKeys() {
     return licensedPluginKeys;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public SonarDistribution setPort(int port) {
-    this.port = port;
-    return this;
   }
 
   public String getContext() {

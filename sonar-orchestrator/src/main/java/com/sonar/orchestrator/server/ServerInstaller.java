@@ -19,49 +19,62 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
 import static java.lang.String.format;
 
 public class ServerInstaller {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerInstaller.class);
-
   private static final AtomicInteger sharedDirId = new AtomicInteger(0);
+  private static final String WEB_HOST_PROPERTY = "sonar.web.host";
+  private static final String WEB_PORT_PROPERTY = "sonar.web.port";
+  private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
+
   private final ServerZipFinder zipFinder;
-  private final FileSystem fs;
+  private final Configuration configuration;
   private final DatabaseClient databaseClient;
 
-  public ServerInstaller(ServerZipFinder zipFinder, FileSystem fs, DatabaseClient databaseClient) {
+  public ServerInstaller(ServerZipFinder zipFinder, Configuration configuration, DatabaseClient databaseClient) {
     this.zipFinder = zipFinder;
-    this.fs = fs;
+    this.configuration = configuration;
     this.databaseClient = databaseClient;
   }
 
   public Server install(SonarDistribution distrib) {
-    File home = locateAndUnzip(distrib);
-    configureHome(distrib, home);
-    return new Server(fs, home, distrib);
+    File homeDir = locateAndUnzip(distrib);
+    copyPlugins(distrib, homeDir);
+    copyJdbcDriver(homeDir);
+    Properties properties = configureProperties(distrib);
+    writePropertiesFile(properties, homeDir);
+    Server server = new Server(configuration.fileSystem(), homeDir, distrib);
+    server.setUrl(format("http://%s:%s%s", properties.getProperty(WEB_HOST_PROPERTY), properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY)));
+    return server;
   }
 
   private File locateAndUnzip(SonarDistribution distrib) {
     File zip = zipFinder.find(distrib);
-    File toDir = new File(fs.workspace(), String.valueOf(sharedDirId.addAndGet(1)));
+    File toDir = new File(configuration.fileSystem().workspace(), String.valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {
@@ -69,16 +82,10 @@ public class ServerInstaller {
     }
     ZipUtils.unzip(zip, toDir);
     File[] roots = toDir.listFiles((FileFilter) FileFilterUtils.directoryFileFilter());
-    if (roots.length != 1) {
+    if (roots == null || roots.length != 1) {
       throw new IllegalStateException("ZIP is badly structured. Missing root directory in " + toDir);
     }
     return roots[0];
-  }
-
-  void configureHome(SonarDistribution distribution, File sonarHome) {
-    copyPlugins(distribution, sonarHome);
-    copyJdbcDriver(sonarHome);
-    configure(distribution, sonarHome);
   }
 
   private void copyJdbcDriver(File sonarHome) {
@@ -108,7 +115,7 @@ public class ServerInstaller {
       throw new IllegalStateException("Fail to clean the download directory: " + downloadDir, e);
     }
     for (Location plugin : distribution.getPluginLocations()) {
-      File pluginFile = fs.copyToDirectory(plugin, downloadDir);
+      File pluginFile = configuration.fileSystem().copyToDirectory(plugin, downloadDir);
       if (pluginFile == null || !pluginFile.exists()) {
         throw new IllegalStateException("Can not find the plugin " + plugin);
       }
@@ -116,32 +123,68 @@ public class ServerInstaller {
     }
   }
 
-  private void configure(SonarDistribution distribution, File sonarHome) {
-    File propertiesFile = new File(sonarHome, "conf/sonar.properties");
-    LOG.info("Configuring {}", propertiesFile);
-    configureProperties(distribution, propertiesFile);
+  private Properties configureProperties(SonarDistribution distribution) {
+    Properties properties = new Properties();
+    properties.putAll(distribution.getServerProperties());
+
+    InetAddress loopbackHost = InetAddress.getLoopbackAddress();
+    setIfNotPresent(properties, "sonar.jdbc.url", databaseClient.getUrl());
+    setIfNotPresent(properties, "sonar.jdbc.username", databaseClient.getLogin());
+    setIfNotPresent(properties, "sonar.jdbc.password", databaseClient.getPassword());
+    properties.putAll(databaseClient.getAdditionalProperties());
+    setIfNotPresent(properties, "sonar.log.console", "true");
+    setIfNotPresent(properties, "sonar.search.host", loopbackHost.getHostAddress());
+    setIfNotPresent(properties, "sonar.search.port", "0");
+    InetAddress webHost = loadWebHost(properties, loopbackHost);
+    properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
+    properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
+    setIfNotPresent(properties, "sonar.web.context", distribution.getContext());
+    setIpv4IfNoJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
+    setIpv4IfNoJavaOptions(properties, "sonar.search.javaAdditionalOpts");
+    setIpv4IfNoJavaOptions(properties, "sonar.web.javaAdditionalOpts");
+
+    return properties;
   }
 
-  void configureProperties(SonarDistribution distribution, File propertiesFile) {
+  private static InetAddress loadWebHost(Properties serverProperties, InetAddress loopbackAddress) {
+    String value = serverProperties.getProperty(WEB_HOST_PROPERTY);
+    if (!StringUtils.isEmpty(value)) {
+      return NetworkUtils.getInetAddressByName(value);
+    }
+    return loopbackAddress;
+  }
+
+  private int loadWebPort(Properties properties, InetAddress webHost) {
+    int webPort = Integer.parseInt(Stream.of(properties.getProperty(WEB_PORT_PROPERTY), configuration.getString("orchestrator.container.port"))
+      .filter(StringUtils::isNotBlank)
+      .findFirst()
+      .orElse("0"));
+    if (webPort == 0) {
+      webPort = getNextAvailablePort(webHost);
+    }
+    return webPort;
+  }
+
+  private static void setIpv4IfNoJavaOptions(Properties properties, String propertyKey) {
+    String javaOpts = properties.getProperty(propertyKey);
+    if (javaOpts == null) {
+      properties.setProperty(propertyKey, "-Djava.net.preferIPv4Stack=true");
+    }
+  }
+
+  private static void setIfNotPresent(Properties properties, String key, String value) {
+    String initialValue = properties.getProperty(key);
+    if (initialValue == null) {
+      properties.setProperty(key, value);
+    }
+  }
+
+  private static void writePropertiesFile(Properties properties, File sonarHome) {
+    File propertiesFile = new File(sonarHome, "conf/sonar.properties");
     try (OutputStream output = FileUtils.openOutputStream(propertiesFile)) {
-      Properties properties = new Properties();
-      properties.putAll(distribution.getServerProperties());
-      properties.setProperty("sonar.web.port", Integer.toString(distribution.getPort()));
-      properties.setProperty("sonar.web.context", "" + distribution.getContext());
-      properties.setProperty("sonar.jdbc.url", databaseClient.getUrl());
-      properties.setProperty("sonar.jdbc.username", databaseClient.getLogin());
-      properties.setProperty("sonar.jdbc.password", databaseClient.getPassword());
-      // Use same host as NetworkUtils.getNextAvailablePort()
-      properties.setProperty("sonar.web.host", "localhost");
-      properties.setProperty("sonar.search.port", "0");
-      properties.setProperty("sonar.search.host", "localhost");
-      properties.setProperty("sonar.log.console", "true");
-
-      properties.putAll(databaseClient.getAdditionalProperties());
-
       properties.store(output, "Generated by Orchestrator");
     } catch (IOException e) {
-      throw new IllegalStateException(format("Fail to configure [%s]", propertiesFile), e);
+      throw new IllegalStateException(format("Fail to write [%s]", propertiesFile), e);
     }
   }
 }
