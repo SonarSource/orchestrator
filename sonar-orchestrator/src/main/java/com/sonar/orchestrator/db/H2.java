@@ -32,10 +32,6 @@ public final class H2 extends DatabaseClient {
     super(builder);
   }
 
-  public static H2 create() {
-    return builder().build();
-  }
-
   @Override
   public String[] getDropDdl() {
     return new String[]{ "DROP ALL OBJECTS" };

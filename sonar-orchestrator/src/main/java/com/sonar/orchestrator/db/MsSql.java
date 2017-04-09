@@ -25,7 +25,7 @@ public final class MsSql extends DatabaseClient {
     super(builder);
   }
 
-  public static MsSqlBuilder jtdsBuilder() {
+  static MsSqlBuilder jtdsBuilder() {
     return (MsSqlBuilder)new MsSqlBuilder()
       // set default values
       .setDriverClassName("net.sourceforge.jtds.jdbc.Driver")
@@ -35,7 +35,7 @@ public final class MsSql extends DatabaseClient {
       .setRootPassword("");
   }
 
-  public static MsSqlBuilder msBuilder() {
+  static MsSqlBuilder msBuilder() {
     return (MsSqlBuilder)new MsSqlBuilder()
       // set default values
       .setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
