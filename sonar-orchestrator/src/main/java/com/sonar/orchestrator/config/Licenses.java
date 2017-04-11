@@ -19,27 +19,26 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.google.common.base.Preconditions;
-import java.io.IOException;
+import com.sonar.orchestrator.http.HttpClientFactory;
+import com.sonar.orchestrator.http.HttpResponse;
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.CheckForNull;
+import okhttp3.HttpUrl;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.defaultString;
 
 public class Licenses {
-  private static final Logger LOG = LoggerFactory.getLogger(Licenses.class);
 
   private final String rootUrl;
   private final Map<String, String> cache;
 
   Licenses(String rootUrl) {
-    Preconditions.checkArgument(StringUtils.isNotBlank(rootUrl), "Blank root URL");
+    checkArgument(StringUtils.isNotBlank(rootUrl), "Blank root URL");
 
     this.rootUrl = rootUrl;
     this.cache = new HashMap<>();
@@ -55,21 +54,16 @@ public class Licenses {
 
   private String downloadFromGithub(String pluginKey) {
     String url = rootUrl + pluginKey + ".txt";
-    DefaultHttpClient client = new DefaultHttpClient();
-    try {
-      HttpGet request = new HttpGet(url);
-      request.addHeader("Authorization", "token " + findGithubToken());
-      LoggerFactory.getLogger(getClass()).info("Requesting license " + request.getURI());
-      return StringUtils.defaultString(client.execute(request, new BasicResponseHandler()));
-    } catch (ClientProtocolException e) {
-      LOG.debug("Exception hold ", e);
-    } catch (IOException e) {
-      throw new IllegalStateException("Fail to request license: " + url, e);
-    } finally {
-      client.close();
+    HttpResponse response = HttpClientFactory.create().newCall(HttpUrl.parse(url))
+      .setHeader("Authorization", "token " + findGithubToken())
+      .executeUnsafely();
+    if (response.isSuccessful()) {
+      return defaultString(response.getBodyAsString());
     }
-
-    return "";
+    if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+      return "";
+    }
+    throw new IllegalStateException(format("Fail to download development license of plugin [%s]. URL [%s] returned code [%d]", pluginKey, url, response.getCode()));
   }
 
   @CheckForNull

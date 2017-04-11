@@ -21,12 +21,12 @@ package com.sonar.orchestrator.config;
 
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import com.sonar.orchestrator.util.NetworkUtils;
+import java.net.InetAddress;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.sonar.orchestrator.util.NetworkUtils.getLocalhost;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicensesTest {
@@ -64,9 +64,10 @@ public class LicensesTest {
 
   @Test
   public void failIfConnectionFailure() {
-    thrown.expect(RuntimeException.class);
+    int freePort = NetworkUtils.getNextAvailablePort(InetAddress.getLoopbackAddress());
 
-    int freePort = NetworkUtils.getNextAvailablePort(getLocalhost());
+    thrown.expect(IllegalStateException.class);
+
     Licenses licenses = new Licenses("http://localhost:" + freePort + "/");
     licenses.get("sqale");
   }
