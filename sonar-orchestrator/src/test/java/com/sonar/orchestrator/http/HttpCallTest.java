@@ -318,6 +318,17 @@ public class HttpCallTest {
   }
 
   @Test
+  public void downloadToDir_throws_ISE_if_ContentDisposition_header_has_vulnerability() throws Exception {
+    server.enqueue(new MockResponse().setBody(PONG).setHeader("Content-Disposition", "attachment; filename=/etc/password"));
+    File dir = temp.newFolder();
+
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Header Content-Disposition has invalid value: /etc/password");
+
+    newCall("").downloadToDirectory(dir);
+  }
+
+  @Test
   public void downloadToDir_creates_dir_if_it_does_not_exist() throws Exception {
     server.enqueue(new MockResponse().setBody(PONG).setHeader("Content-Disposition", "attachment; filename=foo.jar"));
     File dir = temp.newFolder();

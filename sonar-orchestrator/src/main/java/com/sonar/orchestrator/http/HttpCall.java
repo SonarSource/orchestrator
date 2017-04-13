@@ -218,6 +218,11 @@ public class HttpCall {
       throw new IllegalStateException(
         format("Can not guess the target filename for download of %s. Header Content-Disposition is missing or empty.", response.request().url()));
     }
+
+    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+      throw new IllegalStateException("Header Content-Disposition has invalid value: " + filename);
+    }
+
     return filename;
   }
 }
