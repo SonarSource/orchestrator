@@ -53,9 +53,6 @@ public class HttpClient {
   public static class Builder {
     private SystemProperties system = SystemProperties.INSTANCE;
 
-    public Builder() {
-    }
-
     @VisibleForTesting
     Builder setSystemProperties(SystemProperties sp) {
       this.system = sp;
