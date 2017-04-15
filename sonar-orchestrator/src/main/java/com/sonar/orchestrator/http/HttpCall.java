@@ -39,6 +39,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class HttpCall {
@@ -80,11 +81,24 @@ public class HttpCall {
     return setCredentials(token, null);
   }
 
+  /**
+   * Adds parameter to URL query.
+   *
+   * If value is {@code null}, then only the key is sent. For example
+   * {@code setParam("foo", null)} sends "?foo".
+   */
   public HttpCall setParam(String key, @Nullable String value) {
     parameters.put(key, value);
     return this;
   }
 
+  /**
+   * Adds one or more parameters to URL query
+   *
+   * Example: {@code setParams("foo", "value of foo", "bar", "value of bar")}
+   *
+   * @throws IllegalArgumentException if argument {@code otherKeysAndNames} has odd size
+   */
   public HttpCall setParams(String key1, @Nullable String value1, String... otherKeysAndNames) {
     checkArgument(otherKeysAndNames.length % 2 == 0, "Expecting even number of arguments: %s", Arrays.toString(otherKeysAndNames));
     parameters.put(key1, value1);
@@ -95,7 +109,12 @@ public class HttpCall {
     return this;
   }
 
-  public HttpCall setHeader(String key, @Nullable String value) {
+  /**
+   * Adds a header to HTTP request.
+   */
+  public HttpCall setHeader(String key, String value) {
+    requireNonNull(key, "Header key cannot be null");
+    requireNonNull(value, "Header [" + key + "] cannot have null value");
     headers.put(key, value);
     return this;
   }

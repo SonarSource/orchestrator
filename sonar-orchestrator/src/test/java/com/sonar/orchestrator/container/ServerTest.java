@@ -19,9 +19,12 @@
  */
 package com.sonar.orchestrator.container;
 
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.net.URLEncoder;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -32,6 +35,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,7 +65,8 @@ public class ServerTest {
   }
 
   private Server newServerForUrl(String url) {
-    return new Server(mock(FileSystem.class), mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
+    FileSystem fs = new FileSystem(Configuration.builder().build());
+    return new Server(fs, mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
   }
 
   @Test
@@ -97,6 +102,21 @@ public class ServerTest {
     expectedException.expectMessage("No files match");
 
     underTest.version();
+  }
+
+  @Test
+  public void restoreProfile_sends_POST_request() throws Exception {
+    File backup = temp.newFile();
+    FileUtils.write(backup, "<backup/>");
+    server.enqueue(new MockResponse());
+    Server underTest = newServerForUrl(this.server.url("").toString());
+
+    underTest.restoreProfile(FileLocation.of(backup));
+
+    RecordedRequest receivedRequest = server.takeRequest();
+    assertThat(receivedRequest.getMethod()).isEqualTo("POST");
+    assertThat(receivedRequest.getPath()).isEqualTo("/api/qualityprofiles/restore");
+    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("backup=" + URLEncoder.encode("<backup/>", UTF_8.name()));
   }
 
   @Test

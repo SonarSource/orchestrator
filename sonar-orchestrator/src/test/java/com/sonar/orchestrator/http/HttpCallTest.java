@@ -54,6 +54,35 @@ public class HttpCallTest {
   public TestRule safeguardTimeout = new DisableOnDebug(Timeout.seconds(30L));
 
   @Test
+  public void setHeader_adds_header_to_http_request() throws Exception {
+    server.enqueue(new MockResponse().setBody(PONG));
+
+    HttpResponse response = newCall("")
+      .setHeader("foo", "bar")
+      .execute();
+
+    verifySuccess(response, PONG);
+    RecordedRequest recordedRequest = server.takeRequest();
+    assertThat(recordedRequest.getHeader("foo")).isEqualTo("bar");
+  }
+
+  @Test
+  public void setHeader_throws_NPE_if_key_is_null() {
+    expectedException.expect(NullPointerException.class);
+    expectedException.expectMessage("Header key cannot be null");
+
+    newCall("").setHeader(null, "foo");
+  }
+
+  @Test
+  public void setHeader_throws_NPE_if_value_is_null() {
+    expectedException.expect(NullPointerException.class);
+    expectedException.expectMessage("Header [foo] cannot have null value");
+
+    newCall("").setHeader("foo", null);
+  }
+
+  @Test
   public void execute_GET_request_should_return_response() throws Exception {
     server.enqueue(new MockResponse().setBody(PONG));
 
@@ -76,6 +105,19 @@ public class HttpCallTest {
     verifySuccess(response, PONG);
     RecordedRequest recordedRequest = server.takeRequest();
     verifyRecorded(recordedRequest, "GET", "api/system/ping?foo=foz&bar=baz");
+  }
+
+  @Test
+  public void GET_parameter_key_with_null_value_is_set_in_url_query() throws Exception {
+    server.enqueue(new MockResponse().setBody(PONG));
+
+    HttpResponse response = newCall("api/system/ping")
+      .setParam("foo", null)
+      .execute();
+
+    verifySuccess(response, PONG);
+    RecordedRequest recordedRequest = server.takeRequest();
+    verifyRecorded(recordedRequest, "GET", "api/system/ping?foo");
   }
 
   @Test
@@ -118,7 +160,9 @@ public class HttpCallTest {
 
   @Test
   public void HttpResponse_contains_headers() {
-    server.enqueue(new MockResponse().setBody(PONG).setHeader("foo", "foo_val").setHeader("bar", "bar_val"));
+    server.enqueue(new MockResponse().setBody(PONG)
+      .setHeader("foo", "foo_val")
+      .setHeader("bar", "bar_val"));
 
     HttpResponse response = newCall("api/system/ping").execute();
 
@@ -288,7 +332,8 @@ public class HttpCallTest {
 
   @Test
   public void downloadToDir_downloads_content_in_file_named_specified_by_ContentDisposition_header() throws Exception {
-    server.enqueue(new MockResponse().setBody(PONG).setHeader("Content-Disposition", "attachment; filename=foo.jar"));
+    server.enqueue(new MockResponse().setBody(PONG)
+      .setHeader("Content-Disposition", "attachment; filename=foo.jar"));
     File dir = temp.newFolder();
 
     newCall("api/system/ping").downloadToDirectory(dir);
