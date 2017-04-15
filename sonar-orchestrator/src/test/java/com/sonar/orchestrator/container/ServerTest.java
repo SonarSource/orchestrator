@@ -23,6 +23,9 @@ import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import okhttp3.HttpUrl;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,9 +43,10 @@ public class ServerTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+  @Rule
+  public MockWebServer server = new MockWebServer();
 
   @Test
   public void getUrl_does_not_return_trailing_slash() {
@@ -93,5 +97,18 @@ public class ServerTest {
     expectedException.expectMessage("No files match");
 
     underTest.version();
+  }
+
+  @Test
+  public void provisionProject_sends_POST_request() throws Exception {
+    server.enqueue(new MockResponse());
+    Server underTest = newServerForUrl(this.server.url("").toString());
+
+    underTest.provisionProject("foo", "Foo");
+
+    RecordedRequest receivedRequest = server.takeRequest();
+    assertThat(receivedRequest.getMethod()).isEqualTo("POST");
+    assertThat(receivedRequest.getPath()).isEqualTo("/api/projects/create");
+    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("key=foo&name=Foo");
   }
 }

@@ -147,7 +147,7 @@ public class Server {
   @Deprecated
   public Sonar getWsClient() {
     if (wsClient == null && url != null) {
-      wsClient = new Sonar(new HttpClient4Connector(new Host(url.toString())));
+      wsClient = new Sonar(new HttpClient4Connector(new Host(getUrl())));
     }
     return wsClient;
   }
@@ -160,7 +160,7 @@ public class Server {
   @Deprecated
   public SonarClient wsClient() {
     if (sonarClient == null && url != null) {
-      sonarClient = SonarClient.create(url.toString());
+      sonarClient = SonarClient.create(getUrl());
     }
     return sonarClient;
   }
@@ -172,7 +172,7 @@ public class Server {
    */
   @Deprecated
   public SonarClient wsClient(String login, String password) {
-    return SonarClient.builder().url(url.toString()).login(login).password(password).build();
+    return SonarClient.builder().url(getUrl()).login(login).password(password).build();
   }
 
   /**
@@ -182,7 +182,7 @@ public class Server {
   @Deprecated
   public Sonar getAdminWsClient() {
     if (adminWsClient == null && url != null) {
-      adminWsClient = new Sonar(new HttpClient4Connector(new Host(url.toString(), ADMIN_LOGIN, ADMIN_PASSWORD)));
+      adminWsClient = new Sonar(new HttpClient4Connector(new Host(getUrl(), ADMIN_LOGIN, ADMIN_PASSWORD)));
     }
     return adminWsClient;
   }
@@ -217,14 +217,17 @@ public class Server {
   }
 
   /**
-   * Provision a new project.
+   * Provision a new project. The default administrator account is used
+   * (login "admin", password "admin")
+   *
    * @since 2.17
    */
   public void provisionProject(String projectKey, String projectName) {
     newHttpCall("/api/projects/create")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials()
       .setParam("key", projectKey)
       .setParam("name", projectName)
-      .setAdminCredentials()
       .execute();
   }
 
