@@ -57,7 +57,10 @@ public class SynchronousAnalyzer {
       if (count % logFrequency == 0) {
         LOGGER.info("Waiting for analysis reports to be integrated");
       }
-      String response = server.newHttpCall(RELATIVE_PATH).execute().getBodyAsString();
+      String response = server.newHttpCall(RELATIVE_PATH)
+        .setAdminCredentials()
+        .execute()
+        .getBodyAsString();
       empty = "true".equals(response);
       Uninterruptibles.sleepUninterruptibly(delayMs, TimeUnit.MILLISECONDS);
       count++;

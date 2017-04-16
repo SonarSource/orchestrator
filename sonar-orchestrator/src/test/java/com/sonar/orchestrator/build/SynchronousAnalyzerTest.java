@@ -20,41 +20,45 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.http.HttpCall;
-import com.sonar.orchestrator.version.Version;
 import java.util.concurrent.TimeUnit;
+import okhttp3.Credentials;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
-import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class SynchronousAnalyzerTest {
 
   @Rule
   public Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
+  @Rule
+  public MockWebServer webServer = new MockWebServer();
 
   @Test
-  public void wait_as_long_queue_is_not_empty() {
-    Server server = mock(Server.class);
-    HttpCall httpCall = mock(HttpCall.class, Mockito.RETURNS_DEEP_STUBS);
-    when(httpCall.execute().getBodyAsString()).thenReturn("false", "false", "true");
-    when(server.newHttpCall(SynchronousAnalyzer.RELATIVE_PATH)).thenReturn(httpCall);
-    when(server.version()).thenReturn(Version.create("5.0"));
+  public void wait_as_long_queue_is_not_empty() throws Exception {
+    webServer.enqueue(new MockResponse().setBody("false"));
+    webServer.enqueue(new MockResponse().setBody("false"));
+    webServer.enqueue(new MockResponse().setBody("true"));
 
+    Server server = new Server(null, null, null, webServer.url(""));
     new SynchronousAnalyzer(server, 1L, 2).waitForDone();
 
     // fast enough to finish before junit timeout
-    verify(server, times(3)).newHttpCall(SynchronousAnalyzer.RELATIVE_PATH);
+    assertThat(webServer.getRequestCount()).isEqualTo(3);
+    for (int i = 0; i < 3; i++) {
+      RecordedRequest recordedRequest = webServer.takeRequest();
+      assertThat(recordedRequest.getPath()).isEqualTo(SynchronousAnalyzer.RELATIVE_PATH);
+      assertThat(recordedRequest.getHeader("Authorization")).isEqualTo(Credentials.basic("admin", "admin"));
+    }
   }
 
   @Test
-  public void default_settings() {
+  public void test_default_settings() {
     Server server = mock(Server.class);
     SynchronousAnalyzer analyzer = new SynchronousAnalyzer(server);
     assertThat(analyzer.getDelayMs()).isEqualTo(100L);
