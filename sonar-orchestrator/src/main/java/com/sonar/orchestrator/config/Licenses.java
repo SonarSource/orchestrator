@@ -26,11 +26,11 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import okhttp3.HttpUrl;
-import org.apache.commons.lang.StringUtils;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.defaultString;
 
 public class Licenses {
 
@@ -38,7 +38,7 @@ public class Licenses {
   private final Map<String, String> cache;
 
   Licenses(String rootUrl) {
-    checkArgument(StringUtils.isNotBlank(rootUrl), "Blank root URL");
+    checkArgument(!isEmpty(rootUrl), "Blank root URL");
 
     this.rootUrl = rootUrl;
     this.cache = new HashMap<>();
@@ -58,7 +58,7 @@ public class Licenses {
       .setHeader("Authorization", "token " + findGithubToken())
       .executeUnsafely();
     if (response.isSuccessful()) {
-      return defaultString(response.getBodyAsString());
+      return defaultIfNull(response.getBodyAsString(), "");
     }
     if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
       return "";

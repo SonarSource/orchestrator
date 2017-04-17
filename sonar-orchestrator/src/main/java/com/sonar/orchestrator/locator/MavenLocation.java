@@ -19,10 +19,12 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.version.Version;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public class MavenLocation implements Location {
 
@@ -40,8 +42,8 @@ public class MavenLocation implements Location {
     this.packaging = builder.packaging;
     this.filename = builder.filename;
     this.classifier = StringUtils.trimToEmpty(builder.classifier);
-    if (StringUtils.isBlank(filename)) {
-      if (StringUtils.isBlank(classifier)) {
+    if (isEmpty(filename)) {
+      if (isEmpty(classifier)) {
         filename = artifactId + "-" + version.toString() + "." + packaging;
       } else {
         filename = artifactId + "-" + version.toString() + "-" + classifier + "." + packaging;
@@ -165,10 +167,10 @@ public class MavenLocation implements Location {
     }
 
     public MavenLocation build() {
-      Preconditions.checkArgument(StringUtils.isNotBlank(groupId), "Group Id must be set");
-      Preconditions.checkArgument(StringUtils.isNotBlank(artifactId), "Artifact Id must be set");
-      Preconditions.checkArgument(StringUtils.isNotBlank(ObjectUtils.toString(version)), "Version must be set");
-      Preconditions.checkArgument(StringUtils.isNotBlank(packaging), "Packaging must be set");
+      checkArgument(!isEmpty(groupId), "Group Id must be set");
+      checkArgument(!isEmpty(artifactId), "Artifact Id must be set");
+      checkArgument(!isEmpty(ObjectUtils.toString(version)), "Version must be set");
+      checkArgument(!isEmpty(packaging), "Packaging must be set");
       return new MavenLocation(this);
     }
   }

@@ -19,13 +19,8 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.google.common.base.Preconditions;
-import com.google.common.io.Closeables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,6 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Synchronously execute a native command line. It's much more limited than the Apache Commons Exec library.
@@ -61,7 +61,7 @@ public class CommandExecutor {
    * @since 3.0
    */
   public int execute(Command command, StreamConsumer stdOut, long timeoutMilliseconds) {
-    Preconditions.checkNotNull(command);
+    requireNonNull(command);
 
     ExecutorService executorService = null;
     Process process = null;
@@ -133,13 +133,20 @@ public class CommandExecutor {
 
   private static void closeStreams(@Nullable Process process) {
     if (process != null) {
-      try {
-        Closeables.close(process.getInputStream(), true);
-        Closeables.close(process.getOutputStream(), true);
-        Closeables.close(process.getErrorStream(), true);
-      } catch (IOException e) {
-        throw new IllegalStateException("Unexpected IOException since it is supposed to be swallowed", e);
-      }
+      closeQuietly(process.getInputStream());
+      closeQuietly(process.getOutputStream());
+      closeQuietly(process.getErrorStream());
+    }
+  }
+
+  private static void closeQuietly(@Nullable Closeable closeable) {
+    if (closeable == null) {
+      return;
+    }
+    try {
+      closeable.close();
+    } catch (IOException e) {
+      LoggerFactory.getLogger(CommandExecutor.class).warn("IOException thrown while closing Closeable.", e);
     }
   }
 
@@ -149,6 +156,7 @@ public class CommandExecutor {
         thread.join();
       } catch (InterruptedException e) {
         LOG.error("InterruptedException while waiting finish of " + thread.toString(), e);
+        Thread.currentThread().interrupt();
       }
     }
   }

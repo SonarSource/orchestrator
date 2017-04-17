@@ -19,22 +19,26 @@
  */
 package com.sonar.orchestrator.http;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-
 public class HttpClientFactory {
 
-  private static final Supplier<HttpClient> SINGLETON = Suppliers.memoize(HttpClientFactory::doCreate);
+  private static transient volatile boolean initialized;
+  private static HttpClient singleton;
 
   private HttpClientFactory() {
     // prevent instantiation, only static methods for the time being
   }
 
   public static HttpClient create() {
-    return SINGLETON.get();
-  }
-
-  private static HttpClient doCreate() {
-    return new HttpClient.Builder().build();
+    // A 2-field variant of Double Checked Locking.
+    if (!initialized) {
+      synchronized (HttpClient.class) {
+        if (!initialized) {
+          singleton = new HttpClient.Builder().build();
+          initialized = true;
+          return singleton;
+        }
+      }
+    }
+    return singleton;
   }
 }

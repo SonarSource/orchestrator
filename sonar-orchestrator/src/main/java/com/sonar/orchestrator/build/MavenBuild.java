@@ -19,20 +19,28 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public final class MavenBuild extends Build<MavenBuild> {
+
+  private static final Map<String, String> ENV_VARIABLES;
+  static {
+    Map<String, String> map = new HashMap<>();
+    map.put("MAVEN_OPTS", "-Djava.awt.headless=true");
+    ENV_VARIABLES = Collections.unmodifiableMap(map);
+  }
 
   private Location pom;
   private File executionDir;
@@ -44,7 +52,7 @@ public final class MavenBuild extends Build<MavenBuild> {
 
   @Override
   protected Map<String, String> doGetEnvironmentVariablePrefixes() {
-    return ImmutableMap.of("MAVEN_OPTS", "-Djava.awt.headless=true");
+    return ENV_VARIABLES;
   }
 
   public Location getPom() {

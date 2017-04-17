@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -29,6 +27,8 @@ import java.io.File;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.requireNonNull;
+
 class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild> {
 
   @Override
@@ -36,7 +36,6 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
     return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(config), create);
   }
 
-  @VisibleForTesting
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, ScannerForMSBuildInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
@@ -84,8 +83,8 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
   }
 
   public static void addProp(Command c, String key, String value) {
-    Preconditions.checkNotNull(key);
-    Preconditions.checkNotNull(value);
+    requireNonNull(key);
+    requireNonNull(value);
 
     StringBuilder sb = new StringBuilder();
     sb.append("/d:").append(key).append("=").append(value);

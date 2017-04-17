@@ -40,7 +40,7 @@ import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.connectors.HttpClient4Connector;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.substringAfter;
 
@@ -219,7 +219,6 @@ public class Server {
   /**
    * Provision a new project. The default administrator account is used
    * (login "admin", password "admin")
-   *
    * @since 2.17
    */
   public void provisionProject(String projectKey, String projectName) {

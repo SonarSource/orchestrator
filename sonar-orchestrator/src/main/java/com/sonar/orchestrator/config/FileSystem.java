@@ -26,9 +26,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.LoggerFactory;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public class FileSystem {
   private final Configuration config;
@@ -59,7 +60,7 @@ public class FileSystem {
   }
 
   private void initMavenLocalRepository() {
-    String value = config.getStringByKeys(StringUtils::isNotBlank, "maven.localRepository", "MAVEN_LOCAL_REPOSITORY");
+    String value = config.getStringByKeys(s -> !isEmpty(s), "maven.localRepository", "MAVEN_LOCAL_REPOSITORY");
     if (value != null) {
       mavenLocalRepository = new File(value);
       if (!mavenLocalRepository.isDirectory() || !mavenLocalRepository.exists()) {
@@ -69,7 +70,7 @@ public class FileSystem {
   }
 
   private void initJavaHome() {
-    String value = config.getStringByKeys(StringUtils::isNotBlank, "java.home", "JAVA_HOME");
+    String value = config.getStringByKeys(s -> !isEmpty(s), "java.home", "JAVA_HOME");
     if (value != null) {
       javaHome = new File(value);
       if (!javaHome.isDirectory() || !javaHome.exists()) {
@@ -83,11 +84,11 @@ public class FileSystem {
 
   private void initUserHome() {
     String value = config.getString("orchestrator.sonarInstallsDir");
-    if (StringUtils.isNotBlank(value)) {
+    if (!isEmpty(value)) {
       sonarInstallsDir = new File(value);
     } else {
       String sonarUserHome = System.getenv("SONAR_USER_HOME");
-      if (StringUtils.isNotBlank(sonarUserHome)) {
+      if (!isEmpty(sonarUserHome)) {
         sonarInstallsDir = new File(sonarUserHome, "installs");
       } else {
         File userHome = new File(System.getProperty("user.home"));
@@ -97,7 +98,7 @@ public class FileSystem {
   }
 
   private void initMavenHome() {
-    String propertyValue = config.getStringByKeys(StringUtils::isNotBlank, "maven.home", "MAVEN_HOME", "M2_HOME");
+    String propertyValue = config.getStringByKeys(s -> !isEmpty(s), "maven.home", "MAVEN_HOME", "M2_HOME");
     if (propertyValue != null) {
       mavenHome = new File(propertyValue);
       if (!mavenHome.isDirectory() || !mavenHome.exists()) {
@@ -107,30 +108,30 @@ public class FileSystem {
   }
 
   private void initMavenBinary() {
-    String binary = config.getStringByKeys(StringUtils::isNotBlank, "maven.binary", "MAVEN_BINARY");
+    String binary = config.getStringByKeys(s -> !isEmpty(s), "maven.binary", "MAVEN_BINARY");
     if (binary != null) {
       mavenBinary = binary;
       File completePath = new File(mavenHome, "bin/" + mavenBinary);
-      List<String> binaryExtension = new ArrayList<>();
-      binaryExtension.add("");
+      List<String> binaryExtensions = new ArrayList<>();
+      binaryExtensions.add("");
       if (SystemUtils.IS_OS_WINDOWS) {
-        binaryExtension.add(".cmd");
-        binaryExtension.add(".bat");
+        binaryExtensions.add(".cmd");
+        binaryExtensions.add(".bat");
       }
-      for (String ext : binaryExtension) {
+      for (String ext : binaryExtensions) {
         File completePathWithExt = new File(completePath + ext);
         if (completePathWithExt.isFile() && completePathWithExt.exists()) {
           return;
         }
       }
       throw new IllegalArgumentException(
-        "Maven binary is not valid: " + completePath.getAbsolutePath() + " (With one of these extensions: " + StringUtils.join(binaryExtension, ",") + ")");
+        "Maven binary is not valid: " + completePath.getAbsolutePath() + " (With one of these extensions: " + binaryExtensions + ")");
     }
   }
 
   private void initAntHome() {
     String value = config.getStringByKeys("ant.home", "ANT_HOME");
-    if (StringUtils.isNotBlank(value)) {
+    if (!isEmpty(value)) {
       antHome = new File(value);
       if (!antHome.isDirectory() || !antHome.exists()) {
         throw new IllegalArgumentException("Ant home is not valid: " + value);

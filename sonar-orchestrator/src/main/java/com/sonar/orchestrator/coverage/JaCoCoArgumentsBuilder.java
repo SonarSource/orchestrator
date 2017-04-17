@@ -19,14 +19,12 @@
  */
 package com.sonar.orchestrator.coverage;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.MavenLocator;
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.File;
 import java.util.Properties;
+import org.apache.commons.io.FilenameUtils;
 
 public class JaCoCoArgumentsBuilder {
 
@@ -36,9 +34,7 @@ public class JaCoCoArgumentsBuilder {
   /**
    * Loaded from pom.xml
    */
-  @VisibleForTesting
   static String jaCoCoVersion;
-  @VisibleForTesting
   static MavenLocation agentLocation;
 
   private JaCoCoArgumentsBuilder() {
@@ -49,14 +45,13 @@ public class JaCoCoArgumentsBuilder {
     Properties props = readProperties("jacoco.properties");
     jaCoCoVersion = props.getProperty("jacoco.version");
     agentLocation = MavenLocation.builder()
-        .setGroupId("org.jacoco")
-        .setArtifactId("org.jacoco.agent")
-        .setVersion(jaCoCoVersion)
-        .setClassifier("runtime")
-        .build();
+      .setGroupId("org.jacoco")
+      .setArtifactId("org.jacoco.agent")
+      .setVersion(jaCoCoVersion)
+      .setClassifier("runtime")
+      .build();
   }
 
-  @VisibleForTesting
   static Properties readProperties(String propertyFileName) {
     Properties props = new Properties();
     try {
@@ -89,11 +84,11 @@ public class JaCoCoArgumentsBuilder {
     String agentPath = FilenameUtils.separatorsToUnix(jacocoLocation.getAbsolutePath());
 
     return new StringBuilder("-javaagent:")
-        .append(agentPath)
-        .append("=destfile=").append(destFile).append(",")
-        .append("append=true,")
-        .append("excludes=").append(EXCLUDES).append(",")
-        .append("includes=").append(INCLUDES)
+      .append(agentPath)
+      .append("=destfile=").append(destFile).append(",")
+      .append("append=true,")
+      .append("excludes=").append(EXCLUDES).append(",")
+      .append("includes=").append(INCLUDES)
       .toString();
   }
 }

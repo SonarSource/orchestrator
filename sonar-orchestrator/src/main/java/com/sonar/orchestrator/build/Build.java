@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import java.util.ArrayList;
@@ -28,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 
 public abstract class Build<T extends Build<T>> {
 
@@ -51,7 +52,7 @@ public abstract class Build<T extends Build<T>> {
    * @see #DEFAULT_TIMEOUT_SECONDS
    */
   public T setTimeoutSeconds(long l) {
-    Preconditions.checkArgument(l > 0, "Timeout must be greater than zero");
+    checkArgument(l > 0, "Timeout must be greater than zero");
     this.timeoutSeconds = l;
     return (T) this;
   }

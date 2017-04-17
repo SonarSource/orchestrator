@@ -37,11 +37,11 @@ import java.util.stream.Stream;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
 
 public class ServerInstaller {
@@ -148,7 +148,7 @@ public class ServerInstaller {
 
   private static InetAddress loadWebHost(Properties serverProperties, InetAddress loopbackAddress) {
     String value = serverProperties.getProperty(WEB_HOST_PROPERTY);
-    if (!StringUtils.isEmpty(value)) {
+    if (!isEmpty(value)) {
       return NetworkUtils.getInetAddressByName(value);
     }
     return loopbackAddress;
@@ -156,7 +156,7 @@ public class ServerInstaller {
 
   private int loadWebPort(Properties properties, InetAddress webHost) {
     int webPort = Integer.parseInt(Stream.of(properties.getProperty(WEB_PORT_PROPERTY), configuration.getString("orchestrator.container.port"))
-      .filter(StringUtils::isNotBlank)
+      .filter(s -> !isEmpty(s))
       .findFirst()
       .orElse("0"));
     if (webPort == 0) {

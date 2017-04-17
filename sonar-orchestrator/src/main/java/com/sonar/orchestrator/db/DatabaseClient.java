@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.google.common.base.Preconditions;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -29,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 
 public abstract class DatabaseClient {
 
@@ -112,13 +113,15 @@ public abstract class DatabaseClient {
     return additionalProperties;
   }
 
-  public int getDBMajorVersion( )  {
+  public int getDBMajorVersion() {
     return dbMajorVersion;
   }
-  public int getDBMinorVersion( )  {
+
+  public int getDBMinorVersion() {
     return dbMinorVersion;
   }
-  public String getDBProductName( )  {
+
+  public String getDBProductName() {
     return dbProductName;
   }
 
@@ -131,8 +134,8 @@ public abstract class DatabaseClient {
     // to be overridden
     return new String[0];
   }
-  
-  //  list all the SQL connections ID not own by getlogin()
+
+  // list all the SQL connections ID not own by getlogin()
   @CheckForNull
   public String getSelectConnectionIdsSql() {
     // to be overridden
@@ -177,7 +180,7 @@ public abstract class DatabaseClient {
 
   }
 
-  public Connection openConnection(  ) throws SQLException {
+  public Connection openConnection() throws SQLException {
     Connection conn = DriverManager.getConnection(getUrl(), getLogin(), getPassword());
 
     fillDbMetadata(conn);
@@ -185,8 +188,8 @@ public abstract class DatabaseClient {
     return conn;
   }
 
-  public Connection openRootConnection( ) throws SQLException {
-    Connection conn = DriverManager.getConnection(getRootUrl(), getRootLogin( ), getRootPassword( ));
+  public Connection openRootConnection() throws SQLException {
+    Connection conn = DriverManager.getConnection(getRootUrl(), getRootLogin(), getRootPassword());
     fillDbMetadata(conn);
     return conn;
   }
@@ -197,11 +200,10 @@ public abstract class DatabaseClient {
       dbMajorVersion = meta.getDatabaseMajorVersion();
       dbMinorVersion = meta.getDatabaseMinorVersion();
       dbProductName = meta.getDatabaseProductName();
-    } catch( SQLException e ) {
+    } catch (SQLException e) {
       throw new IllegalStateException("Can't get JDBC metadata", e);
     }
   }
-  
 
   public abstract static class Builder<D extends DatabaseClient> {
     private boolean dropAndCreate = true;
@@ -242,9 +244,8 @@ public abstract class DatabaseClient {
     }
 
     public Builder<D> setDriverFile(File driverFile) {
-      Preconditions.checkNotNull(driverFile);
-      Preconditions.checkArgument(driverFile.exists(), "Driver file does not exist: " + driverFile);
-      Preconditions.checkArgument(driverFile.isFile(), "Driver is not a file");
+      checkArgument(driverFile.exists(), "Driver file does not exist: %s", driverFile);
+      checkArgument(driverFile.isFile(), "Driver is not a file: %s", driverFile);
       this.driverFile = driverFile;
       return this;
     }
@@ -318,7 +319,6 @@ public abstract class DatabaseClient {
     }
 
     public abstract D build();
-
 
   }
 }

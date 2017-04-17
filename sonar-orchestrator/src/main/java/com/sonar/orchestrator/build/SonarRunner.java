@@ -19,17 +19,18 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Executes the sonar-runner script. In-process mode is not supported yet.
@@ -43,6 +44,12 @@ public class SonarRunner extends Build<SonarRunner> {
   public static final String DEFAULT_SCANNER_VERSION = "2.8";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
   public static final String DEFAULT_SOURCE_ENCODING = "UTF-8";
+  private static final Map<String, String> ENV_VARIABLES;
+  static {
+    Map<String, String> map = new HashMap<>();
+    map.put("SONAR_RUNNER_OPTS", "-Djava.awt.headless=true");
+    ENV_VARIABLES = Collections.unmodifiableMap(map);
+  }
 
   private Version scannerVersion = Version.create(DEFAULT_SCANNER_VERSION);
   private File projectDir;
@@ -57,7 +64,7 @@ public class SonarRunner extends Build<SonarRunner> {
   protected Map<String, String> doGetEnvironmentVariablePrefixes() {
     // http://jira.sonarsource.com/browse/ORCH-256
     // Temporarily hardcoded in Orchestrator meanwhile sonar-runner 2.5
-    return ImmutableMap.of("SONAR_RUNNER_OPTS", "-Djava.awt.headless=true");
+    return ENV_VARIABLES;
   }
 
   public Version runnerVersion() {
@@ -183,7 +190,7 @@ public class SonarRunner extends Build<SonarRunner> {
   }
 
   private static void checkProjectDir(File dir) {
-    Preconditions.checkNotNull(dir, "Project directory must be set");
+    requireNonNull(dir, "Project directory must be set");
     checkArgument(dir.exists(), "Project directory must exist");
     checkArgument(dir.isDirectory(), "Project directory must be... a directory");
   }

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
@@ -66,12 +65,10 @@ public class SonarScannerInstaller {
     return locateInstalledScript(scannerVersion, classifier, toDir, useOldScript);
   }
 
-  @VisibleForTesting
   void doInstall(Version scannerVersion, File toDir) {
     doInstall(scannerVersion, null, toDir);
   }
 
-  @VisibleForTesting
   void doInstall(Version scannerVersion, @Nullable String classifier, File toDir) {
     File zipFile = locateZip(scannerVersion, classifier);
 

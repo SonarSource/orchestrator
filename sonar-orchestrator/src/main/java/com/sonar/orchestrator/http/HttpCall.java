@@ -35,12 +35,12 @@ import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class HttpCall {
 
@@ -233,7 +233,7 @@ public class HttpCall {
       }
     }
 
-    if (isBlank(filename)) {
+    if (isEmpty(filename)) {
       throw new IllegalStateException(
         format("Can not guess the target filename for download of %s. Header Content-Disposition is missing or empty.", response.request().url()));
     }

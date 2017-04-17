@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
@@ -29,6 +28,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import javax.annotation.Nullable;
+
+import static java.util.Objects.requireNonNull;
 
 public final class SonarDistribution {
 
@@ -80,7 +81,7 @@ public final class SonarDistribution {
   }
 
   public SonarDistribution restoreProfileAtStartup(Location backup) {
-    Preconditions.checkNotNull(backup);
+    requireNonNull(backup);
     this.profileBackups.add(backup);
     return this;
   }

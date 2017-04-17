@@ -19,15 +19,15 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
 
@@ -39,7 +39,6 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
     return execute(build, config, adjustedProperties, new SonarScannerInstaller(config.fileSystem()), create);
   }
 
-  @VisibleForTesting
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
@@ -64,7 +63,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
     for (Map.Entry<String, String> env : build.getEffectiveEnvironmentVariables().entrySet()) {
       command.setEnvironmentVariable(env.getKey(), env.getValue());
     }
-    if (StringUtils.isNotBlank(build.getTask())) {
+    if (!isEmpty(build.getTask())) {
       if (build.runnerVersion().isGreaterThanOrEquals("2.1")) {
         command.addArgument(build.getTask());
       } else {

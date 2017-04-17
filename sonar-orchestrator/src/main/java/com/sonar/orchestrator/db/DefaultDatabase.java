@@ -31,12 +31,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public final class DefaultDatabase implements Database {
 
@@ -140,7 +142,7 @@ public final class DefaultDatabase implements Database {
       while (rs.next()) {
         Map<String, String> row = new HashMap<>();
         for (int i = 1; i <= rsmd.getColumnCount(); i++) {
-          String columnName = StringUtils.upperCase(rsmd.getColumnName(i));
+          String columnName = rsmd.getColumnName(i).toUpperCase(Locale.ENGLISH);
           row.put(columnName, rs.getString(i));
         }
         list.add(row);
@@ -316,7 +318,7 @@ public final class DefaultDatabase implements Database {
       ResultSet rs = stmt.executeQuery(sql)) {
       while (rs.next()) {
         String spid = rs.getString(1);
-        if (StringUtils.isNotBlank(spid)) {
+        if (!isEmpty(spid)) {
           spids.add(spid);
         }
       }

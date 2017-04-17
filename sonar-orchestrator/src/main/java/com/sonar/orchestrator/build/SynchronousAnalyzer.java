@@ -19,9 +19,7 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.sonar.orchestrator.container.Server;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class SynchronousAnalyzer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SynchronousAnalyzer.class);
-
 
   static final String RELATIVE_PATH = "/api/analysis_reports/is_queue_empty";
 
@@ -57,13 +54,18 @@ public class SynchronousAnalyzer {
       if (count % logFrequency == 0) {
         LOGGER.info("Waiting for analysis reports to be integrated");
       }
-      String response = server.newHttpCall(RELATIVE_PATH)
-        .setAdminCredentials()
-        .execute()
-        .getBodyAsString();
-      empty = "true".equals(response);
-      Uninterruptibles.sleepUninterruptibly(delayMs, TimeUnit.MILLISECONDS);
-      count++;
+      try {
+        String response = server.newHttpCall(RELATIVE_PATH)
+          .setAdminCredentials()
+          .execute()
+          .getBodyAsString();
+        empty = "true".equals(response);
+        Thread.sleep(delayMs);
+        count++;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      }
     }
   }
 

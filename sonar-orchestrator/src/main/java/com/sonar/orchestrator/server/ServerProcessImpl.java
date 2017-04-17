@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.container.Server;
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +27,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -39,8 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static java.util.Objects.requireNonNull;
 
 public class ServerProcessImpl implements ServerProcess {
@@ -74,12 +71,10 @@ public class ServerProcessImpl implements ServerProcess {
     }
   }
 
-  @VisibleForTesting
   void setStartupTimeout(long l) {
     this.startTimeoutMs = l;
   }
 
-  @VisibleForTesting
   void setStopTimeout(long l) {
     this.stopTimeoutMs = l;
   }
@@ -115,7 +110,11 @@ public class ServerProcessImpl implements ServerProcess {
         // process is down
         throw fail("Server startup failure", processResultHandler.getException());
       }
-      sleepUninterruptibly(START_RETRY_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      try {
+        Thread.sleep(START_RETRY_TIMEOUT_MS);
+      } catch (InterruptedException ignored) {
+        Thread.currentThread().interrupt();
+      }
     }
     stop();
     throw fail("Server did not start in timely fashion", null);
@@ -167,7 +166,6 @@ public class ServerProcessImpl implements ServerProcess {
     }
   }
 
-  @VisibleForTesting
   boolean isProcessAlive() {
     return processResultHandler != null && !processResultHandler.hasResult();
   }

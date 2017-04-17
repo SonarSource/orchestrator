@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.version;
 
-import org.apache.commons.lang.StringUtils;
-
 public class Version implements Comparable<Version> {
 
   private final String version;
@@ -57,7 +55,7 @@ public class Version implements Comparable<Version> {
   }
 
   public boolean isSnapshot() {
-    return StringUtils.endsWith(version, "-SNAPSHOT");
+    return version.endsWith("-SNAPSHOT");
   }
 
   @Override

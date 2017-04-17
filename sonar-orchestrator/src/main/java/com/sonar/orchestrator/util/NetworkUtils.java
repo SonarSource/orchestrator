@@ -19,16 +19,16 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.lang.ArrayUtils;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
 
 public final class NetworkUtils {
 
@@ -36,7 +36,7 @@ public final class NetworkUtils {
   private static final int MAX_TRIES = 50;
 
   // Firefox blocks some reserved ports : https://developer.mozilla.org/en-US/docs/Mozilla/Mozilla_Port_Blocking
-  private static final int[] HTTP_BLOCKED_PORTS = {2_049, 4_045, 6_000};
+  private static final Set<Integer> HTTP_BLOCKED_PORTS = unmodifiableSet(new HashSet<>(asList(2_049, 4_045, 6_000)));
 
   private NetworkUtils() {
     // prevent instantiation
@@ -66,7 +66,6 @@ public final class NetworkUtils {
     return getNextAvailablePort(address, PortAllocator.INSTANCE);
   }
 
-  @VisibleForTesting
   static int getNextAvailablePort(InetAddress address, PortAllocator portAllocator) {
     for (int i = 0; i < MAX_TRIES; i++) {
       int port = portAllocator.getAvailable(address);
@@ -79,10 +78,9 @@ public final class NetworkUtils {
   }
 
   private static boolean isValidPort(int port) {
-    return port > 1023 && !ArrayUtils.contains(HTTP_BLOCKED_PORTS, port) && !ALREADY_ALLOCATED.contains(port);
+    return port > 1023 && !HTTP_BLOCKED_PORTS.contains(port) && !ALREADY_ALLOCATED.contains(port);
   }
 
-  @VisibleForTesting
   static class PortAllocator {
     private static final PortAllocator INSTANCE = new PortAllocator();
 

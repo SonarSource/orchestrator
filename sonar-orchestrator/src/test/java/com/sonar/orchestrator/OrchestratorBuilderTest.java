@@ -237,24 +237,6 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
-  public void addMavenPluginEcosystem() {
-    Configuration config = Configuration.builder().setProperty("javaVersion", "1.3").build();
-    Orchestrator orchestrator = new OrchestratorBuilder(config)
-      .setSonarVersion("3.6")
-      .setOrchestratorProperty("orchestrator.updateCenterUrl", updateCenterUrl.toString())
-      .addPlugin("java")
-      .build();
-    assertThat(orchestrator.getDistribution().getPluginLocations()).contains(PluginLocation.create("java", "1.3", "org.codehaus.sonar-plugins.java", "sonar-java-plugin"));
-    assertThat(orchestrator.getDistribution().getPluginLocations()).contains(PluginLocation.create("pmd", "1.3", "org.codehaus.sonar-plugins.java", "sonar-pmd-plugin"));
-    assertThat(orchestrator.getDistribution().getPluginLocations()).contains(
-      PluginLocation.create("checkstyle", "1.3", "org.codehaus.sonar-plugins.java", "sonar-checkstyle-plugin"));
-    // ORCH-204
-    assertThat(orchestrator.getConfiguration().getPluginVersion("java").toString()).isEqualTo("1.3");
-    assertThat(orchestrator.getConfiguration().getPluginVersion("pmd").toString()).isEqualTo("1.3");
-    assertThat(orchestrator.getConfiguration().getPluginVersion("checkstyle").toString()).isEqualTo("1.3");
-  }
-
-  @Test
   public void removeDistributedPlugins() {
     assertThat(Orchestrator.builderEnv()
       .setSonarVersion("3.6")

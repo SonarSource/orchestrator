@@ -26,8 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 
 public final class AntBuild extends Build<AntBuild> {
 
@@ -77,11 +75,12 @@ public final class AntBuild extends Build<AntBuild> {
 
   @Override
   public String toString() {
-    return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE)
-      .append("antHome", antHome)
-      .append("build", buildLocation)
-      .append("targets", targets)
-      .toString();
+    StringBuilder sb = new StringBuilder("AntBuild{");
+    sb.append("antHome=").append(antHome);
+    sb.append(", buildLocation=").append(buildLocation);
+    sb.append(", targets=").append(targets);
+    sb.append('}');
+    return sb.toString();
   }
 
   @Override

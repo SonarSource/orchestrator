@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator;
 
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
@@ -48,9 +47,9 @@ import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -123,7 +122,7 @@ public class Orchestrator extends SingleStartExternalResource {
 
     for (String pluginKey : distribution.getLicensedPluginKeys()) {
       String license = licenses.get(pluginKey);
-      if (!isNullOrEmpty(license)) {
+      if (!isEmpty(license)) {
         updateSetting(licenses.licensePropertyKey(pluginKey), license);
       }
     }
@@ -214,7 +213,7 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   private BuildResult executeBuildInternal(Build<?> build, boolean quietly, boolean waitForComputeEngine) {
-    Preconditions.checkNotNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
+    requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
 
     BuildResult buildResult;
     if (quietly) {
@@ -229,7 +228,7 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   public BuildResult[] executeBuilds(Build<?>... builds) {
-    Preconditions.checkNotNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
+    requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
 
     BuildResult[] results = new BuildResult[builds.length];
     for (int index = 0; index < builds.length; index++) {

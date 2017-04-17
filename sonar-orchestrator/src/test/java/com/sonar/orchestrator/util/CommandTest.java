@@ -47,9 +47,10 @@ public class CommandTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @Test
-  public void fail_if_blank_executable() {
+  public void fail_if_empty_executable() {
     thrown.expect(IllegalArgumentException.class);
-    Command.create("  ");
+
+    Command.create("");
   }
 
   @Test

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator;
 
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
@@ -31,16 +30,18 @@ import com.sonar.orchestrator.locator.URLLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Properties;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.Release;
@@ -48,10 +49,12 @@ import org.sonar.updatecenter.common.UpdateCenter;
 import org.sonar.updatecenter.common.UpdateCenterDeserializer;
 import org.sonar.updatecenter.common.UpdateCenterDeserializer.Mode;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.util.Objects.requireNonNull;
 
 public class OrchestratorBuilder {
 
@@ -113,7 +116,7 @@ public class OrchestratorBuilder {
    */
   public Optional<String> getSonarVersion() {
     String requestedVersion = getOrchestratorProperty(Configuration.SONAR_VERSION_PROPERTY);
-    if (isBlank(requestedVersion)) {
+    if (isEmpty(requestedVersion)) {
       return Optional.empty();
     }
     if (ALIAS_LTS_OR_OLDEST_COMPATIBLE.equals(requestedVersion)) {
@@ -139,9 +142,7 @@ public class OrchestratorBuilder {
   private String getRequestedPluginVersion(String pluginKey) {
     String pluginVersionPropertyKey = getPluginVersionPropertyKey(pluginKey);
     String pluginVersion = getOrchestratorProperty(pluginVersionPropertyKey);
-    if (isBlank(pluginVersion)) {
-      throw new IllegalStateException("Missing " + pluginKey + " plugin version. Please define property " + pluginVersionPropertyKey);
-    }
+    checkState(!isEmpty(pluginVersion), "Missing %s plugin version. Please define property %s", pluginKey, pluginVersionPropertyKey);
     return pluginVersion;
   }
 
@@ -168,23 +169,28 @@ public class OrchestratorBuilder {
   }
 
   public UpdateCenter getUpdateCenter() {
-    if (updateCenter == null) {
-      File updateCenterFile = null;
-      try {
-        updateCenterFile = File.createTempFile("update-center", ".properties");
-        new Locators(config).copyToFile(URLLocation.create(getUpdateCenterUrl()), updateCenterFile);
-        updateCenter = new UpdateCenterDeserializer(Mode.DEV, false).fromSingleFile(updateCenterFile);
-      } catch (IOException e) {
-        throw new IllegalStateException("Unable to read update center properties file", e);
-      } finally {
-        FileUtils.deleteQuietly(updateCenterFile);
+    if (updateCenter != null) {
+      return updateCenter;
+    }
+    File updateCenterFile = null;
+    try {
+      updateCenterFile = File.createTempFile("update-center", ".properties");
+      new Locators(config).copyToFile(URLLocation.create(getUpdateCenterUrl()), updateCenterFile);
+      Properties props = new Properties();
+      try (Reader propsReader = new FileReader(updateCenterFile)) {
+        props.load(propsReader);
       }
+      updateCenter = new UpdateCenterDeserializer(Mode.DEV, false).fromProperties(props);
+    } catch (IOException e) {
+      throw new IllegalStateException("Unable to read update center properties file", e);
+    } finally {
+      FileUtils.deleteQuietly(updateCenterFile);
     }
     return updateCenter;
   }
 
   private URL getUpdateCenterUrl() {
-    String url = StringUtils.defaultIfBlank(getOrchestratorProperty("orchestrator.updateCenterUrl"), "http://update.sonarsource.org/update-center.properties");
+    String url = defaultIfEmpty(getOrchestratorProperty("orchestrator.updateCenterUrl"), "http://update.sonarsource.org/update-center.properties");
     try {
       return new URL(url);
     } catch (MalformedURLException e) {
@@ -201,7 +207,7 @@ public class OrchestratorBuilder {
    * </ul>
    */
   public OrchestratorBuilder addPlugin(Location location) {
-    Preconditions.checkNotNull(location);
+    requireNonNull(location);
     distribution.addPluginLocation(location);
     return this;
   }
@@ -217,7 +223,7 @@ public class OrchestratorBuilder {
    */
   public OrchestratorBuilder addMavenPlugin(String groupId, String artifactId, String versionPropertyKey) {
     String version = getOrchestratorProperty(versionPropertyKey);
-    Preconditions.checkNotNull(version, "Property " + versionPropertyKey + " is not defined");
+    requireNonNull(version, "Property " + versionPropertyKey + " is not defined");
     distribution.addPluginLocation(MavenLocation.create(groupId, artifactId, version));
     return this;
   }
@@ -225,14 +231,12 @@ public class OrchestratorBuilder {
   /**
    * Install a plugin by its key. First groupId/artifactId is determined using update center.
    * Once Maven coordinates are known the plugin is located in local Maven repository.<br/>
-   * If not found there will be an attempt to download it from Nexus.<br/>
+   * If not found there will be an attempt to download it.<br/>
    * If still not found URL defined in update center will be used.<br/>
    * <p/>
-   * If plugin is the parent of an ecosystem (java, dotnet, ...) then all child plugins will also be installed using the same algorithm.
+   * This method requires the property &lt;pluginKey&gt;Version to be set, for example "javaVersion". Aliases like DEV are supported.
    * <p/>
-   * This method requires the property &lt;pluginKey&gt;Version to be set, for example "fortifyVersion". Aliases like DEV are supported.
-   * <p/>
-   * Example: {@code addPlugin("fortify")}
+   * Example: {@code addPlugin("java")}
    *
    * @since 2.10
    */
@@ -241,13 +245,6 @@ public class OrchestratorBuilder {
 
     addPluginLocation(pluginKey, version);
 
-    // Now try to install all other plugins if it is an ecosystem
-    Release release = getPluginRelease(pluginKey);
-    for (Release children : release.getChildren()) {
-      addPluginLocation(children.getKey(), version);
-      // Set plugin version with actual value to allow later check (assumeThat)
-      setOrchestratorProperty(getPluginVersionPropertyKey(children.getKey()), version);
-    }
     return this;
   }
 
@@ -269,7 +266,7 @@ public class OrchestratorBuilder {
   }
 
   public String getOrchestratorProperty(String key) {
-    return StringUtils.defaultString(overriddenProperties.get(key), config.getString(key));
+    return defaultIfNull(overriddenProperties.get(key), config.getString(key));
   }
 
   public Configuration getOrchestratorConfiguration() {

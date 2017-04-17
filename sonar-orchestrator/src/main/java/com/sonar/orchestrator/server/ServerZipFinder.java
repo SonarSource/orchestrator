@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.Files;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -28,6 +26,7 @@ import com.sonar.orchestrator.locator.URLLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
 import org.slf4j.Logger;
@@ -35,8 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.Release;
 import org.sonar.updatecenter.common.UpdateCenter;
 
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class ServerZipFinder {
 
@@ -50,7 +49,6 @@ public class ServerZipFinder {
     this(fs, updateCenter, new ServerZipCache(fs));
   }
 
-  @VisibleForTesting
   ServerZipFinder(FileSystem fs, UpdateCenter updateCenter, ServerZipCache cache) {
     this.fs = fs;
     this.updateCenter = updateCenter;
@@ -118,13 +116,13 @@ public class ServerZipFinder {
   @CheckForNull
   private File downloadFromUpdateCenter(Version version) {
     String url = getDownloadUrl(version);
-    if (isBlank(url)) {
+    if (isEmpty(url)) {
       LOG.info("SonarQube {} is not defined in update center", version);
       return null;
     }
 
     try {
-      File tempDir = Files.createTempDir();
+      File tempDir = Files.createTempDirectory("orchestrator").toFile();
       return fs.copyToDirectory(URLLocation.create(new URL(url)), tempDir);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to download " + url, e);

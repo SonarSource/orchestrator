@@ -19,21 +19,19 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.filefilter.FileFilterUtils.and;
 import static org.apache.commons.io.filefilter.FileFilterUtils.notFileFilter;
 
@@ -56,7 +54,7 @@ public class FileLocation implements Location {
   }
 
   public static FileLocation of(URL url) {
-    Preconditions.checkNotNull(url);
+    requireNonNull(url);
     return new FileLocation(FileUtils.toFile(url));
   }
 
@@ -113,9 +111,10 @@ public class FileLocation implements Location {
       throw new IllegalStateException(format("No files match [%s] in directory [%s]", wildcardFilename, directory));
     }
     if (files.size() > 1) {
-      throw new IllegalStateException(format("Multiple files match [%s] in directory [%s]: %s", wildcardFilename, directory, Joiner.on(", ").join(files)));
+      String filenames = files.stream().map(File::getName).collect(Collectors.joining(", "));
+      throw new IllegalStateException(format("Multiple files match [%s] in directory [%s]: %s", wildcardFilename, directory, filenames));
     }
-    return of(Iterables.getOnlyElement(files));
+    return of(files.iterator().next());
   }
 
   /**
@@ -138,9 +137,8 @@ public class FileLocation implements Location {
    *              which take into account orchestrator.properties
    */
   @Deprecated
-  @VisibleForTesting
   static FileLocation ofShared(String relativePath, String rootPath) {
-    Preconditions.checkNotNull(rootPath, format("System property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
+    requireNonNull(rootPath, format("System property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
     File rootDir = new File(rootPath);
     checkState(rootDir.isDirectory() && rootDir.exists(),
       "Please check the system property '%s' or the env variable '%s'. Directory does not exist: %s", PROP_SHARED_DIR, ENV_SHARED_DIR, rootDir);

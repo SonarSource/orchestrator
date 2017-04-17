@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -29,14 +27,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.LoggerFactory;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
 
   @Override
-  @VisibleForTesting
   BuildResult execute(AntBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
     for (String target : build.getTargets()) {
@@ -53,10 +51,10 @@ class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
       for (Map.Entry<String, String> env : build.getEnvironmentVariables().entrySet()) {
         command.setEnvironmentVariable(env.getKey(), env.getValue());
       }
-      command.addArguments(StringUtils.split(target, " "));
+      command.addArguments(target.split(" "));
 
       File antFile = config.fileSystem().locate(build.getBuildLocation());
-      Preconditions.checkState(antFile.exists(), "Ant build file does not exist: " + build.getBuildLocation());
+      checkState(antFile.exists(), "Ant build file does not exist: %s", build.getBuildLocation());
 
       command.addArgument("-f").addArgument(antFile.getCanonicalPath());
       command.addArguments(build.arguments());

@@ -19,20 +19,20 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.base.Preconditions;
+import java.net.URL;
 import org.apache.commons.lang.StringUtils;
 
-import java.net.URL;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 public class ResourceLocation implements Location {
 
   private final String path;
 
   private ResourceLocation(String path) {
-    Preconditions.checkNotNull(path);
-    Preconditions.checkArgument(path.startsWith("/"), "Path must start with slash");
+    checkArgument(path.startsWith("/"), "Path must start with slash");
     URL resource = ResourceLocation.class.getResource(path);
-    Preconditions.checkNotNull(resource, "Resource not found: " + path);
+    requireNonNull(resource, "Resource not found: " + path);
     this.path = path;
   }
 

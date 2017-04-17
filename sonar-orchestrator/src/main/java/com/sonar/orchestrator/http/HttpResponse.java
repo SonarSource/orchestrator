@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.http;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +34,6 @@ public class HttpResponse {
   private final byte[] body;
   private final Headers headers;
 
-  @VisibleForTesting
   HttpResponse(int code, Charset charset, byte[] body, Headers headers) {
     this.code = code;
     this.charset = charset;

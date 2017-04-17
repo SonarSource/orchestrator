@@ -19,19 +19,20 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
-
 import java.net.URISyntaxException;
 import java.net.URL;
+import javax.annotation.Nullable;
+import org.apache.commons.lang.StringUtils;
+
+import static java.util.Objects.requireNonNull;
 
 public class URLLocation implements Location {
 
   private final URL url;
   private final String filename;
 
-  private URLLocation(URL url, String filename) {
-    Preconditions.checkNotNull(url);
+  private URLLocation(URL url, @Nullable String filename) {
+    requireNonNull(url);
     this.url = url;
     this.filename = filename;
   }
@@ -40,7 +41,7 @@ public class URLLocation implements Location {
     return new URLLocation(url, null);
   }
 
-  public static URLLocation create(URL url, String filename) {
+  public static URLLocation create(URL url, @Nullable String filename) {
     return new URLLocation(url, filename);
   }
 

@@ -19,9 +19,6 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,8 +26,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.SystemUtils;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.util.Objects.requireNonNull;
 
 public class Command {
 
@@ -48,7 +49,6 @@ public class Command {
   private File directory;
   private Map<String, String> env = new HashMap<>(System.getenv());
 
-  @VisibleForTesting
   Command(String executable, Os os) {
     this.executable = executable;
     this.os = os;
@@ -78,8 +78,8 @@ public class Command {
   }
 
   public Command addSystemArgument(String key, String value) {
-    Preconditions.checkNotNull(key);
-    Preconditions.checkNotNull(value);
+    requireNonNull(key);
+    requireNonNull(value);
 
     StringBuilder sb = new StringBuilder();
     sb.append("-D").append(key).append("=").append(value);
@@ -148,7 +148,7 @@ public class Command {
   }
 
   public String toCommandLine() {
-    return Joiner.on(" ").join(toStrings());
+    return Arrays.stream(toStrings()).collect(Collectors.joining(" "));
   }
 
   @Override
@@ -160,9 +160,7 @@ public class Command {
    * Create a command line without any arguments
    */
   public static Command create(String executable) {
-    if (StringUtils.isBlank(executable)) {
-      throw new IllegalArgumentException("Command executable can not be blank");
-    }
+    checkArgument(!isEmpty(executable), "Command executable can not be blank");
     return new Command(executable, new Os());
   }
 }

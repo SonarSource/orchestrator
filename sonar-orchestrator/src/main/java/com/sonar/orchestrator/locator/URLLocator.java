@@ -33,9 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.defaultString;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 class URLLocator implements Locator<URLLocation> {
 
@@ -98,7 +97,7 @@ class URLLocator implements Locator<URLLocation> {
 
   @CheckForNull
   static String getFilenameFromContentDispositionHeader(@Nullable String header) {
-    if (isBlank(header)) {
+    if (isEmpty(header)) {
       return null;
     }
     String filename = header.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
@@ -112,6 +111,6 @@ class URLLocator implements Locator<URLLocation> {
       filename = StringUtils.remove(filename, ";");
       filename = StringUtils.remove(filename, " ");
     }
-    return defaultString(filename, null);
+    return filename;
   }
 }

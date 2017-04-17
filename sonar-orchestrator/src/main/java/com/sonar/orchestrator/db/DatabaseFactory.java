@@ -19,16 +19,14 @@
  */
 package com.sonar.orchestrator.db;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
-import org.apache.commons.lang.StringUtils;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public final class DatabaseFactory {
 
@@ -40,7 +38,6 @@ public final class DatabaseFactory {
     return create(config, config.fileSystem());
   }
 
-  @VisibleForTesting
   static DatabaseClient create(Configuration config, FileSystem fileSystem) {
     String url = config.getString("sonar.jdbc.url");
     DatabaseClient.Builder builder = newBuilderForUrl(url);
@@ -79,7 +76,7 @@ public final class DatabaseFactory {
     }
 
     String value = config.getString("orchestrator.keepDatabase", "false");
-    boolean keepDatabase = StringUtils.isNotBlank(value) ? Boolean.valueOf(value) : false;
+    boolean keepDatabase = !isEmpty(value) ? Boolean.valueOf(value) : false;
     if (keepDatabase) {
       builder.setDropAndCreate(false);
     }
@@ -88,7 +85,7 @@ public final class DatabaseFactory {
   }
 
   private static void feedDriverMavenKey(FileSystem fileSystem, DatabaseClient.Builder builder, String propertyValue) {
-    String[] fields = StringUtils.split(propertyValue, ':');
+    String[] fields = propertyValue.split(":");
     checkArgument(fields.length == 3, "Format is groupId:artifactId:version. Please check the property sonar.jdbc.driverMavenKey: %s", propertyValue);
     MavenLocation location = MavenLocation.create(fields[0], fields[1], fields[2]);
     File file = fileSystem.locate(location);

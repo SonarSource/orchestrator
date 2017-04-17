@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import java.util.HashMap;
@@ -47,7 +46,6 @@ public class BuildRunner {
     return result;
   }
 
-  @VisibleForTesting
   Map<String, String> adjustProperties(@Nullable Server server, Build<?> build) {
     Map<String, String> adjustedProperties = new HashMap<>();
     if (!(build instanceof ScannerForMSBuild) || !build.arguments().contains("end")) {

@@ -19,14 +19,12 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.coverage.JaCoCoArgumentsBuilder;
 import com.sonar.orchestrator.util.CommandExecutor;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 abstract class AbstractBuildExecutor<T extends Build<T>> {
 
@@ -36,7 +34,6 @@ abstract class AbstractBuildExecutor<T extends Build<T>> {
     return execute(build, config, adjustedProperties, CommandExecutor.create());
   }
 
-  @VisibleForTesting
   abstract BuildResult execute(T build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create);
 
   /**

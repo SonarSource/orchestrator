@@ -19,9 +19,7 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
-
 import java.io.File;
 import java.io.InputStream;
 
@@ -41,7 +39,6 @@ public class Locators {
     pluginLocator = new PluginLocator(config, mavenLocator, urlLocator);
   }
 
-  @VisibleForTesting
   Locators(FileLocator fileLocator, MavenLocator mavenLocator, ResourceLocator resourceLocator, URLLocator urlLocator, PluginLocator pluginLocator) {
     this.fileLocator = fileLocator;
     this.mavenLocator = mavenLocator;

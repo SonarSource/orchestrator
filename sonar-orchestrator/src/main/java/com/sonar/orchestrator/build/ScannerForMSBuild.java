@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.base.Preconditions;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
@@ -28,8 +27,9 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Executes the scanner for MSBuild.
@@ -87,7 +87,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   }
 
   public ScannerForMSBuild setScannerLocation(Location location) {
-    Preconditions.checkNotNull(location);
+    requireNonNull(location);
     this.location = location;
     return this;
   }
@@ -154,7 +154,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   }
 
   private static void checkProjectDir(File dir) {
-    Preconditions.checkNotNull(dir, "Project directory must be set");
+    requireNonNull(dir, "Project directory must be set");
     checkArgument(dir.exists(), "Project directory must exist");
     checkArgument(dir.isDirectory(), "Project directory must be... a directory");
   }

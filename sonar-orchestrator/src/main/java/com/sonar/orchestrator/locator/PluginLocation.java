@@ -19,8 +19,8 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public class PluginLocation extends MavenLocation {
   private final String key;
@@ -82,7 +82,7 @@ public class PluginLocation extends MavenLocation {
       // Just to reuse preconditions
       super.build();
 
-      Preconditions.checkArgument(StringUtils.isNotBlank(key), "key must be set");
+      checkArgument(!isEmpty(key), "key must be set");
       return new PluginLocation(this);
     }
   }

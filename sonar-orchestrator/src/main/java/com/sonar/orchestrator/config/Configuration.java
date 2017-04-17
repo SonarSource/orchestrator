@@ -19,11 +19,12 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.util.OrchestratorUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,14 +33,17 @@ import java.util.function.Predicate;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.UpdateCenter;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
+import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 public class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
@@ -54,7 +58,7 @@ public class Configuration {
 
   private Configuration(Map<String, String> map, UpdateCenter updateCenter) {
     this.updateCenter = updateCenter;
-    this.props = ImmutableMap.copyOf(map);
+    this.props = Collections.unmodifiableMap(new HashMap<>(map));
     this.fileSystem = new FileSystem(this);
   }
 
@@ -91,7 +95,7 @@ public class Configuration {
     if (rootPath == null) {
       rootPath = System.getenv(ENV_SHARED_DIR);
     }
-    checkNotNull(rootPath, "Property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR);
+    requireNonNull(rootPath, format("Property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
 
     File rootDir = new File(rootPath);
     checkState(rootDir.isDirectory() && rootDir.exists(),
@@ -109,7 +113,7 @@ public class Configuration {
   }
 
   public String getString(String key, @Nullable String defaultValue) {
-    return StringUtils.defaultString(props.get(key), defaultValue);
+    return defaultIfNull(props.get(key), defaultValue);
   }
 
   @CheckForNull
@@ -130,7 +134,7 @@ public class Configuration {
 
   public int getInt(String key, int defaultValue) {
     String stringValue = props.get(key);
-    if (StringUtils.isNotBlank(stringValue)) {
+    if (!isEmpty(stringValue)) {
       return Integer.parseInt(stringValue);
     }
     return defaultValue;
@@ -220,8 +224,8 @@ public class Configuration {
 
     private Builder loadPropertiesFile() {
       String fileUrl = props.get("ORCHESTRATOR_CONFIG_URL");
-      fileUrl = StringUtils.defaultIfBlank(props.get("orchestrator.configUrl"), fileUrl);
-      if (StringUtils.isBlank(fileUrl)) {
+      fileUrl = OrchestratorUtils.defaultIfEmpty(props.get("orchestrator.configUrl"), fileUrl);
+      if (isEmpty(fileUrl)) {
         // Use default values
         setPropertyIfAbsent("sonar.jdbc.dialect", "embedded");
         setPropertyIfAbsent("orchestrator.updateCenterUrl", "http://update.sonarsource.org/update-center-dev.properties");
@@ -230,7 +234,7 @@ public class Configuration {
           setPropertyIfAbsent(MAVEN_LOCAL_REPOSITORY_PROPERTY, System.getenv("SONAR_MAVEN_REPOSITORY"));
         } else {
           setPropertyIfAbsent(MAVEN_LOCAL_REPOSITORY_PROPERTY,
-            StringUtils.defaultIfBlank(System.getProperty(MAVEN_LOCAL_REPOSITORY_PROPERTY), System.getProperty("user.home") + "/.m2/repository"));
+            defaultIfEmpty(System.getProperty(MAVEN_LOCAL_REPOSITORY_PROPERTY), System.getProperty("user.home") + "/.m2/repository"));
         }
 
         return this;
@@ -253,7 +257,7 @@ public class Configuration {
     }
 
     private void setPropertyIfAbsent(String key, String value) {
-      if (StringUtils.isBlank(props.get(key))) {
+      if (isEmpty(props.get(key))) {
         LOG.warn("Using default value for orchestrator.properties: {}={}", key, value);
         props.put(key, value);
       }

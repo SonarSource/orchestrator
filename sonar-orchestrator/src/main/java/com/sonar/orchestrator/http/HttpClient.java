@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.http;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +30,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
 
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 public class HttpClient {
 
@@ -45,7 +44,6 @@ public class HttpClient {
     return new HttpCall(okClient, url);
   }
 
-  @VisibleForTesting
   OkHttpClient getUnderlying() {
     return okClient;
   }
@@ -53,7 +51,6 @@ public class HttpClient {
   public static class Builder {
     private SystemProperties system = SystemProperties.INSTANCE;
 
-    @VisibleForTesting
     Builder setSystemProperties(SystemProperties sp) {
       this.system = sp;
       return this;
@@ -74,7 +71,7 @@ public class HttpClient {
 
       // OkHttp detects 'http.proxyHost' java property, but credentials should be filled
       String proxyLogin = system.getProperty("http.proxyUser");
-      if (isNotBlank(system.getProperty("http.proxyHost")) && isNotBlank(proxyLogin)) {
+      if (!isEmpty(system.getProperty("http.proxyHost")) && !isEmpty(proxyLogin)) {
         okClient.proxyAuthenticator(new ProxyAuthenticator(proxyLogin, system.getProperty("http.proxyPassword")));
       }
 
@@ -82,7 +79,6 @@ public class HttpClient {
     }
   }
 
-  @VisibleForTesting
   static class ProxyAuthenticator implements Authenticator {
     private final String login;
     private final String password;
@@ -101,18 +97,15 @@ public class HttpClient {
       return null;
     }
 
-    @VisibleForTesting
     public String getLogin() {
       return login;
     }
 
-    @VisibleForTesting
     public String getPassword() {
       return password;
     }
   }
 
-  @VisibleForTesting
   static class SystemProperties {
     private static final SystemProperties INSTANCE = new SystemProperties();
 
