@@ -71,7 +71,7 @@ public class PluginLocatorTest {
   }
 
   @Test(expected = UnsupportedOperationException.class)
-  public void testLocateUnsuported() {
+  public void testLocateUnsupported() {
     PluginLocation location = PluginLocation.create("clirr", "1.1", "foo.bar", "clirr-plugin");
     pluginLocator.locate(location);
   }
@@ -90,7 +90,7 @@ public class PluginLocatorTest {
     PluginLocation location = PluginLocation.create("clirr", "1.1", "foo.bar", "clirr-plugin");
     File dest = temp.newFile();
     when(mavenLocator.copyToFile(eq(location), any(File.class))).thenReturn(null);
-    Plugin plugin = new Plugin("clirr");
+    Plugin plugin = Plugin.factory("clirr");
     plugin.addRelease(new Release(plugin, "1.1").setDownloadUrl(fakeArtifact.toURI().toURL().toString()));
     when(pluginReferential.findPlugin("clirr")).thenReturn(plugin);
     assertThat(FileUtils.readFileToString(pluginLocator.copyToFile(location, dest))).isEqualTo("fakeContent");
@@ -113,7 +113,7 @@ public class PluginLocatorTest {
     PluginLocation location = PluginLocation.create("clirr", "1.1", "foo.bar", "clirr-plugin");
     File dest = temp.newFile();
     when(mavenLocator.copyToFile(eq(location), any(File.class))).thenReturn(null);
-    Plugin plugin = new Plugin("clirr");
+    Plugin plugin = Plugin.factory("clirr");
     when(pluginReferential.findPlugin("clirr")).thenReturn(plugin);
 
     thrown.expect(IllegalStateException.class);
@@ -126,7 +126,7 @@ public class PluginLocatorTest {
     PluginLocation location = PluginLocation.create("clirr", "1.1", "foo.bar", "clirr-plugin");
     File dest = temp.newFile();
     when(mavenLocator.copyToFile(eq(location), any(File.class))).thenReturn(null);
-    Plugin plugin = new Plugin("clirr");
+    Plugin plugin = Plugin.factory("clirr");
     plugin.addRelease(new Release(plugin, "1.1"));
     when(pluginReferential.findPlugin("clirr")).thenReturn(plugin);
 
@@ -149,7 +149,7 @@ public class PluginLocatorTest {
     PluginLocation location = PluginLocation.create("clirr", "1.1", "foo.bar", "clirr-plugin");
     File dest = temp.newFolder();
     when(mavenLocator.copyToDirectory(eq(location), any(File.class))).thenReturn(null);
-    Plugin plugin = new Plugin("clirr");
+    Plugin plugin = Plugin.factory("clirr");
     plugin.addRelease(new Release(plugin, "1.1").setDownloadUrl(fakeArtifact.toURI().toURL().toString()));
     when(pluginReferential.findPlugin("clirr")).thenReturn(plugin);
     assertThat(FileUtils.readFileToString(pluginLocator.copyToDirectory(location, dest))).isEqualTo("fakeContent");
@@ -166,7 +166,7 @@ public class PluginLocatorTest {
   public void testOpenStreamFallbackToUpdateCenter() throws IOException {
     PluginLocation location = PluginLocation.create("clirr", "1.1", "foo.bar", "clirr-plugin");
     when(mavenLocator.openInputStream(eq(location))).thenReturn(null);
-    Plugin plugin = new Plugin("clirr");
+    Plugin plugin = Plugin.factory("clirr");
     plugin.addRelease(new Release(plugin, "1.1").setDownloadUrl(fakeArtifact.toURI().toURL().toString()));
     when(pluginReferential.findPlugin("clirr")).thenReturn(plugin);
     assertThat(IOUtils.readLines(pluginLocator.openInputStream(location), "UTF-8")).contains("fakeContent");

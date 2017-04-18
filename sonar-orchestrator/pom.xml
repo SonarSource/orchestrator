@@ -28,9 +28,9 @@
       <version>${sonarWsClient.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.sonar</groupId>
+      <groupId>org.sonarsource.update-center</groupId>
       <artifactId>sonar-update-center-common</artifactId>
-      <version>1.12.1</version>
+      <version>1.19.0.496</version>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
