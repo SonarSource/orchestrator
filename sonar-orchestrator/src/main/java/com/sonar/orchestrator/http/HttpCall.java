@@ -29,15 +29,16 @@ import javax.annotation.Nullable;
 import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -193,6 +194,12 @@ public class HttpCall {
         FormBody.Builder schwarzy = new FormBody.Builder();
         parameters.forEach(schwarzy::add);
         okRequest.post(schwarzy.build());
+        break;
+      case MULTIPART_POST:
+        okRequest = new Request.Builder().url(baseUrl);
+        MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        parameters.forEach(bodyBuilder::addFormDataPart);
+        okRequest.post(bodyBuilder.build());
         break;
       default:
         throw new UnsupportedOperationException("Unsupported HTTP method: " + method);

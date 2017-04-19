@@ -24,7 +24,6 @@ import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.net.URLEncoder;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -35,7 +34,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,7 +114,11 @@ public class ServerTest {
     RecordedRequest receivedRequest = server.takeRequest();
     assertThat(receivedRequest.getMethod()).isEqualTo("POST");
     assertThat(receivedRequest.getPath()).isEqualTo("/api/qualityprofiles/restore");
-    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("backup=" + URLEncoder.encode("<backup/>", UTF_8.name()));
+    // sent as multipart form
+    assertThat(receivedRequest.getBody().readUtf8())
+      .contains("Content-Disposition: form-data; name=\"backup\"")
+      .contains("Content-Length: 9")
+      .contains("<backup/>");
   }
 
   @Test

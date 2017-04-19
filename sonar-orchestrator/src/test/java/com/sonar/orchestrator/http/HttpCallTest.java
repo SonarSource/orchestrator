@@ -159,6 +159,23 @@ public class HttpCallTest {
   }
 
   @Test
+  public void parameters_of_MULTIPART_POST_request_should_be_sent_as_multipart_in_body() throws Exception {
+    server.enqueue(new MockResponse().setBody(PONG));
+
+    HttpResponse response = newCall("api/system/ping")
+      .setMethod(HttpMethod.MULTIPART_POST)
+      .setParam("foo", "foz")
+      .setParam("bar", "baz")
+      .execute();
+
+    verifySuccess(response, PONG);
+    RecordedRequest recordedRequest = server.takeRequest();
+    verifyRecorded(recordedRequest, "POST", "api/system/ping");
+    assertThat(recordedRequest.getBody().readUtf8())
+      .containsSequence("Content-Disposition: form-data; name=\"foo\"", "foz", "Content-Disposition: form-data; name=\"bar\"", "baz");
+  }
+
+  @Test
   public void HttpResponse_contains_headers() {
     server.enqueue(new MockResponse().setBody(PONG)
       .setHeader("foo", "foo_val")

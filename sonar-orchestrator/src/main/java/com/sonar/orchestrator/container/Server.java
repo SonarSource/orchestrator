@@ -206,7 +206,7 @@ public class Server {
   public Server restoreProfile(Location backup) {
     try (InputStream input = fileSystem.openInputStream(backup)) {
       newHttpCall("/api/qualityprofiles/restore")
-        .setMethod(HttpMethod.POST)
+        .setMethod(HttpMethod.MULTIPART_POST)
         .setAdminCredentials()
         .setParam("backup", IOUtils.toString(input, UTF_8))
         .execute();

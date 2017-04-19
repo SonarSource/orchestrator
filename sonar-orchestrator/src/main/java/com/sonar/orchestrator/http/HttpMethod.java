@@ -20,5 +20,5 @@
 package com.sonar.orchestrator.http;
 
 public enum HttpMethod {
-  GET, POST
+  GET, POST, MULTIPART_POST
 }
