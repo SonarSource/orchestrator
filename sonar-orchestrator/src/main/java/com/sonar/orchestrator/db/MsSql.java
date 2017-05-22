@@ -71,7 +71,7 @@ public final class MsSql extends DatabaseClient {
   public String[] getCreateDdl() {
     return new String[] {
       // case-sensitive and accent-sensitive collation
-      "create database [" + getLogin() + "]",
+      "create database [" + getLogin() + "] collate SQL_Latin1_General_CP1_CS_AS",
       "CREATE LOGIN [" + getLogin() + "] WITH PASSWORD = '" + getPassword() + "', CHECK_POLICY=OFF, DEFAULT_DATABASE=[" + getLogin() + "]",
       "USE [" + getLogin() + "]",
       "sp_adduser N'" + getLogin() + "', N'" + getLogin() + "'",
