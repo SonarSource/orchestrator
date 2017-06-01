@@ -21,6 +21,8 @@ package com.sonar.orchestrator.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -151,20 +153,46 @@ public class HttpCall {
 
   public void downloadToFile(File file) {
     Request okRequest = buildOkHttpRequest();
-    try (Response okResponse = doExecute(okRequest)) {
-      if (!okResponse.isSuccessful()) {
-        throw new HttpException(okRequest.url(), okResponse.code(), okResponse.body().string());
+    try {
+      doDownloadToFile(okRequest, file);
+    } catch (SocketException|SocketTimeoutException se) {
+      // retry, because of some false-positives when downloading files from GitHub
+      try {
+        doDownloadToFile(okRequest, file);
+      } catch (IOException e2) {
+        throw new IllegalStateException(format("Can not call %s", okRequest.url()), e2);
       }
-
-      FileUtils.copyInputStreamToFile(okResponse.body().byteStream(), file);
-
     } catch (IOException e) {
       throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
     }
   }
 
+  private void doDownloadToFile(Request okRequest, File file) throws IOException {
+    try (Response okResponse = doExecute(okRequest)) {
+      if (!okResponse.isSuccessful()) {
+        throw new HttpException(okRequest.url(), okResponse.code(), okResponse.body().string());
+      }
+      FileUtils.copyInputStreamToFile(okResponse.body().byteStream(), file);
+    }
+  }
+
   public File downloadToDirectory(File dir) {
     Request okRequest = buildOkHttpRequest();
+    try {
+      return doDownloadToDirectory(dir, okRequest);
+    } catch (SocketException|SocketTimeoutException se) {
+      // retry, because of some false-positives when downloading files from GitHub
+      try {
+        return doDownloadToDirectory(dir, okRequest);
+      } catch (IOException e2) {
+        throw new IllegalStateException(format("Can not call %s", okRequest.url()), e2);
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
+    }
+  }
+
+  private File doDownloadToDirectory(File dir, Request okRequest) throws IOException {
     try (Response okResponse = doExecute(okRequest)) {
       if (!okResponse.isSuccessful()) {
         throw new HttpException(okRequest.url(), okResponse.code(), okResponse.body().string());
@@ -173,9 +201,6 @@ public class HttpCall {
       File toFile = new File(dir, filename);
       FileUtils.copyInputStreamToFile(okResponse.body().byteStream(), toFile);
       return toFile;
-
-    } catch (IOException e) {
-      throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
     }
   }
 
