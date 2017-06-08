@@ -21,6 +21,7 @@ package com.sonar.orchestrator.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
@@ -155,7 +156,7 @@ public class HttpCall {
     Request okRequest = buildOkHttpRequest();
     try {
       doDownloadToFile(okRequest, file);
-    } catch (SocketException|SocketTimeoutException se) {
+    } catch (ProtocolException|SocketException|SocketTimeoutException se) {
       // retry, because of some false-positives when downloading files from GitHub
       try {
         doDownloadToFile(okRequest, file);
@@ -180,7 +181,7 @@ public class HttpCall {
     Request okRequest = buildOkHttpRequest();
     try {
       return doDownloadToDirectory(dir, okRequest);
-    } catch (SocketException|SocketTimeoutException se) {
+    } catch (ProtocolException|SocketException|SocketTimeoutException se) {
       // retry, because of some false-positives when downloading files from GitHub
       try {
         return doDownloadToDirectory(dir, okRequest);
