@@ -11,6 +11,10 @@
   <artifactId>sonar-orchestrator-osgi</artifactId>
   <packaging>bundle</packaging>
   <name>Orchestrator :: OSGI Bundle</name>
+  
+  <properties>
+    <sonar-ws.version>6.4</sonar-ws.version>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -23,6 +27,11 @@
           <groupId>junit</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.sonarsource.sonarqube</groupId>
+      <artifactId>sonar-ws</artifactId>
+      <version>${sonar-ws.version}</version>
     </dependency>
   </dependencies>
 
@@ -41,7 +50,9 @@
               !*
             </Import-Package>
             <_exportcontents>
-              com.sonar.orchestrator.*;version="${project.version}"
+              com.sonar.orchestrator.*;version="${project.version}",
+              org.sonar.wsclient.*;version="${sonarWsClient.version}",
+              org.sonarqube.ws.client.*;version="${sonar-ws.version}"
             </_exportcontents>
             <Require-Bundle>
               org.junit;bundle-version="4.11"
