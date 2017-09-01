@@ -283,7 +283,9 @@ public final class DefaultDatabase implements Database {
           LOG.warn("Kill JDBC orphan {}", sql);
           stmt.execute(sql);
           // commit is useless on some databases
-          connection.commit();
+          if (!connection.getAutoCommit()) {
+            connection.commit();
+          }
         } catch (SQLException e) {
           LOG.error("Issue while killing connection", e);
         }
