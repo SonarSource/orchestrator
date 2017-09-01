@@ -160,9 +160,15 @@ public class ServerProcessImpl implements ServerProcess {
     }
   }
 
-  private void waitForExit() throws InterruptedException {
+  private void waitForExit() {
     if (processResultHandler != null) {
-      processResultHandler.waitFor(stopTimeoutMs);
+      try {
+        processResultHandler.waitFor(stopTimeoutMs);
+      } catch (InterruptedException e) {
+        // Ignore it, we hitting the exception if everything goes well
+        // Do not set the flag through Thread.currentThread().interrupt()
+        // since next "wait" method will catch an InterruptedException
+      }
     }
   }
 
