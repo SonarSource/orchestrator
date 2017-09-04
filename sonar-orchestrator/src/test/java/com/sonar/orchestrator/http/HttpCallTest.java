@@ -354,7 +354,7 @@ public class HttpCallTest {
     File file = temp.newFile();
 
     newCall("api/system/ping")
-      .setTimeoutMs(1)
+      .setTimeoutMs(10)
       .downloadToFile(file);
 
     assertThat(file).exists().isFile().hasContent(PONG);
@@ -436,7 +436,7 @@ public class HttpCallTest {
     File dir = temp.newFolder();
 
     newCall("api/system/ping.txt")
-      .setTimeoutMs(1)
+      .setTimeoutMs(10)
       .downloadToDirectory(dir);
 
     assertThat(new File(dir, "ping.txt")).isFile().exists().hasContent(PONG);
