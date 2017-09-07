@@ -100,6 +100,7 @@ public class MavenLocator implements Locator<MavenLocation> {
   }
 
   @Override
+  @CheckForNull
   public InputStream openInputStream(MavenLocation location) {
     File target = locateInLocalRepositoryAndLog(location);
     if (target == null) {

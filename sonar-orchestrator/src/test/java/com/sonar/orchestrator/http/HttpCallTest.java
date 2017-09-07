@@ -348,19 +348,6 @@ public class HttpCallTest {
   }
 
   @Test
-  public void downloadToFile_retries_after_SocketTimeoutException() throws Exception {
-    server.enqueue(new MockResponse().setBody("error").setBodyDelay(10, TimeUnit.SECONDS));
-    server.enqueue(new MockResponse().setBody(PONG));
-    File file = temp.newFile();
-
-    newCall("api/system/ping")
-      .setTimeoutMs(10)
-      .downloadToFile(file);
-
-    assertThat(file).exists().isFile().hasContent(PONG);
-  }
-
-  @Test
   public void downloadToDir_downloads_content_in_file_named_specified_by_ContentDisposition_header() throws Exception {
     server.enqueue(new MockResponse().setBody(PONG)
       .setHeader("Content-Disposition", "attachment; filename=foo.jar"));
@@ -430,22 +417,9 @@ public class HttpCallTest {
   }
 
   @Test
-  public void downloadToDir_retries_after_SocketTimeoutException() throws Exception {
-    server.enqueue(new MockResponse().setBody("error").setBodyDelay(10, TimeUnit.SECONDS));
-    server.enqueue(new MockResponse().setBody(PONG));
-    File dir = temp.newFolder();
-
-    newCall("api/system/ping.txt")
-      .setTimeoutMs(10)
-      .downloadToDirectory(dir);
-
-    assertThat(new File(dir, "ping.txt")).isFile().exists().hasContent(PONG);
-  }
-
-  @Test
   public void setTimeout_overrides_default_timeouts() throws Exception {
     // default timeouts would support this slow response
-    server.enqueue(new MockResponse().setBody(PONG).setBodyDelay(10, TimeUnit.MINUTES));
+    server.enqueue(new MockResponse().setBody(PONG).setBodyDelay(10, TimeUnit.SECONDS));
 
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Can not call " + server.url("api/system/ping") + " due to network failure");

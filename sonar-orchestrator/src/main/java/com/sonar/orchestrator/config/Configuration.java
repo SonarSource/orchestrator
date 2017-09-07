@@ -43,6 +43,7 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 
 public class Configuration {
@@ -242,9 +243,9 @@ public class Configuration {
 
       try {
         fileUrl = interpolate(fileUrl, props);
-        String fileContent = IOUtils.toString(new URI(fileUrl), "UTF-8");
+        String fileContent = IOUtils.toString(new URI(fileUrl), UTF_8);
         Properties fileProps = new Properties();
-        fileProps.load(IOUtils.toInputStream(fileContent));
+        fileProps.load(IOUtils.toInputStream(fileContent, UTF_8));
         for (Map.Entry<Object, Object> entry : fileProps.entrySet()) {
           if (!props.containsKey(entry.getKey().toString())) {
             props.put(entry.getKey().toString(), entry.getValue().toString());
