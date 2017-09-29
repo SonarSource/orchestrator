@@ -77,7 +77,7 @@ public final class Oracle extends DatabaseClient {
 
   @Override
   public String getKillConnectionSql(String processID) {
-    return "ALTER SYSTEM KILL SESSION '" + processID + "' IMMEDIATE";
+    return "ALTER SYSTEM DISCONNECT SESSION '" + processID + "' IMMEDIATE";
 
   }
   

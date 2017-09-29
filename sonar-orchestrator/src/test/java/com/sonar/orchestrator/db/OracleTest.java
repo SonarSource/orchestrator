@@ -67,8 +67,7 @@ public class OracleTest {
   public void testListAndKillProcesses() {
     Oracle oracle = Oracle.builder().setDriverFile(driverFile).build();
     assertThat(oracle.getSelectConnectionIdsSql()).contains("SELECT");
-    assertThat(oracle.getKillConnectionSql("007,022")).contains("KILL");
-    assertThat(oracle.getKillConnectionSql("007,022")).contains("007,022");
+    assertThat(oracle.getKillConnectionSql("007,022")).isEqualTo("ALTER SYSTEM DISCONNECT SESSION '007,022' IMMEDIATE");
   }
 
   @Test(expected = IllegalArgumentException.class)
