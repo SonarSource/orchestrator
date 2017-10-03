@@ -127,7 +127,40 @@ public class Orchestrator extends SingleStartExternalResource {
       }
     }
 
+    if (distribution.isActivateLicense()) {
+      activateLicense();
+    }
+
     buildRunner = new BuildRunner(config);
+  }
+
+  /**
+   * Set a test license that work for all commercial products
+   * @since 3.15
+   */
+  public void activateLicense() {
+    String license = licenses.getV3();
+    if (!isEmpty(license)) {
+      setLicense(license);
+    }
+  }
+
+  /**
+   * Removes the license that have been installed with
+   * {@link OrchestratorBuilder#activateLicense()}
+   *
+   * @since 3.15
+   */
+  public void clearLicense() {
+    setLicense(null);
+  }
+
+  private void setLicense(@Nullable String license) {
+    server.newHttpCall("api/license/update_dev")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials()
+      .setParam("license", license)
+      .execute();
   }
 
   private void updateSetting(String key, String value) {

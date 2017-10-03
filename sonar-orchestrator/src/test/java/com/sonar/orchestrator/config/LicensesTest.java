@@ -45,7 +45,7 @@ public class LicensesTest {
   }
 
   @Test
-  public void downloadLicense() {
+  public void downloadLicenseV2() {
     httpServer.setMockResponseData("abcd1234");
 
     Licenses licenses = new Licenses("http://localhost:" + httpServer.getPort() + "/");
@@ -53,6 +53,17 @@ public class LicensesTest {
 
     // use cache
     assertThat(licenses.get("sqale")).isEqualTo("abcd1234");
+  }
+
+  @Test
+  public void downloadLicenseV3() {
+    httpServer.setMockResponseData("abcd1234");
+
+    Licenses licenses = new Licenses("http://localhost:" + httpServer.getPort() + "/");
+    assertThat(licenses.getV3()).isEqualTo("abcd1234");
+
+    // use cache
+    assertThat(licenses.getV3()).isEqualTo("abcd1234");
   }
 
   @Test
