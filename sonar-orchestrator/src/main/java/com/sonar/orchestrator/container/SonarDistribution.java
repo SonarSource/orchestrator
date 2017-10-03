@@ -38,6 +38,7 @@ public final class SonarDistribution {
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
   private List<String> licensedPluginKeys = new ArrayList<>();
+  private boolean activateLicense;
   private boolean removeDistributedPlugins = true;
   private File zipFile;
 
@@ -57,6 +58,7 @@ public final class SonarDistribution {
     this.zipFile = zip;
     return this;
   }
+
   public SonarDistribution setVersion(@Nullable Version s) {
     this.version = s;
     return this;
@@ -121,11 +123,25 @@ public final class SonarDistribution {
     return version.isRelease();
   }
 
+  /**
+   * @deprecated since 3.15
+   */
+  @Deprecated
   public SonarDistribution activateLicense(String pluginKey) {
     licensedPluginKeys.add(pluginKey);
     return this;
   }
 
+  public SonarDistribution activateLicense() {
+    activateLicense = true;
+    return this;
+  }
+
+  public boolean isActivateLicense() {
+    return activateLicense;
+  }
+
+  @Deprecated
   public List<String> getLicensedPluginKeys() {
     return licensedPluginKeys;
   }
