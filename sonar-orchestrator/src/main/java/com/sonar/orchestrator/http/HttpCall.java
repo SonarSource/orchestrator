@@ -218,7 +218,9 @@ public class HttpCall {
         // parameters of POST request are sent in the body
         okRequest = new Request.Builder().url(baseUrl);
         FormBody.Builder schwarzy = new FormBody.Builder();
-        parameters.forEach(schwarzy::add);
+        parameters.entrySet().stream()
+          .filter(e -> e.getValue() != null)
+          .forEach(e -> schwarzy.add(e.getKey(), e.getValue()));
         okRequest.post(schwarzy.build());
         break;
       case MULTIPART_POST:

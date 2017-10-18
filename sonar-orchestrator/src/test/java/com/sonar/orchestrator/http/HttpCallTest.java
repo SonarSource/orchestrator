@@ -121,6 +121,21 @@ public class HttpCallTest {
   }
 
   @Test
+  public void POST_parameter_with_null_value() throws Exception {
+    server.enqueue(new MockResponse().setBody(PONG));
+
+    HttpResponse response = newCall("api/system/ping")
+      .setMethod(HttpMethod.POST)
+      .setParam("foo", null)
+      .execute();
+
+    verifySuccess(response, PONG);
+    RecordedRequest recordedRequest = server.takeRequest();
+    verifyRecorded(recordedRequest, "POST", "api/system/ping");
+    assertThat(recordedRequest.getBody().readUtf8()).isEqualTo("");
+  }
+
+  @Test
   public void GET_parameters_defined_with_setParams_should_be_sent_in_url_query() throws Exception {
     server.enqueue(new MockResponse().setBody(PONG));
 
