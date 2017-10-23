@@ -284,6 +284,11 @@ public class Orchestrator extends SingleStartExternalResource {
       .connectTimeoutMilliseconds(300_000)
       .readTimeoutMilliseconds(600_000).build();
     client.post("/api/orchestrator/reset");
+
+    // api/orchestrator/reset will clear the license, so reinstall it
+    if (distribution.isActivateLicense()) {
+      activateLicense();
+    }
   }
 
   /**
