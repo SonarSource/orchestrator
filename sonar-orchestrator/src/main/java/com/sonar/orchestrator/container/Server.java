@@ -29,12 +29,35 @@ import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Map;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthState;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.sonar.wsclient.Host;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.SonarClient;
@@ -204,15 +227,83 @@ public class Server {
    * if it does not exist yet, otherwise it is reset.
    */
   public Server restoreProfile(Location backup) {
+    Version version = version();
     try (InputStream input = fileSystem.openInputStream(backup)) {
-      newHttpCall("/api/qualityprofiles/restore")
-        .setMethod(HttpMethod.MULTIPART_POST)
-        .setAdminCredentials()
-        .setParam("backup", IOUtils.toString(input, UTF_8))
-        .execute();
+      if (version.isGreaterThanOrEquals("6.0")) {
+        newHttpCall("/api/qualityprofiles/restore")
+          .setMethod(HttpMethod.MULTIPART_POST)
+          .setAdminCredentials()
+          .setParam("backup", IOUtils.toString(input, UTF_8))
+          .execute();
+      } else {
+        restoreProfileForOldVersion(new ByteArrayBody(IOUtils.toByteArray(input), ContentType.TEXT_XML, "profile-backup.xml"));
+      }
       return this;
     } catch (IOException e) {
       throw new IllegalStateException("Cannot restore Quality profile", e);
+    }
+  }
+
+  private Server restoreProfileForOldVersion(ContentBody backup) {
+    if (url == null) {
+      throw new IllegalStateException("Can not restore profiles backup if the server is not started");
+    }
+    // still no sonar-ws-client for this web service
+    DefaultHttpClient client = new DefaultHttpClient();
+    try {
+      HttpHost targetHost = new HttpHost("localhost", new URL(getUrl()).getPort(), "http");
+
+      HttpParams params = client.getParams();
+      HttpConnectionParams.setConnectionTimeout(params, 60_000);
+      HttpConnectionParams.setSoTimeout(params, 120_000);
+
+      client.getCredentialsProvider().setCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+        new UsernamePasswordCredentials(ADMIN_LOGIN, ADMIN_PASSWORD));
+
+      BasicHttpContext localcontext = new BasicHttpContext();
+      BasicScheme basicAuth = new BasicScheme();
+
+      localcontext.setAttribute("preemptive-auth", basicAuth);
+      client.addRequestInterceptor(new PreemptiveAuth(), 0);
+
+      String wsUrl = url + "/api/qualityprofiles/restore";
+      HttpPost post = new HttpPost(wsUrl);
+      MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+      entity.addPart("backup", backup);
+      post.setEntity(entity);
+      HttpResponse httpResponse = client.execute(post, localcontext);
+      int statusCode = httpResponse.getStatusLine().getStatusCode();
+
+      // Versions less than 3.1 request a standard HTTP/HTML service, but not the web service.
+      // For this reason we still check the status 302.
+      if (statusCode != 200 && statusCode != 302) {
+        throw new IllegalStateException("Fail to restore profile backup, status: " + httpResponse.getStatusLine());
+      }
+      return this;
+
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to restore profile backup", e);
+
+    } finally {
+      client.close();
+    }
+  }
+
+  static final class PreemptiveAuth implements HttpRequestInterceptor {
+    @Override
+    public void process(
+      final HttpRequest request,
+      final HttpContext context) throws HttpException {
+
+      AuthState authState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+
+      if (authState.getAuthScheme() == null) {
+        AuthScheme authScheme = (AuthScheme) context.getAttribute("preemptive-auth");
+        if (authScheme != null) {
+          authState.setAuthScheme(authScheme);
+          authState.setCredentials(new UsernamePasswordCredentials(ADMIN_LOGIN, ADMIN_PASSWORD));
+        }
+      }
     }
   }
 

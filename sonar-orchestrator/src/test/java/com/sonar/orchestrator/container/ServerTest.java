@@ -62,11 +62,6 @@ public class ServerTest {
     assertThat(underTest.getUrl()).isEqualTo("http://localhost:9999");
   }
 
-  private Server newServerForUrl(String url) {
-    FileSystem fs = new FileSystem(Configuration.builder().build());
-    return new Server(fs, mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
-  }
-
   @Test
   public void guess_version_from_installed_files() throws Exception {
     File home = temp.newFolder();
@@ -107,7 +102,10 @@ public class ServerTest {
     File backup = temp.newFile();
     FileUtils.write(backup, "<backup/>");
     server.enqueue(new MockResponse());
-    Server underTest = newServerForUrl(this.server.url("").toString());
+    File home = temp.newFolder();
+    FileUtils.touch(new File(home, "lib/sonar-application-6.3.0.1234.jar"));
+    Server underTest = new Server(new FileSystem(Configuration.builder().build()), home, new SonarDistribution(),
+      HttpUrl.parse(this.server.url("").toString()));
 
     underTest.restoreProfile(FileLocation.of(backup));
 
@@ -118,6 +116,27 @@ public class ServerTest {
     assertThat(receivedRequest.getBody().readUtf8())
       .contains("Content-Disposition: form-data; name=\"backup\"")
       .contains("Content-Length: 9")
+      .contains("<backup/>");
+  }
+
+  @Test
+  public void old_restoreProfile_for_version_5_6() throws Exception {
+    File backup = temp.newFile();
+    FileUtils.write(backup, "<backup/>");
+    server.enqueue(new MockResponse());
+    File home = temp.newFolder();
+    FileUtils.touch(new File(home, "lib/sonar-application-5.6.jar"));
+    Server underTest = new Server(new FileSystem(Configuration.builder().build()), home, new SonarDistribution(),
+      HttpUrl.parse(this.server.url("").toString()));
+
+    underTest.restoreProfile(FileLocation.of(backup));
+
+    RecordedRequest receivedRequest = server.takeRequest();
+    assertThat(receivedRequest.getMethod()).isEqualTo("POST");
+    assertThat(receivedRequest.getPath()).isEqualTo("/api/qualityprofiles/restore");
+    assertThat(receivedRequest.getBody().readUtf8())
+      .contains("Content-Disposition: form-data; name=\"backup\"")
+      .contains("filename=\"profile-backup.xml\"")
       .contains("<backup/>");
   }
 
@@ -133,4 +152,10 @@ public class ServerTest {
     assertThat(receivedRequest.getPath()).isEqualTo("/api/projects/create");
     assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("key=foo&name=Foo");
   }
+
+  private Server newServerForUrl(String url) {
+    FileSystem fs = new FileSystem(Configuration.builder().build());
+    return new Server(fs, mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
+  }
+
 }
