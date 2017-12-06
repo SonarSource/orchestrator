@@ -18,34 +18,40 @@
   -->
 
   <properties>
-    <sq.version>5.0</sq.version>
+    <sq.version>6.7</sq.version>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.codehaus.sonar</groupId>
+      <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-plugin-api</artifactId>
       <version>${sq.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.sonar</groupId>
+      <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-server</artifactId>
       <version>${sq.version}</version>
-      <!-- sonar-server is not deployed on Maven repositories -->
-      <scope>system</scope>
-      <systemPath>${env.HOME}/.m2/repository/org/codehaus/sonar/sonar-server/${sq.version}/sonar-server-${sq.version}.jar</systemPath>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.sonar</groupId>
+        <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
         <artifactId>sonar-packaging-maven-plugin</artifactId>
         <extensions>true</extensions>
+        <version>1.19.0.376</version>
         <configuration>
           <pluginClass>com.sonar.orchestrator.resetdataplugin.ResetDataPlugin</pluginClass>
+          <sonarQubeMinVersion>5.6</sonarQubeMinVersion>
         </configuration>
       </plugin>
     </plugins>
