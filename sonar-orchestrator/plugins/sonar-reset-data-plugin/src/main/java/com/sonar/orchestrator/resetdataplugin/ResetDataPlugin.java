@@ -1,11 +1,8 @@
 package com.sonar.orchestrator.resetdataplugin;
 
-import org.sonar.api.SonarPlugin;
+import org.sonar.api.Plugin;
 
-import java.util.Arrays;
-import java.util.List;
-
-public final class ResetDataPlugin extends SonarPlugin {
+public final class ResetDataPlugin implements Plugin {
 
   /*
    * 
@@ -13,7 +10,7 @@ public final class ResetDataPlugin extends SonarPlugin {
    * IMPORTANT : do not forget to copy the plugin JAR into src/main/resources/com/sonar/orchestrator
    */
 
-  public List getExtensions() {
-    return Arrays.asList(ResetDataWebService.class);
+  public void define(Context context) {
+    context.addExtension(ResetDataWebService.class);
   }
 }
