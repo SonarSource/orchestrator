@@ -21,7 +21,6 @@ package com.sonar.orchestrator.config;
 
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
-import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.CheckForNull;
@@ -69,9 +68,6 @@ public class Licenses {
       .executeUnsafely();
     if (response.isSuccessful()) {
       return defaultIfNull(response.getBodyAsString(), "");
-    }
-    if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-      return "";
     }
     throw new IllegalStateException(format("Fail to download development license [%s]. URL [%s] returned code [%d]", licenseKey, url, response.getCode()));
   }

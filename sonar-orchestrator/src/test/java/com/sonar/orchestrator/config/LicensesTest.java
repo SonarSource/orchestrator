@@ -67,10 +67,11 @@ public class LicensesTest {
   }
 
   @Test
-  public void returnNullIfUnknownPlugin() {
+  public void failIfUnknownPluginOrInvalidLicense() {
     httpServer.setMockResponseStatus(404);
 
-    assertThat(underTest.get("sqale")).isEqualTo("");
+    thrown.expect(IllegalStateException.class);
+    underTest.get("sqale");
   }
 
   @Test
