@@ -47,10 +47,10 @@ public class FileSystem {
 
   public FileSystem(Configuration config) {
     this.locators = new Locators(config);
-    this.orchestratorHome = initDir(config, singletonList("SONAR_USER_HOME"), new File(getUserDirectory(), ".sonar"));
+    this.orchestratorHome = initDir(config, asList("orchestrator.home", "ORCHESTRATOR_HOME", "SONAR_USER_HOME"), new File(getUserDirectory(), ".sonar/orchestrator"));
     this.mavenHome = initDir(config, asList("maven.home", "MAVEN_HOME"), null);
     this.mavenLocalRepository = initDir(config, asList("maven.localRepository", "MAVEN_LOCAL_REPOSITORY"), new File(getUserDirectory(), ".m2/repository"));
-    this.sonarQubeZipsDir = initDir(config, singletonList("orchestrator.sonarInstallsDir"), new File(orchestratorHome, "installs"));
+    this.sonarQubeZipsDir = initDir(config, singletonList("orchestrator.sonarInstallsDir"), new File(orchestratorHome, "zips"));
     this.workspace = initDir(config, singletonList("orchestrator.workspaceDir"), new File("target"));
     this.javaHome = initDir(config, asList("java.home", "JAVA_HOME"), null);
     this.antHome = initDir(config, asList("ant.home", "ANT_HOME"), null);

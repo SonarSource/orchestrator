@@ -45,8 +45,8 @@ public class FileSystemTest {
 
     verifySameDirs(underTest.mavenLocalRepository(), new File(userHome, ".m2/repository"));
     verifySameDirs(underTest.workspace(), new File("target"));
-    verifySameDirs(underTest.getOrchestratorHome(), new File(userHome, ".sonar"));
-    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(userHome, ".sonar/installs"));
+    verifySameDirs(underTest.getOrchestratorHome(), new File(userHome, ".sonar/orchestrator"));
+    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(userHome, ".sonar/orchestrator/zips"));
   }
 
   @Test
@@ -74,12 +74,27 @@ public class FileSystemTest {
   }
 
   @Test
+  public void configure_orchestrator_home_with_deprecated_property() throws Exception {
+    String property = "SONAR_USER_HOME";
+    testOrchestratorHome(property);
+  }
+
+  @Test
   public void configure_orchestrator_home() throws Exception {
+    testOrchestratorHome("orchestrator.home");
+  }
+
+  @Test
+  public void configure_orchestrator_home_with_env_variable() throws Exception {
+    testOrchestratorHome("ORCHESTRATOR_HOME");
+  }
+
+  private void testOrchestratorHome(String property) throws IOException {
     File dir = temp.newFolder();
-    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("SONAR_USER_HOME", dir.getCanonicalPath()).build());
+    FileSystem underTest = new FileSystem(Configuration.builder().setProperty(property, dir.getCanonicalPath()).build());
 
     verifySameDirs(underTest.getOrchestratorHome(), dir);
-    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(dir, "installs"));
+    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(dir, "zips"));
   }
 
   private static void verifySameDirs(File dir1, File dir2) throws IOException {
