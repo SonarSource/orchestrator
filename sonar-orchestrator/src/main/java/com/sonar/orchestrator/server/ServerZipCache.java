@@ -95,6 +95,6 @@ public class ServerZipCache {
 
   private File locateRelease(Version version) {
     String filename = format("sonarqube-%s.zip", version.toString());
-    return new File(fs.sonarInstallsDir(), filename);
+    return new File(fs.getSonarQubeZipsDir(), filename);
   }
 }

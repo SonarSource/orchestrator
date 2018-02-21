@@ -20,72 +20,69 @@
 package com.sonar.orchestrator.config;
 
 import java.io.File;
+import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileSystemTest {
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public TemporaryFolder temp = new TemporaryFolder();
 
   @Test
-  public void shouldLoadJavaHome() {
-    File javaHome = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/config/FileSystemTest/java"));
-    Configuration config = Configuration.builder().setProperty("java.home", javaHome).build();
-    FileSystem fileSystem = new FileSystem(config);
+  public void test_defaults() throws Exception {
+    FileSystem underTest = new FileSystem(Configuration.create());
+    File userHome = FileUtils.getUserDirectory();
 
-    assertThat(fileSystem.javaHome()).isEqualTo(javaHome);
+    // optional directories
+    assertThat(underTest.javaHome()).isNull();
+    assertThat(underTest.antHome()).isNull();
+    assertThat(underTest.mavenHome()).isNull();
+
+    verifySameDirs(underTest.mavenLocalRepository(), new File(userHome, ".m2/repository"));
+    verifySameDirs(underTest.workspace(), new File("target"));
+    verifySameDirs(underTest.getOrchestratorHome(), new File(userHome, ".sonar"));
+    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(userHome, ".sonar/installs"));
   }
 
   @Test
-  public void shouldLoadMavenHome() {
-    File mavenHome = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/config/FileSystemTest/maven"));
-    Configuration config = Configuration.builder().setProperty("maven.home", mavenHome).build();
-    FileSystem fileSystem = new FileSystem(config);
+  public void configure_java_home() throws Exception {
+    File dir = temp.newFolder();
+    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("java.home", dir.getCanonicalPath()).build());
 
-    assertThat(fileSystem.mavenHome()).isEqualTo(mavenHome);
+    verifySameDirs(underTest.javaHome(), dir);
   }
 
   @Test
-  public void mavenHomeShouldExistIfDefined() {
-    thrown.expect(IllegalArgumentException.class);
-    Configuration config = Configuration.builder().setProperty("maven.home", "/invalid/path").build();
-    new FileSystem(config);
+  public void configure_maven_home() throws Exception {
+    File dir = temp.newFolder();
+    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("maven.home", dir.getCanonicalPath()).build());
+
+    verifySameDirs(underTest.mavenHome(), dir);
   }
 
   @Test
-  public void javaHomeShouldExistIfDefined() {
-    thrown.expect(IllegalArgumentException.class);
-    Configuration config = Configuration.builder().setProperty("java.home", "/invalid/path").build();
-    new FileSystem(config);
+  public void configure_maven_local_repository() throws Exception {
+    File dir = temp.newFolder();
+    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("maven.localRepository", dir.getCanonicalPath()).build());
+
+    verifySameDirs(underTest.mavenLocalRepository(), dir);
   }
 
   @Test
-  public void shouldLoadMavenLocalRepository() {
-    File localRepository = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/config/FileSystemTest/maven/repository"));
-    Configuration config = Configuration.builder().setProperty("maven.localRepository", localRepository).build();
-    FileSystem fileSystem = new FileSystem(config);
+  public void configure_orchestrator_home() throws Exception {
+    File dir = temp.newFolder();
+    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("SONAR_USER_HOME", dir.getCanonicalPath()).build());
 
-    assertThat(fileSystem.mavenLocalRepository()).isEqualTo(localRepository);
+    verifySameDirs(underTest.getOrchestratorHome(), dir);
+    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(dir, "installs"));
   }
 
-  @Test
-  public void mavenLocalRepositoryShouldExistIfDefined() {
-    thrown.expect(IllegalArgumentException.class);
-    Configuration config = Configuration.builder().setProperty("maven.localRepository", "/invalid/path").build();
-    new FileSystem(config);
-  }
-
-  @Test
-  public void shouldLoadMavenBinary() {
-    File mavenHome = FileUtils.toFile(getClass().getResource("/com/sonar/orchestrator/config/FileSystemTest/maven"));
-    Configuration config = Configuration.builder().setProperty("maven.home", mavenHome).setProperty("maven.binary", "fake.cmd").build();
-    FileSystem fileSystem = new FileSystem(config);
-    assertThat(fileSystem.mavenHome()).isEqualTo(mavenHome);
-    assertThat(fileSystem.mavenBinary()).isEqualTo("fake.cmd");
+  private static void verifySameDirs(File dir1, File dir2) throws IOException {
+    assertThat(dir1.getCanonicalPath()).isEqualTo(dir2.getCanonicalPath());
   }
 }

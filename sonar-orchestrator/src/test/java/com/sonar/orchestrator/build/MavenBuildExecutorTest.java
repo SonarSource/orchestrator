@@ -26,16 +26,15 @@ import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -49,16 +48,133 @@ import static org.mockito.Mockito.when;
 public class MavenBuildExecutorTest {
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public TemporaryFolder temp = new TemporaryFolder();
+  private final MavenBuildExecutor.Os os = mock(MavenBuildExecutor.Os.class);
+  private final MavenBuildExecutor underTest = new MavenBuildExecutor(os);
 
   @Test
-  public void testDebugMode() throws IOException {
-    if (SystemUtils.IS_OS_WINDOWS) {
-      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"), null)).contains("bin\\mvn.cmd");
-      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"), "mvnDebug")).contains("bin\\mvnDebug.cmd");
-    } else {
-      assertThat(MavenBuildExecutor.getMvnPath(new File("maven"), null)).contains("bin/mvn");
-    }
+  public void configure_command_in_PATH_on_linux() throws Exception {
+    emulateLinux();
+    Configuration configuration = Configuration.builder().setProperty("maven.binary", "mvnDebug").build();
+
+    assertThat(underTest.buildMvnPath(configuration)).isEqualTo("mvnDebug");
+  }
+
+  @Test
+  public void configure_command_in_PATH_on_windows() throws Exception {
+    emulateWindows();
+    Configuration configuration = Configuration.builder().setProperty("maven.binary", "mvnDebug.cmd").build();
+
+    assertThat(underTest.buildMvnPath(configuration)).isEqualTo("mvnDebug.cmd");
+  }
+
+  @Test
+  public void configure_path_to_command_on_linux() throws Exception {
+    emulateLinux();
+    File home = temp.newFolder();
+    String binPath = new File(home, "bin/maven").getCanonicalPath();
+    Configuration configuration = Configuration.builder().setProperty("maven.binary", binPath).build();
+
+    assertThat(underTest.buildMvnPath(configuration)).isEqualTo(binPath);
+  }
+
+  @Test
+  public void configure_path_to_command_on_windows() throws Exception {
+    emulateWindows();
+    File home = temp.newFolder();
+    String binPath = new File(home, "bin/maven.bat").getCanonicalPath();
+    Configuration configuration = Configuration.builder().setProperty("maven.binary", binPath).build();
+
+    assertThat(underTest.buildMvnPath(configuration)).isEqualTo(binPath);
+  }
+
+  @Test
+  public void default_command_on_linux_is_in_PATH() throws Exception {
+    emulateLinux();
+    Configuration configuration = Configuration.builder().build();
+
+    assertThat(underTest.buildMvnPath(configuration)).isEqualTo("mvn");
+  }
+
+  @Test
+  public void default_command_on_windows_is_in_PATH() throws Exception {
+    emulateWindows();
+    Configuration configuration = Configuration.builder().build();
+
+    assertThat(underTest.buildMvnPath(configuration)).isEqualTo("mvn.cmd");
+  }
+
+  @Test
+  public void configure_MAVEN_HOME_on_linux() throws Exception {
+    emulateLinux();
+    File home = temp.newFolder();
+    Configuration configuration = Configuration.builder().setProperty("MAVEN_HOME", home.getCanonicalPath()).build();
+
+    String result = underTest.buildMvnPath(configuration);
+
+    assertThat(result).isEqualTo(new File(home, "bin/mvn").getCanonicalPath());
+  }
+
+  @Test
+  public void configure_maven_home_on_windows() throws Exception {
+    emulateWindows();
+    File home = temp.newFolder();
+    Configuration configuration = Configuration.builder().setProperty("MAVEN_HOME", home.getCanonicalPath()).build();
+
+    String result = underTest.buildMvnPath(configuration);
+
+    assertThat(result).isEqualTo(new File(home, "bin/mvn.cmd").getCanonicalPath());
+  }
+
+  @Test
+  public void configure_maven_home_and_binary_on_windows() throws Exception {
+    emulateWindows();
+    File home = temp.newFolder();
+    Configuration configuration = Configuration.builder()
+      .setProperty("MAVEN_HOME", home.getCanonicalPath())
+      .setProperty("MAVEN_BINARY", "mvnDebug.cmd")
+      .build();
+
+    String result = underTest.buildMvnPath(configuration);
+
+    assertThat(result).isEqualTo(new File(home, "bin/mvnDebug.cmd").getCanonicalPath());
+  }
+
+  @Test
+  public void configure_maven_home_on_linux() throws Exception {
+    emulateLinux();
+    File home = temp.newFolder();
+    Configuration configuration = Configuration.builder().setProperty("MAVEN_HOME", home.getCanonicalPath()).build();
+
+    String result = underTest.buildMvnPath(configuration);
+
+    assertThat(result).isEqualTo(new File(home, "bin/mvn").getCanonicalPath());
+  }
+
+  @Test
+  public void configure_maven_home_and_binary_on_linux() throws Exception {
+    emulateLinux();
+    File home = temp.newFolder();
+    Configuration configuration = Configuration.builder()
+      .setProperty("MAVEN_HOME", home.getCanonicalPath())
+      .setProperty("MAVEN_BINARY", "mvnDebug")
+      .build();
+
+    String result = underTest.buildMvnPath(configuration);
+
+    assertThat(result).isEqualTo(new File(home, "bin/mvnDebug").getCanonicalPath());
+  }
+
+  @Test
+  public void support_maven_3_2_binary_on_windows() throws Exception {
+    emulateWindows();
+    File home = temp.newFolder();
+    FileUtils.touch(new File(home, "bin/mvn.bat"));
+    Configuration configuration = Configuration.builder().setProperty("MAVEN_HOME", home.getCanonicalPath()).build();
+
+    String result = underTest.buildMvnPath(configuration);
+
+    assertThat(result).isEqualTo(new File(home, "bin/mvn.bat").getCanonicalPath());
   }
 
   @Test
@@ -72,23 +188,8 @@ public class MavenBuildExecutorTest {
     assertThat(result.getLogs()).containsSequence("[INFO] Scanning for projects...", "[INFO] Total time");
   }
 
-  // ORCH-351
-  @Test
-  public void shouldOverrideM2_HOME() throws Exception {
-    Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
-    MavenBuild build = MavenBuild.create(pom).addGoal("clean");
-
-    File mavenHome = new File(this.getClass().getResource("MavenBuildExecutorTest/fake_maven").toURI());
-    new File(mavenHome, "bin/mvn").setExecutable(true);
-    BuildResult result = new MavenBuildExecutor().execute(build,
-      Configuration.builder().addEnvVariables().addSystemProperties().setProperty("maven.home", mavenHome.getAbsolutePath())
-        .setProperty("maven.binary", "").build(),
-      new HashMap<>());
-
-    assertThat(result.getLogs()).contains("M2_HOME=" + mavenHome.getPath());
-  }
-
   // ORCH-179
+
   @Test
   public void shouldPassAdditionalArguments() {
     Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
@@ -140,5 +241,13 @@ public class MavenBuildExecutorTest {
       public void describeTo(Description description) {
       }
     };
+  }
+
+  private void emulateWindows() {
+    when(os.isWindows()).thenReturn(true);
+  }
+
+  private void emulateLinux() {
+    when(os.isWindows()).thenReturn(false);
   }
 }

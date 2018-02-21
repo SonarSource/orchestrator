@@ -61,6 +61,7 @@ public class MavenLocator implements Locator<MavenLocation> {
     return null;
   }
 
+  @CheckForNull
   private File locateInLocalRepositoryAndLog(MavenLocation location) {
     File result = locateInLocalRepository(location);
     if (result != null) {

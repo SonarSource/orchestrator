@@ -26,16 +26,26 @@ import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import javax.annotation.Nullable;
+import java.util.Optional;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 
 class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
 
+  private final Os os;
+
   private static final String MAVEN_OPTS = "MAVEN_OPTS";
+
+  // visible for tests
+  MavenBuildExecutor(Os os) {
+    this.os = os;
+  }
+
+  public MavenBuildExecutor() {
+    this(new Os());
+  }
 
   @Override
   BuildResult execute(MavenBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
@@ -51,7 +61,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
     final BuildResult result, CommandExecutor commandExecutor) {
     try {
       File mavenHome = config.fileSystem().mavenHome();
-      Command command = Command.create(getMvnPath(mavenHome, config.fileSystem().mavenBinary()));
+      Command command = Command.create(buildMvnPath(config));
       if (build.getExecutionDir() != null) {
         command.setDirectory(build.getExecutionDir());
       }
@@ -89,25 +99,29 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
     }
   }
 
-  static String getMvnPath(@Nullable File mvnHome, @Nullable String mvnBinary) throws IOException {
-    String program = "mvn";
-    if (mvnHome == null) {
-      // Will try to use the one in PATH
-      return program;
+  String buildMvnPath(Configuration config) throws IOException {
+    Optional<String> binary = Optional.ofNullable(config.getStringByKeys("maven.binary", "MAVEN_BINARY"));
+    File home = config.fileSystem().mavenHome();
+    if (home == null) {
+      return binary.orElse(os.isWindows() ? "mvn.cmd" : "mvn");
     }
-    if (!isEmpty(mvnBinary)) {
-      program = mvnBinary;
+    if (binary.isPresent()) {
+      return new File(home, "bin/" + binary.get()).getCanonicalPath();
     }
-    if (SystemUtils.IS_OS_WINDOWS) {
-      File bat = new File(mvnHome, "bin/" + program + ".bat");
-      if (bat.exists()) {
-        return bat.getCanonicalPath();
+    if (os.isWindows()) {
+      // .bat is required for maven versions <= 3.2
+      File bin = new File(home, "bin/mvn.bat");
+      if (bin.exists()) {
+        return bin.getCanonicalPath();
       }
-      // Assume Maven 3.3.x+
-      File cmd = new File(mvnHome, "bin/" + program + ".cmd");
-      return cmd.getCanonicalPath();
+      return new File(home, "bin/mvn.cmd").getCanonicalPath();
     }
-    return new File(mvnHome, "bin/" + program).getCanonicalPath();
+    return new File(home, "bin/mvn").getCanonicalPath();
   }
 
+  static class Os {
+    boolean isWindows() {
+      return SystemUtils.IS_OS_WINDOWS;
+    }
+  }
 }
