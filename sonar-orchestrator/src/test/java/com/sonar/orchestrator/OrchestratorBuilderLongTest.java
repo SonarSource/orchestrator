@@ -31,12 +31,12 @@ public class OrchestratorBuilderLongTest {
   @Test
   public void start_lts_version_with_default_settings() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-      .setSonarVersion("5.6")
+      .setSonarVersion("6.7.1")
       .build();
 
     try {
       orchestrator.start();
-      verifyVersion(orchestrator, "5.6");
+      verifyVersion(orchestrator, "6.7.1");
       verifyWebContext(orchestrator, "");
     } finally {
       orchestrator.stop();

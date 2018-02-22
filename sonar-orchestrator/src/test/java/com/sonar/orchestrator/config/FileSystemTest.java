@@ -46,6 +46,7 @@ public class FileSystemTest {
     verifySameDirs(underTest.mavenLocalRepository(), new File(userHome, ".m2/repository"));
     verifySameDirs(underTest.workspace(), new File("target"));
     verifySameDirs(underTest.getOrchestratorHome(), new File(userHome, ".sonar/orchestrator"));
+    verifySameDirs(underTest.getCacheDir(), new File(userHome, ".sonar/orchestrator/cache"));
     verifySameDirs(underTest.getSonarQubeZipsDir(), new File(userHome, ".sonar/orchestrator/zips"));
   }
 
@@ -94,6 +95,7 @@ public class FileSystemTest {
     FileSystem underTest = new FileSystem(Configuration.builder().setProperty(property, dir.getCanonicalPath()).build());
 
     verifySameDirs(underTest.getOrchestratorHome(), dir);
+    verifySameDirs(underTest.getCacheDir(), new File(dir, "cache"));
     verifySameDirs(underTest.getSonarQubeZipsDir(), new File(dir, "zips"));
   }
 

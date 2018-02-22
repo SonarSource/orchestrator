@@ -20,40 +20,67 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
 import javax.annotation.CheckForNull;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 public class MavenLocator implements Locator<MavenLocation> {
   private static final Logger LOG = LoggerFactory.getLogger(MavenLocator.class);
 
   private final Configuration config;
+  private final Artifactory artifactory;
 
   public MavenLocator(Configuration config) {
+    this(config, new Artifactory(config));
+  }
+
+  MavenLocator(Configuration config, Artifactory artifactory) {
     this.config = config;
+    this.artifactory = artifactory;
   }
 
   @Override
   public File locate(MavenLocation location) {
-    return locateInLocalRepositoryAndLog(location);
-  }
+    // 1. check cache
+    String cacheKey = cacheKeyOf(location);
+    File cachedDir = new File(config.fileSystem().getCacheDir(), cacheKey);
+    if (cachedDir.exists()) {
+      Collection<File> files = FileUtils.listFiles(cachedDir, null, false);
+      if (files.size() == 1) {
+        File file = files.iterator().next();
+        LOG.info("Found {} at {}", location, file);
+        return file;
+      }
+    }
 
-  static URL appendPathToUrl(String path, URL baseUrl) throws MalformedURLException {
-    return new URL(StringUtils.removeEnd(baseUrl.toString(), "/") + "/" + path);
+    // 2. check Maven local repository, if defined.
+    File file = locateInLocalRepository(location);
+    if (file != null) {
+      LOG.info("Found {} in Maven local repository at {}", location, file);
+      return file;
+    }
+
+    // 3. download from Artifactory, if defined.
+    // No need to try if SNAPSHOT, only releases are deployed.
+    if (location.version().isSnapshot()) {
+      return null;
+    }
+    File cachedFile = new File(cachedDir, location.getFilename());
+    boolean found = artifactory.downloadToFile(location, cachedFile);
+    return found ? cachedFile : null;
   }
 
   @CheckForNull
   private File locateInLocalRepository(MavenLocation location) {
     if (config.fileSystem().mavenLocalRepository() != null && config.fileSystem().mavenLocalRepository().exists()) {
-      File file = new File(config.fileSystem().mavenLocalRepository(), path(location));
+      File file = new File(config.fileSystem().mavenLocalRepository(), pathInMavenLocalRepository(location));
       if (file.exists()) {
         return file;
       }
@@ -61,18 +88,9 @@ public class MavenLocator implements Locator<MavenLocation> {
     return null;
   }
 
-  @CheckForNull
-  private File locateInLocalRepositoryAndLog(MavenLocation location) {
-    File result = locateInLocalRepository(location);
-    if (result != null) {
-      LOG.info("Found {} in maven local repository at {}", location, result);
-    }
-    return result;
-  }
-
   @Override
   public File copyToDirectory(MavenLocation location, File toDir) {
-    File target = locateInLocalRepositoryAndLog(location);
+    File target = locate(location);
     if (target == null) {
       return null;
     }
@@ -87,7 +105,7 @@ public class MavenLocator implements Locator<MavenLocation> {
 
   @Override
   public File copyToFile(MavenLocation location, File toFile) {
-    File target = locateInLocalRepositoryAndLog(location);
+    File target = locate(location);
     if (target == null) {
       return null;
     }
@@ -103,15 +121,11 @@ public class MavenLocator implements Locator<MavenLocation> {
   @Override
   @CheckForNull
   public InputStream openInputStream(MavenLocation location) {
-    File target = locateInLocalRepositoryAndLog(location);
+    File target = locate(location);
     if (target == null) {
       return null;
     }
 
-    return openFromLocalRepository(target);
-  }
-
-  private static InputStream openFromLocalRepository(File target) {
     try {
       return FileUtils.openInputStream(target);
     } catch (IOException e) {
@@ -119,7 +133,11 @@ public class MavenLocator implements Locator<MavenLocation> {
     }
   }
 
-  private static String path(MavenLocation location) {
+  private static String pathInMavenLocalRepository(MavenLocation location) {
     return StringUtils.replace(location.getGroupId(), ".", "/") + "/" + location.getArtifactId() + "/" + location.version() + "/" + location.getFilename();
+  }
+
+  private static String cacheKeyOf(MavenLocation location) {
+    return DigestUtils.md5Hex(location.toString());
   }
 }
