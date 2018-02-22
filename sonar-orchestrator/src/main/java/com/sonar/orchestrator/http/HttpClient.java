@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.http;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Authenticator;
@@ -89,7 +88,7 @@ public class HttpClient {
     }
 
     @Override
-    public Request authenticate(Route route, Response response) throws IOException {
+    public Request authenticate(Route route, Response response) {
       if (HttpURLConnection.HTTP_PROXY_AUTH == response.code()) {
         String credential = Credentials.basic(login, password);
         return response.request().newBuilder().header("Proxy-Authorization", credential).build();
