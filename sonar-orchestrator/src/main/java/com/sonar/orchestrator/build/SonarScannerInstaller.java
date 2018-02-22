@@ -65,10 +65,6 @@ public class SonarScannerInstaller {
     return locateInstalledScript(scannerVersion, classifier, toDir, useOldScript);
   }
 
-  void doInstall(Version scannerVersion, File toDir) {
-    doInstall(scannerVersion, null, toDir);
-  }
-
   void doInstall(Version scannerVersion, @Nullable String classifier, File toDir) {
     File zipFile = locateZip(scannerVersion, classifier);
 
