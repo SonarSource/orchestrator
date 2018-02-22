@@ -19,132 +19,70 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.google.common.collect.ImmutableSortedSet;
-import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.io.IOException;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-import org.sonar.updatecenter.common.Release;
-import org.sonar.updatecenter.common.UpdateCenter;
+import org.mockito.ArgumentCaptor;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ServerZipFinderTest {
 
-  private static final File ZIP_4_5_6 = FileUtils.toFile(ServerInstallerTest.class.getResource("ServerZipFinderTest/sonarqube-4.5.6-lite.zip"));
-  private static final Version VERSION_4_5_6 = Version.create("4.5.6");
+  private static final Version A_VERSION = Version.create("6.7");
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+  private FileSystem fs = mock(FileSystem.class);
+  private ServerZipFinder underTest = new ServerZipFinder(fs);
 
-  @Rule
-  public MockWebServer updateCenterServer = new MockWebServer();
+  @Test
+  public void use_local_zip() throws Exception {
+    File zip = temp.newFile();
+    SonarDistribution distribution = new SonarDistribution().setZipFile(zip);
 
-  private FileSystem fs;
-  private File installsDir;
-  private File workspaceDir;
-  private File mavenLocalDir;
-  private UpdateCenter updateCenter = mock(UpdateCenter.class, Mockito.RETURNS_DEEP_STUBS);
-  private ServerZipCache cache;
-  private ServerZipFinder underTest;
-
-  @Before
-  public void setUp() throws IOException {
-    installsDir = temp.newFolder();
-    workspaceDir = temp.newFolder();
-    mavenLocalDir = temp.newFolder();
-    Configuration config = Configuration.builder()
-      .setProperty("orchestrator.sonarInstallsDir", installsDir.getAbsolutePath())
-      .setProperty("orchestrator.workspaceDir", workspaceDir.getAbsolutePath())
-      .setProperty("maven.localRepository", mavenLocalDir.getAbsolutePath())
-      .build();
-    fs = new FileSystem(config);
-    cache = new ServerZipCache(fs);
-    underTest = new ServerZipFinder(fs, updateCenter, cache);
+    assertThat(underTest.find(distribution).getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
+    verifyZeroInteractions(fs);
   }
 
   @Test
-  public void find_zip_version_in_cache() {
-    File cached = cache.copyToCache(VERSION_4_5_6, ZIP_4_5_6);
-    assertThat(underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6))).isEqualTo(cached);
-  }
+  public void use_maven_zip() throws Exception {
+    SonarDistribution distribution = new SonarDistribution().setVersion(A_VERSION);
+    File zip = temp.newFile();
+    when(fs.locate(any())).thenReturn(zip);
 
-  @Test
-  public void find_zip_version_in_maven_local_repository() throws Exception {
-    File mavenArtifact = new File(mavenLocalDir, "org/sonarsource/sonarqube/sonar-application/4.5.6/sonar-application-4.5.6.zip");
-    FileUtils.copyFile(ZIP_4_5_6, mavenArtifact);
-    assertThat(underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6))).exists().isEqualTo(mavenArtifact);
-  }
+    File result = underTest.find(distribution);
 
-  @Test
-  public void find_old_codehaus_zip_in_maven_local_repository() throws Exception {
-    File mavenArtifact = new File(mavenLocalDir, "org/codehaus/sonar/sonar-application/4.5.6/sonar-application-4.5.6.zip");
-    FileUtils.copyFile(ZIP_4_5_6, mavenArtifact);
-    assertThat(underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6))).exists().isEqualTo(mavenArtifact);
-  }
-
-  @Test
-  public void find_zip_in_update_center() throws Exception {
-    Release updateCenterRelease = new Release(null, org.sonar.updatecenter.common.Version.create(VERSION_4_5_6.toString()))
-      .setDownloadUrl(updateCenterServer.url("/sq/sonarqube-4.5.6.zip").toString());
-    when(updateCenter.getSonar().getAllReleases()).thenReturn(ImmutableSortedSet.of(updateCenterRelease));
-
-    updateCenterServer.enqueue(new MockResponse()
-      .addHeader("Content-Disposition", "attachment; filename=sonarqube-4.5.6.zip")
-      .setBody("<content>"));
-    File zip = underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
-    assertThat(zip).exists().isFile();
-    assertThat(zip.getName()).isEqualTo("sonarqube-4.5.6.zip");
-    assertThat(zip.getParentFile()).isEqualTo(installsDir);
-  }
-
-  @Test
-  public void throw_ISE_if_fail_to_download_from_update_center() throws Exception {
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage(format("Failed to download http://localhost:%d/sq/sonarqube-4.5.6.zip", updateCenterServer.getPort()));
-
-    Release updateCenterRelease = new Release(null, org.sonar.updatecenter.common.Version.create(VERSION_4_5_6.toString()))
-      .setDownloadUrl(updateCenterServer.url("/sq/sonarqube-4.5.6.zip").toString());
-    when(updateCenter.getSonar().getAllReleases()).thenReturn(ImmutableSortedSet.of(updateCenterRelease));
-
-    updateCenterServer.enqueue(new MockResponse().setResponseCode(500));
-    underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
-  }
-
-  @Test
-  public void do_not_download_from_update_center_if_version_url_is_not_defined() throws Exception {
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("SonarQube 4.5.6 not found");
-
-    Release updateCenterRelease = new Release(null, org.sonar.updatecenter.common.Version.create(VERSION_4_5_6.toString()))
-      .setDownloadUrl(null);
-    when(updateCenter.getSonar().getAllReleases()).thenReturn(ImmutableSortedSet.of(updateCenterRelease));
-
-    underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
+    assertThat(result.getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
+    ArgumentCaptor<Location> captor = ArgumentCaptor.forClass(Location.class);
+    verify(fs).locate(captor.capture());
+    MavenLocation calledLocation = (MavenLocation) captor.getValue();
+    assertThat(calledLocation.getGroupId()).isEqualTo("org.sonarsource.sonarqube");
+    assertThat(calledLocation.getArtifactId()).isEqualTo("sonar-application");
+    assertThat(calledLocation.version()).isEqualTo(A_VERSION);
+    assertThat(calledLocation.getPackaging()).isEqualTo("zip");
   }
 
   @Test
   public void throw_ISE_if_zip_not_found() {
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("SonarQube 4.5.6 not found");
+    when(fs.locate(any())).thenReturn(null);
 
-    underTest.find(new SonarDistribution().setVersion(VERSION_4_5_6));
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("SonarQube " + A_VERSION.toString() + " not found");
+
+    underTest.find(new SonarDistribution().setVersion(A_VERSION));
   }
 }

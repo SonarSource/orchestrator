@@ -79,6 +79,10 @@ public class FileSystem {
     return orchestratorHome;
   }
 
+  public File getCacheDir() {
+    return new File(orchestratorHome, "cache");
+  }
+
   public File getSonarQubeZipsDir() {
     return sonarQubeZipsDir;
   }

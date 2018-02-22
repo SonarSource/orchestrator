@@ -109,7 +109,7 @@ public class Orchestrator extends SingleStartExternalResource {
     database.start();
 
     FileSystem fs = config.fileSystem();
-    ServerZipFinder zipFinder = new ServerZipFinder(fs, config.updateCenter());
+    ServerZipFinder zipFinder = new ServerZipFinder(fs);
     ServerInstaller serverInstaller = new ServerInstaller(zipFinder, config, database.getClient());
     server = serverInstaller.install(distribution);
 

@@ -52,6 +52,11 @@
       <artifactId>commons-exec</artifactId>
       <version>${commonsExec.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.eclipsesource.minimal-json</groupId>
+      <artifactId>minimal-json</artifactId>
+      <version>0.9.5</version>
+    </dependency>
 
     <!-- Apache HTTP Client is kept for deprecated methods Server#getWsClient()
     and Server#getAdminWsClient() -->

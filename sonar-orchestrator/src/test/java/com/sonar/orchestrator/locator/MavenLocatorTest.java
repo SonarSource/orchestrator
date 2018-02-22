@@ -20,20 +20,18 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Properties;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class MavenLocatorTest {
 
@@ -64,7 +62,7 @@ public class MavenLocatorTest {
     Configuration config = Configuration.builder()
       .setProperty("maven.localRepository", localRepository)
       .build();
-    MavenLocator locator = new MavenLocator(config);
+    MavenLocator locator = new MavenLocator(config, mock(Artifactory.class));
 
     File file = locator.locate(MavenLocation.builder().setKey("group", "other", "1.1").build());
 
@@ -74,19 +72,10 @@ public class MavenLocatorTest {
   @Test
   public void shouldNotFailIfLocalRepositoryNotDefined() {
     Configuration config = Configuration.create(new Properties());
-    MavenLocator locator = new MavenLocator(config);
+    MavenLocator locator = new MavenLocator(config, mock(Artifactory.class));
 
     assertThat(config.fileSystem().mavenLocalRepository().getAbsolutePath()).isNotEmpty();
     assertThat(locator.locate(MavenLocation.builder().setKey("group", "other", "1.1").build())).isNull();
-  }
-
-  @Test
-  public void shouldAppendPathToUrl() throws MalformedURLException {
-    URL url = new URL("http://no.end.slash");
-    assertThat(MavenLocator.appendPathToUrl("foo/bar.jar", url).toString()).isEqualTo("http://no.end.slash/foo/bar.jar");
-
-    url = new URL("http://end.slash/");
-    assertThat(MavenLocator.appendPathToUrl("foo/bar.jar", url).toString()).isEqualTo("http://end.slash/foo/bar.jar");
   }
 
   @Test
