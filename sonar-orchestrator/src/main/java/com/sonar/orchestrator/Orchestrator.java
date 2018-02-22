@@ -273,7 +273,9 @@ public class Orchestrator extends SingleStartExternalResource {
 
   /**
    * Reset inspection measures and some other data (manual rules, etc.)
+   * @deprecated in 3.16. Tests should use web services to clean-up state.
    */
+  @Deprecated
   public void resetData() {
     LOG.info("Reset data");
     // temporary increase timeout - experimental test for SonarSource environment
