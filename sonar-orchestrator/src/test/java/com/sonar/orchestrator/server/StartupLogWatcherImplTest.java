@@ -19,26 +19,18 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.sonar.orchestrator.version.Version;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 public class StartupLogWatcherImplTest {
 
   @Test
-  public void create_for_versions_having_compute_engine() {
-    StartupLogWatcherImpl underTest = StartupLogWatcherImpl.create(Version.create("5.6"));
+  public void create() {
+    StartupLogWatcherImpl underTest = StartupLogWatcherImpl.create();
     assertThat(underTest.isStarted("foo")).isFalse();
     assertThat(underTest.isStarted("Process[web] is up")).isFalse();
     assertThat(underTest.isStarted("Process[ce] is up")).isTrue();
   }
 
-  @Test
-  public void create_for_versions_without_compute_engine() {
-    StartupLogWatcherImpl underTest = StartupLogWatcherImpl.create(Version.create("5.4"));
-    assertThat(underTest.isStarted("foo")).isFalse();
-    assertThat(underTest.isStarted("Process[web] is up")).isTrue();
-  }
 }

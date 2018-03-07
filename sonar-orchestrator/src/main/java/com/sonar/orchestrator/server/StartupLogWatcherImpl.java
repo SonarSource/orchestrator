@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.sonar.orchestrator.version.Version;
-
 class StartupLogWatcherImpl implements StartupLogWatcher {
   private final String startupExpectedMessage;
 
@@ -33,13 +31,7 @@ class StartupLogWatcherImpl implements StartupLogWatcher {
     return logLine.contains(startupExpectedMessage);
   }
 
-  static StartupLogWatcherImpl create(Version serverVersion) {
-    String startupExpectedMessage;
-    if (serverVersion.isGreaterThanOrEquals("5.5")) {
-      startupExpectedMessage = "Process[ce] is up";
-    } else {
-      startupExpectedMessage = "Process[web] is up";
-    }
-    return new StartupLogWatcherImpl(startupExpectedMessage);
+  static StartupLogWatcherImpl create() {
+    return new StartupLogWatcherImpl("Process[ce] is up");
   }
 }

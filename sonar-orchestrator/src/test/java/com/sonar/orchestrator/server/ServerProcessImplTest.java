@@ -94,7 +94,7 @@ public class ServerProcessImplTest {
 
   @Test
   public void fail_if_command_can_not_be_executed() throws Exception {
-    when(server.version()).thenReturn(Version.create("5.6"));
+    when(server.version()).thenReturn(Version.create("6.7"));
 
     // execute an invalid command from an invalid directory. That should fail.
     File invalidDir = temp.newFolder();
@@ -121,11 +121,11 @@ public class ServerProcessImplTest {
   }
 
   @Test
-  public void fail_if_server_version_is_older_than_5_2() throws Exception {
-    when(server.version()).thenReturn(Version.create("5.1"));
+  public void fail_if_server_version_is_older_than_6_2() throws Exception {
+    when(server.version()).thenReturn(Version.create("5.6"));
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Minimum supported version of SonarQube is 5.2. Got 5.1.");
+    expectedException.expectMessage("Minimum supported version of SonarQube is 6.2. Got 5.6.");
     underTest.start();
   }
 
@@ -144,7 +144,7 @@ public class ServerProcessImplTest {
   }
 
   private void prepareValidCommand(String mainClass) throws IOException {
-    when(server.version()).thenReturn(Version.create("5.6"));
+    when(server.version()).thenReturn(Version.create("6.7"));
     when(server.getHome()).thenReturn(new File("../echo/target"));
     File jar = TestModules.getFile("../echo/target", "echo-*.jar");
     when(logWatcher.isStarted("started")).thenReturn(true);
