@@ -22,6 +22,7 @@ package com.sonar.orchestrator.config;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -32,10 +33,16 @@ public class FileSystemTest {
 
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+  private File homeDir;
+
+  @Before
+  public void setUp() throws Exception {
+    homeDir = temp.newFolder();
+  }
 
   @Test
   public void test_defaults() throws Exception {
-    FileSystem underTest = new FileSystem(Configuration.create());
+    FileSystem underTest = new FileSystem(homeDir, Configuration.create());
     File userHome = FileUtils.getUserDirectory();
 
     // optional directories
@@ -45,15 +52,15 @@ public class FileSystemTest {
 
     verifySameDirs(underTest.mavenLocalRepository(), new File(userHome, ".m2/repository"));
     verifySameDirs(underTest.workspace(), new File("target"));
-    verifySameDirs(underTest.getOrchestratorHome(), new File(userHome, ".sonar/orchestrator"));
-    verifySameDirs(underTest.getCacheDir(), new File(userHome, ".sonar/orchestrator/cache"));
-    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(userHome, ".sonar/orchestrator/zips"));
+    verifySameDirs(underTest.getOrchestratorHome(), homeDir);
+    verifySameDirs(underTest.getCacheDir(), new File(homeDir, "cache"));
+    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(homeDir, "zips"));
   }
 
   @Test
   public void configure_java_home() throws Exception {
     File dir = temp.newFolder();
-    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("java.home", dir.getCanonicalPath()).build());
+    FileSystem underTest = new FileSystem(homeDir, Configuration.builder().setProperty("java.home", dir.getCanonicalPath()).build());
 
     verifySameDirs(underTest.javaHome(), dir);
   }
@@ -61,7 +68,7 @@ public class FileSystemTest {
   @Test
   public void configure_maven_home() throws Exception {
     File dir = temp.newFolder();
-    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("maven.home", dir.getCanonicalPath()).build());
+    FileSystem underTest = new FileSystem(homeDir, Configuration.builder().setProperty("maven.home", dir.getCanonicalPath()).build());
 
     verifySameDirs(underTest.mavenHome(), dir);
   }
@@ -69,34 +76,9 @@ public class FileSystemTest {
   @Test
   public void configure_maven_local_repository() throws Exception {
     File dir = temp.newFolder();
-    FileSystem underTest = new FileSystem(Configuration.builder().setProperty("maven.localRepository", dir.getCanonicalPath()).build());
+    FileSystem underTest = new FileSystem(homeDir, Configuration.builder().setProperty("maven.localRepository", dir.getCanonicalPath()).build());
 
     verifySameDirs(underTest.mavenLocalRepository(), dir);
-  }
-
-  @Test
-  public void configure_orchestrator_home_with_deprecated_property() throws Exception {
-    String property = "SONAR_USER_HOME";
-    testOrchestratorHome(property);
-  }
-
-  @Test
-  public void configure_orchestrator_home() throws Exception {
-    testOrchestratorHome("orchestrator.home");
-  }
-
-  @Test
-  public void configure_orchestrator_home_with_env_variable() throws Exception {
-    testOrchestratorHome("ORCHESTRATOR_HOME");
-  }
-
-  private void testOrchestratorHome(String property) throws IOException {
-    File dir = temp.newFolder();
-    FileSystem underTest = new FileSystem(Configuration.builder().setProperty(property, dir.getCanonicalPath()).build());
-
-    verifySameDirs(underTest.getOrchestratorHome(), dir);
-    verifySameDirs(underTest.getCacheDir(), new File(dir, "cache"));
-    verifySameDirs(underTest.getSonarQubeZipsDir(), new File(dir, "zips"));
   }
 
   private static void verifySameDirs(File dir1, File dir2) throws IOException {

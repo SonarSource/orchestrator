@@ -190,7 +190,7 @@ public class OrchestratorBuilder {
   }
 
   private URL getUpdateCenterUrl() {
-    String url = defaultIfEmpty(getOrchestratorProperty("orchestrator.updateCenterUrl"), "http://update.sonarsource.org/update-center.properties");
+    String url = defaultIfEmpty(getOrchestratorProperty("orchestrator.updateCenterUrl"), "http://update.sonarsource.org/update-center-dev.properties");
     try {
       return new URL(url);
     } catch (MalformedURLException e) {

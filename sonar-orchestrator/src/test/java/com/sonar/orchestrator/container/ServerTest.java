@@ -24,6 +24,7 @@ import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.io.IOException;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -51,7 +52,7 @@ public class ServerTest {
   public MockWebServer server = new MockWebServer();
 
   @Test
-  public void getUrl_does_not_return_trailing_slash() {
+  public void getUrl_does_not_return_trailing_slash() throws Exception {
     Server underTest = newServerForUrl("http://localhost:9999/sonarqube");
     assertThat(underTest.getUrl()).isEqualTo("http://localhost:9999/sonarqube");
 
@@ -104,7 +105,7 @@ public class ServerTest {
     server.enqueue(new MockResponse());
     File home = temp.newFolder();
     FileUtils.touch(new File(home, "lib/sonar-application-6.3.0.1234.jar"));
-    Server underTest = new Server(new FileSystem(Configuration.builder().build()), home, new SonarDistribution(),
+    Server underTest = new Server(new FileSystem(temp.newFolder(), Configuration.builder().build()), home, new SonarDistribution(),
       HttpUrl.parse(this.server.url("").toString()));
 
     underTest.restoreProfile(FileLocation.of(backup));
@@ -132,8 +133,8 @@ public class ServerTest {
     assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("key=foo&name=Foo");
   }
 
-  private Server newServerForUrl(String url) {
-    FileSystem fs = new FileSystem(Configuration.builder().build());
+  private Server newServerForUrl(String url) throws IOException {
+    FileSystem fs = new FileSystem(temp.newFolder(), Configuration.builder().build());
     return new Server(fs, mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
   }
 
