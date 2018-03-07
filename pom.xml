@@ -24,7 +24,6 @@
     <module>echo</module>
     <module>sonar-orchestrator</module>
     <module>sonar-orchestrator-osgi</module>
-    <module>orchestrator-maven-plugin</module>
   </modules>
 
   <scm>
