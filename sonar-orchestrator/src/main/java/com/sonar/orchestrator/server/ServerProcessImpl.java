@@ -42,7 +42,7 @@ import static java.util.Objects.requireNonNull;
 
 public class ServerProcessImpl implements ServerProcess {
 
-  private static final String MIN_SQ_SUPPORTED_VERSION = "5.2";
+  private static final String MIN_SQ_SUPPORTED_VERSION = "6.2";
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerProcessImpl.class);
   private static final long START_RETRY_TIMEOUT_MS = 100L;
   private static final long START_TIMEOUT_MS = 300_000L;
@@ -65,7 +65,7 @@ public class ServerProcessImpl implements ServerProcess {
     this.startTimeoutMs = START_TIMEOUT_MS;
     this.stopTimeoutMs = STOP_TIMEOUT_MS;
     if (startupLogWatcher == null) {
-      this.startupLogWatcher = StartupLogWatcherImpl.create(server.version());
+      this.startupLogWatcher = StartupLogWatcherImpl.create();
     } else {
       this.startupLogWatcher = startupLogWatcher;
     }
@@ -153,7 +153,7 @@ public class ServerProcessImpl implements ServerProcess {
     }
   }
 
-  private void forceKillProcess() throws InterruptedException {
+  private void forceKillProcess() {
     if (executor != null) {
       executor.getWatchdog().destroyProcess();
       waitForExit();

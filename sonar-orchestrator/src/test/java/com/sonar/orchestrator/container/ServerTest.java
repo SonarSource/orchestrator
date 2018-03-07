@@ -120,27 +120,6 @@ public class ServerTest {
   }
 
   @Test
-  public void old_restoreProfile_for_version_5_6() throws Exception {
-    File backup = temp.newFile();
-    FileUtils.write(backup, "<backup/>");
-    server.enqueue(new MockResponse());
-    File home = temp.newFolder();
-    FileUtils.touch(new File(home, "lib/sonar-application-5.6.jar"));
-    Server underTest = new Server(new FileSystem(Configuration.builder().build()), home, new SonarDistribution(),
-      HttpUrl.parse(this.server.url("").toString()));
-
-    underTest.restoreProfile(FileLocation.of(backup));
-
-    RecordedRequest receivedRequest = server.takeRequest();
-    assertThat(receivedRequest.getMethod()).isEqualTo("POST");
-    assertThat(receivedRequest.getPath()).isEqualTo("/api/qualityprofiles/restore");
-    assertThat(receivedRequest.getBody().readUtf8())
-      .contains("Content-Disposition: form-data; name=\"backup\"")
-      .contains("filename=\"profile-backup.xml\"")
-      .contains("<backup/>");
-  }
-
-  @Test
   public void provisionProject_sends_POST_request() throws Exception {
     server.enqueue(new MockResponse());
     Server underTest = newServerForUrl(this.server.url("").toString());

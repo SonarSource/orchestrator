@@ -45,7 +45,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.SonarClient;
-import org.sonar.wsclient.services.PropertyUpdateQuery;
 
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
@@ -164,16 +163,12 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   private void updateSetting(String key, String value) {
-    if (getServer().version().isGreaterThanOrEquals("6.1")) {
-      server.newHttpCall("/api/settings/set")
-        .setMethod(HttpMethod.POST)
-        .setAdminCredentials()
-        .setParam("key", key)
-        .setParam("value", value)
-        .execute();
-    } else {
-      server.getAdminWsClient().update(new PropertyUpdateQuery(key, value));
-    }
+    server.newHttpCall("/api/settings/set")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials()
+      .setParam("key", key)
+      .setParam("value", value)
+      .execute();
   }
 
   /**
