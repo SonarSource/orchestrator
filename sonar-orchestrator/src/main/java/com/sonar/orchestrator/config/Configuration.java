@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.config;
 
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.util.OrchestratorUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URI;
@@ -30,25 +29,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.updatecenter.common.UpdateCenter;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
-import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.io.FileUtils.getUserDirectory;
 
 public class Configuration {
-  private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-
   public static final String SONAR_VERSION_PROPERTY = "sonar.runtimeVersion";
   private static final String ENV_SHARED_DIR = "SONAR_IT_SOURCES";
   private static final String PROP_SHARED_DIR = "orchestrator.it_sources";
@@ -57,10 +53,10 @@ public class Configuration {
   private final FileSystem fileSystem;
   private final UpdateCenter updateCenter;
 
-  private Configuration(Map<String, String> map, UpdateCenter updateCenter) {
+  private Configuration(File homeDir, Map<String, String> props, UpdateCenter updateCenter) {
     this.updateCenter = updateCenter;
-    this.props = Collections.unmodifiableMap(new HashMap<>(map));
-    this.fileSystem = new FileSystem(this);
+    this.props = Collections.unmodifiableMap(new HashMap<>(props));
+    this.fileSystem = new FileSystem(homeDir, this);
   }
 
   public FileSystem fileSystem() {
@@ -166,8 +162,6 @@ public class Configuration {
   }
 
   public static final class Builder {
-    private static final String MAVEN_LOCAL_REPOSITORY_PROPERTY = "maven.localRepository";
-
     private Map<String, String> props = new HashMap<>();
     private UpdateCenter updateCenter;
 
@@ -223,54 +217,50 @@ public class Configuration {
       return this;
     }
 
-    private Builder loadPropertiesFile() {
-      String fileUrl = props.get("ORCHESTRATOR_CONFIG_URL");
-      fileUrl = OrchestratorUtils.defaultIfEmpty(props.get("orchestrator.configUrl"), fileUrl);
-      if (isEmpty(fileUrl)) {
-        // Use default values
-        setPropertyIfAbsent("sonar.jdbc.dialect", "embedded");
-        setPropertyIfAbsent("orchestrator.updateCenterUrl", "http://update.sonarsource.org/update-center-dev.properties");
-        if (System.getenv("SONAR_MAVEN_REPOSITORY") != null) {
-          // For Jenkins
-          setPropertyIfAbsent(MAVEN_LOCAL_REPOSITORY_PROPERTY, System.getenv("SONAR_MAVEN_REPOSITORY"));
-        } else {
-          setPropertyIfAbsent(MAVEN_LOCAL_REPOSITORY_PROPERTY,
-            defaultIfEmpty(System.getProperty(MAVEN_LOCAL_REPOSITORY_PROPERTY), System.getProperty("user.home") + "/.m2/repository"));
-        }
+    private File loadProperties() {
+      File homeDir = Stream.of(
+        props.get("orchestrator.home"),
+        props.get("ORCHESTRATOR_HOME"),
+        props.get("SONAR_USER_HOME"))
+        .filter(s -> !isEmpty(s))
+        .findFirst()
+        .map(File::new)
+        .orElse(new File(getUserDirectory(), ".sonar/orchestrator"));
 
-        return this;
-      }
+      String configUrl = Stream.of(
+        props.get("orchestrator.configUrl"),
+        props.get("ORCHESTRATOR_CONFIG_URL"))
+        .filter(s -> !isEmpty(s))
+        .findFirst()
+        .orElseGet(() -> {
+          File file = new File(homeDir, "orchestrator.properties");
+          return file.exists() ? format("file://%s", file.getAbsolutePath()) : null;
+        });
 
-      try {
-        fileUrl = interpolate(fileUrl, props);
-        String fileContent = IOUtils.toString(new URI(fileUrl), UTF_8);
-        Properties fileProps = new Properties();
-        fileProps.load(IOUtils.toInputStream(fileContent, UTF_8));
-        for (Map.Entry<Object, Object> entry : fileProps.entrySet()) {
-          if (!props.containsKey(entry.getKey().toString())) {
-            props.put(entry.getKey().toString(), entry.getValue().toString());
+      if (!isEmpty(configUrl)) {
+        try {
+          configUrl = interpolate(configUrl, props);
+          String fileContent = IOUtils.toString(new URI(configUrl), UTF_8);
+          Properties fileProps = new Properties();
+          fileProps.load(IOUtils.toInputStream(fileContent, UTF_8));
+          for (Map.Entry<Object, Object> entry : fileProps.entrySet()) {
+            if (!props.containsKey(entry.getKey().toString())) {
+              props.put(entry.getKey().toString(), entry.getValue().toString());
+            }
           }
+        } catch (Exception e) {
+          throw new IllegalStateException("Fail to load configuration file: " + configUrl, e);
         }
-      } catch (Exception e) {
-        throw new IllegalStateException("Fail to load configuration file: " + fileUrl, e);
       }
-      return this;
+      return homeDir;
     }
 
-    private void setPropertyIfAbsent(String key, String value) {
-      if (isEmpty(props.get(key))) {
-        LOG.warn("Using default value for orchestrator.properties: {}={}", key, value);
-        props.put(key, value);
-      }
-    }
-
-    private Builder interpolateProperties() {
+    private static Map<String, String> interpolateProperties(Map<String, String> map) {
       Map<String, String> copy = new HashMap<>();
-      for (Map.Entry<String, String> entry : props.entrySet()) {
-        copy.put(entry.getKey(), interpolate(entry.getValue(), props));
+      for (Map.Entry<String, String> entry : map.entrySet()) {
+        copy.put(entry.getKey(), interpolate(entry.getValue(), map));
       }
-      props = copy;
-      return this;
+      return copy;
     }
 
     private static String interpolate(String prop, Map<String, String> with) {
@@ -278,9 +268,9 @@ public class Configuration {
     }
 
     public Configuration build() {
-      loadPropertiesFile();
-      interpolateProperties();
-      return new Configuration(props, updateCenter);
+      File homeDir = loadProperties();
+      Map<String, String> interpolatedProperties = interpolateProperties(props);
+      return new Configuration(homeDir, interpolatedProperties, updateCenter);
     }
   }
 }

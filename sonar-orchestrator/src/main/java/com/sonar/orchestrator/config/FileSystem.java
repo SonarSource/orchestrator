@@ -45,9 +45,9 @@ public class FileSystem {
   @Nullable
   private File antHome;
 
-  public FileSystem(Configuration config) {
+  public FileSystem(File homeDir, Configuration config) {
     this.locators = new Locators(config);
-    this.orchestratorHome = initDir(config, asList("orchestrator.home", "ORCHESTRATOR_HOME", "SONAR_USER_HOME"), new File(getUserDirectory(), ".sonar/orchestrator"));
+    this.orchestratorHome = homeDir;
     this.mavenHome = initDir(config, asList("maven.home", "MAVEN_HOME"), null);
     this.mavenLocalRepository = initDir(config, asList("maven.localRepository", "MAVEN_LOCAL_REPOSITORY"), new File(getUserDirectory(), ".m2/repository"));
     this.sonarQubeZipsDir = initDir(config, singletonList("orchestrator.sonarInstallsDir"), new File(orchestratorHome, "zips"));

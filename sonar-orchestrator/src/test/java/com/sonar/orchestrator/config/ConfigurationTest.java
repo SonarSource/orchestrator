@@ -23,10 +23,10 @@ import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.test.MockHttpServer;
-import java.net.InetAddress;
+import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,19 +35,21 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
 public class ConfigurationTest extends PropertyAndEnvTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
 
   @Test
-  public void getString() throws UnknownHostException {
-    InetAddress.getLocalHost();
-
+  public void getString() {
     Properties props = new Properties();
     props.setProperty("foo", "bar");
     Configuration config = Configuration.create(props);
@@ -70,13 +72,12 @@ public class ConfigurationTest extends PropertyAndEnvTest {
   @Test
   public void asMap() {
     Properties props = new Properties();
-    props.setProperty("foo", "bar");
+    props.setProperty("foo", "1");
+    props.setProperty("bar", "2");
 
     Configuration config = Configuration.create(props);
 
-    assertThat(config.asMap()).hasSize(4)
-      .containsEntry("foo", "bar")
-      .containsKeys("sonar.jdbc.dialect", "orchestrator.updateCenterUrl", "maven.localRepository");
+    assertThat(config.asMap()).containsOnly(entry("foo", "1"), entry("bar", "2"));
   }
 
   @Test
@@ -242,4 +243,29 @@ public class ConfigurationTest extends PropertyAndEnvTest {
     Configuration config = Configuration.create(props);
     assertThat(config.getString("sonar.jdbc.dialect")).isEqualTo("h2");
   }
+
+  @Test
+  public void configure_orchestrator_home_with_deprecated_property() throws Exception {
+    String property = "SONAR_USER_HOME";
+    testOrchestratorHome(property);
+  }
+
+  @Test
+  public void configure_orchestrator_home() throws Exception {
+    testOrchestratorHome("orchestrator.home");
+  }
+
+  @Test
+  public void configure_orchestrator_home_with_env_variable() throws Exception {
+    testOrchestratorHome("ORCHESTRATOR_HOME");
+  }
+
+  private void testOrchestratorHome(String property) throws IOException {
+    File dir = temp.newFolder();
+
+    Configuration underTest = Configuration.builder().setProperty(property, dir.getCanonicalPath()).build();
+
+    assertThat(underTest.fileSystem().getOrchestratorHome().getCanonicalPath()).isEqualTo(dir.getCanonicalPath());
+  }
+
 }
