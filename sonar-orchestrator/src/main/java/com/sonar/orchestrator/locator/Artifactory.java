@@ -67,7 +67,7 @@ class Artifactory {
         LOG.info("Found {} at {}", location, url);
         return true;
       } catch (HttpException e) {
-        if (e.getCode() != 404 && e.getCode() != 401) {
+        if (e.getCode() != 404 && e.getCode() != 401 && e.getCode() != 403) {
           throw new IllegalStateException("Failed to request " + url, e);
         }
       } catch (IOException e) {
