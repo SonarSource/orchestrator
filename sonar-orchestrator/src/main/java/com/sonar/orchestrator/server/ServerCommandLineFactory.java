@@ -57,10 +57,11 @@ public class ServerCommandLineFactory {
 
   private CommandLine createJavaCommandLine() {
     CommandLine command;
-    if (fs.javaHome() == null || !fs.javaHome().exists()) {
+    File javaHome = fs.javaHome();
+    if (javaHome == null || !javaHome.exists()) {
       command = new CommandLine("java");
     } else {
-      command = new CommandLine(FileUtils.getFile(fs.javaHome(), "bin", "java"));
+      command = new CommandLine(FileUtils.getFile(javaHome, "bin", "java"));
     }
     return command;
   }
