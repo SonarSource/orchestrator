@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.http.HttpException;
 import java.io.File;
 import java.io.IOException;
 import okhttp3.mockwebserver.MockResponse;
@@ -35,7 +34,6 @@ import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class ArtifactoryTest {
 
@@ -137,20 +135,27 @@ public class ArtifactoryTest {
   }
 
   @Test
-  public void unauthorized_to_download_private() throws Exception {
+  public void consider_unauthorized_error_as_artifact_not_found() throws Exception {
+    prepareResponseError(401);
+    Configuration configuration = newConfiguration().build();
+
+    File targetFile = temp.newFile();
+    Artifactory underTest = new Artifactory(configuration);
+    boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+
+    assertThat(found).isFalse();
+  }
+
+  @Test
+  public void consider_forbidden_error_as_artifact_not_found() throws Exception {
     prepareResponseError(403);
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
     Artifactory underTest = new Artifactory(configuration);
-    try {
-      underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
-      fail();
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessageContaining("Failed to request");
-      assertThat(((HttpException) e.getCause()).getCode()).isEqualTo(403);
-      assertThat(targetFile.length()).isEqualTo(0);
-    }
+    boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+
+    assertThat(found).isFalse();
   }
 
   @Test
