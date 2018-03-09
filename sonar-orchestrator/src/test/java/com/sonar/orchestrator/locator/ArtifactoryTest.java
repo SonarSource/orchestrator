@@ -135,8 +135,20 @@ public class ArtifactoryTest {
   }
 
   @Test
-  public void consider_authentication_error_as_artifact_not_found() throws Exception {
+  public void consider_unauthorized_error_as_artifact_not_found() throws Exception {
     prepareResponseError(401);
+    Configuration configuration = newConfiguration().build();
+
+    File targetFile = temp.newFile();
+    Artifactory underTest = new Artifactory(configuration);
+    boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+
+    assertThat(found).isFalse();
+  }
+
+  @Test
+  public void consider_forbidden_error_as_artifact_not_found() throws Exception {
+    prepareResponseError(403);
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
