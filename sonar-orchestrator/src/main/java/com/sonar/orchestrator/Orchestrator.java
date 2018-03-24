@@ -119,13 +119,6 @@ public class Orchestrator extends SingleStartExternalResource {
       server.restoreProfile(backup);
     }
 
-    for (String pluginKey : distribution.getLicensedPluginKeys()) {
-      String license = licenses.get(pluginKey);
-      if (!isEmpty(license)) {
-        updateSetting(licenses.licensePropertyKey(pluginKey), license);
-      }
-    }
-
     if (distribution.isActivateLicense()) {
       activateLicense();
     }
@@ -144,30 +137,11 @@ public class Orchestrator extends SingleStartExternalResource {
     }
   }
 
-  /**
-   * Removes the license that have been installed with
-   * {@link OrchestratorBuilder#activateLicense()}
-   *
-   * @since 3.15
-   */
-  public void clearLicense() {
-    setLicense(null);
-  }
-
   private void setLicense(@Nullable String license) {
     server.newHttpCall("api/license/update_dev")
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
       .setParam("license", license)
-      .execute();
-  }
-
-  private void updateSetting(String key, String value) {
-    server.newHttpCall("/api/settings/set")
-      .setMethod(HttpMethod.POST)
-      .setAdminCredentials()
-      .setParam("key", key)
-      .setParam("value", value)
       .execute();
   }
 

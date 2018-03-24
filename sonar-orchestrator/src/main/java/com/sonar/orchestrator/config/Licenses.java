@@ -21,8 +21,6 @@ package com.sonar.orchestrator.config;
 
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.CheckForNull;
 import okhttp3.HttpUrl;
 
@@ -34,14 +32,12 @@ import static java.lang.String.format;
 public class Licenses {
 
   private final String rootUrl;
-  private final Map<String, String> cacheV2;
   private String cacheV3;
 
   Licenses(String rootUrl) {
     checkArgument(!isEmpty(rootUrl), "Blank root URL");
 
     this.rootUrl = rootUrl;
-    this.cacheV2 = new HashMap<>();
   }
 
   public Licenses() {
@@ -50,11 +46,6 @@ public class Licenses {
 
   private static String findGithubToken() {
     return Configuration.createEnv().getString("github.token", System.getenv("GITHUB_TOKEN"));
-  }
-
-  private String downloadV2FromGithub(String pluginKey) {
-    String url = rootUrl + "master/it/" + pluginKey + ".txt";
-    return downloadFromGitHub(pluginKey, url);
   }
 
   private String downloadV3FromGithub() {
@@ -73,32 +64,10 @@ public class Licenses {
   }
 
   @CheckForNull
-  public String get(String pluginKey) {
-    if (!cacheV2.containsKey(pluginKey)) {
-      cacheV2.put(pluginKey, downloadV2FromGithub(pluginKey));
-    }
-    return cacheV2.get(pluginKey);
-  }
-
-  @CheckForNull
   public String getV3() {
     if (cacheV3 == null) {
       cacheV3 = downloadV3FromGithub();
     }
     return cacheV3;
-  }
-
-  public String licensePropertyKey(String pluginKey) {
-    switch (pluginKey) {
-      case "cobol":
-      case "natural":
-      case "plsql":
-      case "vb":
-        return "sonarsource." + pluginKey + ".license.secured";
-      case "sqale":
-        return "sqale.license.secured";
-      default:
-        return "sonar." + pluginKey + ".license.secured";
-    }
   }
 }

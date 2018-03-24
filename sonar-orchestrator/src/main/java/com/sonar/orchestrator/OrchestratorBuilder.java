@@ -293,15 +293,6 @@ public class OrchestratorBuilder {
   }
 
   /**
-   * @deprecated since 3.15 used for old license mechanism. Use {@link #activateLicense()} instead.
-   */
-  @Deprecated
-  public OrchestratorBuilder activateLicense(String pluginKey) {
-    distribution.activateLicense(pluginKey);
-    return this;
-  }
-
-  /**
    * Installs a development license that unlocks the SonarSource commercial plugins
    * built for SonarQube 6.7 LTS.
    *

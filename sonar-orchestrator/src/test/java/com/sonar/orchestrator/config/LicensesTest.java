@@ -45,17 +45,6 @@ public class LicensesTest {
   }
 
   @Test
-  public void downloadLicenseV2() {
-    httpServer.setMockResponseData("abcd1234");
-
-    Licenses licenses = new Licenses("http://localhost:" + httpServer.getPort() + "/");
-    assertThat(licenses.get("sqale")).isEqualTo("abcd1234");
-
-    // use cache
-    assertThat(licenses.get("sqale")).isEqualTo("abcd1234");
-  }
-
-  @Test
   public void downloadLicenseV3() {
     httpServer.setMockResponseData("abcd1234");
 
@@ -71,7 +60,7 @@ public class LicensesTest {
     httpServer.setMockResponseStatus(404);
 
     thrown.expect(IllegalStateException.class);
-    underTest.get("sqale");
+    underTest.getV3();
   }
 
   @Test
@@ -81,14 +70,7 @@ public class LicensesTest {
     thrown.expect(IllegalStateException.class);
 
     Licenses licenses = new Licenses("http://localhost:" + freePort + "/");
-    licenses.get("sqale");
+    licenses.getV3();
   }
 
-  @Test
-  public void licensePropertyKey() {
-    assertThat(underTest.licensePropertyKey("sqale")).isEqualTo("sqale.license.secured");
-    assertThat(underTest.licensePropertyKey("cobol")).isEqualTo("sonarsource.cobol.license.secured");
-    assertThat(underTest.licensePropertyKey("views")).isEqualTo("sonar.views.license.secured");
-
-  }
 }
