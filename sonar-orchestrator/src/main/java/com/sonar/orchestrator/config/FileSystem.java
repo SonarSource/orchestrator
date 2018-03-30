@@ -19,10 +19,7 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.CheckForNull;
@@ -33,7 +30,6 @@ import static java.util.Collections.singletonList;
 import static org.apache.commons.io.FileUtils.getUserDirectory;
 
 public class FileSystem {
-  private final Locators locators;
   private File orchestratorHome;
   @Nullable
   private File mavenHome;
@@ -46,7 +42,6 @@ public class FileSystem {
   private File antHome;
 
   public FileSystem(File homeDir, Configuration config) {
-    this.locators = new Locators(config);
     this.orchestratorHome = homeDir;
     this.mavenHome = initDir(config, asList("maven.home", "MAVEN_HOME"), null);
     this.mavenLocalRepository = initDir(config, asList("maven.localRepository", "MAVEN_LOCAL_REPOSITORY"), new File(getUserDirectory(), ".m2/repository"));
@@ -89,22 +84,6 @@ public class FileSystem {
 
   public File workspace() {
     return workspace;
-  }
-
-  public File locate(Location location) {
-    return locators.locate(location);
-  }
-
-  public InputStream openInputStream(Location location) {
-    return locators.openInputStream(location);
-  }
-
-  public File copyToDirectory(Location location, File toDir) {
-    return locators.copyToDirectory(location, toDir);
-  }
-
-  public File copyToFile(Location location, File toFile) {
-    return locators.copyToFile(location, toFile);
   }
 
   @CheckForNull

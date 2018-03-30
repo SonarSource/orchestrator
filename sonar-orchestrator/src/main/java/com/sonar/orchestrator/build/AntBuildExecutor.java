@@ -53,7 +53,7 @@ class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
       }
       command.addArguments(target.split(" "));
 
-      File antFile = config.fileSystem().locate(build.getBuildLocation());
+      File antFile = config.locators().locate(build.getBuildLocation());
       checkState(antFile.exists(), "Ant build file does not exist: %s", build.getBuildLocation());
 
       command.addArgument("-f").addArgument(antFile.getCanonicalPath());

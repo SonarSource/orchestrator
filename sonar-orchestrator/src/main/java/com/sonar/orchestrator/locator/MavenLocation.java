@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.version.Version;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -30,7 +29,7 @@ public class MavenLocation implements Location {
 
   private String groupId;
   private String artifactId;
-  private Version version;
+  private String version;
   private String filename;
   private String packaging;
   private String classifier;
@@ -44,9 +43,9 @@ public class MavenLocation implements Location {
     this.classifier = StringUtils.trimToEmpty(builder.classifier);
     if (isEmpty(filename)) {
       if (isEmpty(classifier)) {
-        filename = artifactId + "-" + version.toString() + "." + packaging;
+        filename = artifactId + "-" + version + "." + packaging;
       } else {
-        filename = artifactId + "-" + version.toString() + "-" + classifier + "." + packaging;
+        filename = artifactId + "-" + version + "-" + classifier + "." + packaging;
       }
     }
   }
@@ -59,7 +58,7 @@ public class MavenLocation implements Location {
     return artifactId;
   }
 
-  public Version version() {
+  public String getVersion() {
     return version;
   }
 
@@ -119,7 +118,7 @@ public class MavenLocation implements Location {
   public static class Builder<G extends Builder<G>> {
     private String groupId;
     private String artifactId;
-    private Version version;
+    private String version;
     private String filename = null;
     private String classifier;
     private String packaging = "jar";
@@ -137,13 +136,8 @@ public class MavenLocation implements Location {
       return (G) this;
     }
 
-    public G setVersion(String version) {
-      this.version = Version.create(version);
-      return (G) this;
-    }
-
-    public G setVersion(Version version) {
-      this.version = version;
+    public G setVersion(String s) {
+      this.version = s;
       return (G) this;
     }
 

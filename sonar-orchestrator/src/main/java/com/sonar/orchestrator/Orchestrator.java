@@ -108,7 +108,7 @@ public class Orchestrator extends SingleStartExternalResource {
     database.start();
 
     FileSystem fs = config.fileSystem();
-    ServerZipFinder zipFinder = new ServerZipFinder(fs);
+    ServerZipFinder zipFinder = new ServerZipFinder(config.locators());
     ServerInstaller serverInstaller = new ServerInstaller(zipFinder, config, database.getClient());
     server = serverInstaller.install(distribution);
 
@@ -135,6 +135,16 @@ public class Orchestrator extends SingleStartExternalResource {
     if (!isEmpty(license)) {
       setLicense(license);
     }
+  }
+
+  /**
+   * Removes the license that have been installed with
+   * {@link OrchestratorBuilder#activateLicense()}
+   *
+   * @since 3.15
+   */
+  public void clearLicense() {
+    setLicense(null);
   }
 
   private void setLicense(@Nullable String license) {

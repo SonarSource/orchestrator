@@ -20,14 +20,13 @@
 package com.sonar.orchestrator.db;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
+import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -51,7 +50,7 @@ public class DatabaseFactoryTest {
       .setProperty("orchestrator.keepDatabase", "yes")
       .build();
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config);
+    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("mysql");
     assertThat(databaseClient.getLogin()).isEqualTo("user");
@@ -68,7 +67,7 @@ public class DatabaseFactoryTest {
       .setProperty("sonar.jdbc.url", "jdbc:h2:tcp://localhost:9092/sonar")
       .build();
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config);
+    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("h2");
   }
@@ -78,7 +77,7 @@ public class DatabaseFactoryTest {
     Configuration config = Configuration.builder()
       .build();
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config);
+    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("h2");
   }
@@ -89,7 +88,7 @@ public class DatabaseFactoryTest {
       .setProperty("sonar.jdbc.url", "jdbc:postgresql://localhost/sonar")
       .build();
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config);
+    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("postgresql");
   }
@@ -100,7 +99,7 @@ public class DatabaseFactoryTest {
       .setProperty("sonar.jdbc.url", "jdbc:sqlserver://localhost;databaseName=sonar")
       .build();
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config);
+    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("mssql");
   }
@@ -111,7 +110,7 @@ public class DatabaseFactoryTest {
       .setProperty("sonar.jdbc.url", "jdbc:jtds:sqlserver://localhost/sonar")
       .build();
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config);
+    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("mssql");
   }
@@ -124,7 +123,7 @@ public class DatabaseFactoryTest {
       .setProperty("sonar.jdbc.url", "jdbc:sybase")
       .build();
 
-    DatabaseFactory.create(config);
+    DatabaseFactory.create(config, mock(Locators.class));
   }
 
   /**
@@ -132,28 +131,28 @@ public class DatabaseFactoryTest {
    */
   @Test
   public void jdbcDriverLocatedInMavenRepository() {
-    FileSystem fileSystem = mock(FileSystem.class);
+    Locators locators = mock(Locators.class);
     File driverFile = getDriverFile();
-    when(fileSystem.locate(MavenLocation.create("oracle", "oracle", "10.1"))).thenReturn(driverFile);
+    when(locators.locate(MavenLocation.create("oracle", "oracle", "10.1"))).thenReturn(driverFile);
 
     Configuration config = Configuration.builder()
         .setProperty("sonar.jdbc.url", "jdbc:oracle:thin:@localhost/XE")
         .setProperty("sonar.jdbc.driverMavenKey", "oracle:oracle:10.1")
         .build();
 
-    DatabaseClient client = DatabaseFactory.create(config, fileSystem);
+    DatabaseClient client = DatabaseFactory.create(config, locators);
     assertThat(client.getDriverFile()).isEqualTo(driverFile);
   }
 
   @Test
   public void jdbcDriverLocatedInMavenRepository_bad_format() {
     thrown.expect(IllegalArgumentException.class);
-    FileSystem fileSystem = mock(FileSystem.class);
+    Locators locators = mock(Locators.class);
     Configuration config = Configuration.builder()
         .setProperty("sonar.jdbc.driverMavenKey", "foo")
         .build();
 
-    DatabaseFactory.create(config, fileSystem);
+    DatabaseFactory.create(config, locators);
   }
 
   private File getDriverFile() {

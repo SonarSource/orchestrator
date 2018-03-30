@@ -19,14 +19,12 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.net.URL;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -51,17 +49,8 @@ public class ScannerForMSBuildInstallerTest {
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
-  private FileSystem fileSystem;
-  private Configuration config;
-  private ScannerForMSBuildInstaller installer;
-
-  @Before
-  public void init() {
-    fileSystem = mock(FileSystem.class);
-    config = mock(Configuration.class);
-    when(config.fileSystem()).thenReturn(fileSystem);
-    installer = new ScannerForMSBuildInstaller(config);
-  }
+  private Locators locators = mock(Locators.class);
+  private ScannerForMSBuildInstaller installer = new ScannerForMSBuildInstaller(locators);
 
   @Test
   public void install_embedded_version() throws Exception {
@@ -72,20 +61,20 @@ public class ScannerForMSBuildInstallerTest {
     assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
     assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION);
 
-    verify(fileSystem, never()).locate(any(MavenLocation.class));
+    verify(locators, never()).locate(any(MavenLocation.class));
   }
 
   @Test
   public void install_zip() throws Exception {
     File toDir = temp.newFolder();
     URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
-    File script = installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
+    FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
+    when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
+    File script = installer.install(null, zipLocation, toDir, true);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
     assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild");
-
-    verify(fileSystem, never()).locate(any(MavenLocation.class));
   }
 
   @Test
@@ -104,13 +93,15 @@ public class ScannerForMSBuildInstallerTest {
   public void do_install_twice_with_location() throws Exception {
     File toDir = temp.newFolder();
     URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
+    FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
+    when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
 
-    File script = installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
+    File script = installer.install(null, zipLocation, toDir, true);
     File txt = new File(script.getParentFile(), "text.txt");
     txt.createNewFile();
     assertThat(txt).exists();
 
-    installer.install(null, FileLocation.of(new File(zip.toURI())), toDir, true);
+    installer.install(null, zipLocation, toDir, true);
     assertThat(txt).doesNotExist();
   }
 
@@ -127,7 +118,7 @@ public class ScannerForMSBuildInstallerTest {
   public void maven_location() {
     MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("2.1-SNAPSHOT"));
     assertThat(location.getPackaging()).isEqualTo("zip");
-    assertThat(location.version()).isEqualTo(Version.create("2.1-SNAPSHOT"));
+    assertThat(location.getVersion()).isEqualTo("2.1-SNAPSHOT");
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
     assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-msbuild");
   }

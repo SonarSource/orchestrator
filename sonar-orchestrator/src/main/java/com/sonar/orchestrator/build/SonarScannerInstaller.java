@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
@@ -43,10 +43,10 @@ import org.slf4j.LoggerFactory;
 public class SonarScannerInstaller {
   private static final Logger LOG = LoggerFactory.getLogger(SonarScannerInstaller.class);
 
-  private final FileSystem fileSystem;
+  private final Locators locators;
 
-  public SonarScannerInstaller(FileSystem fileSystem) {
-    this.fileSystem = fileSystem;
+  public SonarScannerInstaller(Locators locators) {
+    this.locators = locators;
   }
 
   /**
@@ -93,7 +93,7 @@ public class SonarScannerInstaller {
       }
     } else {
       LoggerFactory.getLogger(SonarScannerInstaller.class).info("Searching for sonar-scanner {} in local maven repository", scannerVersion);
-      zipFile = fileSystem.locate(mavenLocation(scannerVersion, classifier));
+      zipFile = locators.locate(mavenLocation(scannerVersion, classifier));
     }
     return zipFile;
   }
@@ -118,7 +118,7 @@ public class SonarScannerInstaller {
     MavenLocation.Builder builder = MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
-      .setVersion(scannerVersion)
+      .setVersion(scannerVersion.toString())
       .withPackaging("zip");
     if (classifier != null) {
       builder.setClassifier(classifier);

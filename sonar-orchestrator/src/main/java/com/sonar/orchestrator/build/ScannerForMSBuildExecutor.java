@@ -33,7 +33,7 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
 
   @Override
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
-    return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(config), create);
+    return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(config.locators()), create);
   }
 
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, ScannerForMSBuildInstaller installer,

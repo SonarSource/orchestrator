@@ -69,7 +69,7 @@ public class ServerInstaller {
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
     String url = format("http://%s:%s%s", properties.getProperty(WEB_HOST_PROPERTY), properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(configuration.fileSystem(), homeDir, distrib, HttpUrl.parse(url));
+    return new Server(configuration.locators(), homeDir, distrib, HttpUrl.parse(url));
   }
 
   private File locateAndUnzip(SonarDistribution distrib) {
@@ -115,7 +115,7 @@ public class ServerInstaller {
       throw new IllegalStateException("Fail to clean the download directory: " + downloadDir, e);
     }
     for (Location plugin : distribution.getPluginLocations()) {
-      File pluginFile = configuration.fileSystem().copyToDirectory(plugin, downloadDir);
+      File pluginFile = configuration.locators().copyToDirectory(plugin, downloadDir);
       if (pluginFile == null || !pluginFile.exists()) {
         throw new IllegalStateException("Can not find the plugin " + plugin);
       }

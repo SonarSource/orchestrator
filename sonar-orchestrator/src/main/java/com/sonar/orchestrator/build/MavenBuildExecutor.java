@@ -78,7 +78,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
       command.addArgument("-e");
 
       if (build.getPom() != null) {
-        File pomFile = config.fileSystem().locate(build.getPom());
+        File pomFile = config.locators().locate(build.getPom());
         checkState(pomFile.exists(), "Maven pom does not exist: %s", build.getPom());
         command.addArgument("-f").addArgument(pomFile.getAbsolutePath());
       }

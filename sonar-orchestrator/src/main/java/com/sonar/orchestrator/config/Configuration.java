@@ -19,8 +19,9 @@
  */
 package com.sonar.orchestrator.config;
 
+import com.sonar.orchestrator.locator.ArtifactoryImpl;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
@@ -34,7 +35,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.sonar.updatecenter.common.UpdateCenter;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
@@ -45,34 +45,25 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.FileUtils.getUserDirectory;
 
 public class Configuration {
-  public static final String SONAR_VERSION_PROPERTY = "sonar.runtimeVersion";
   private static final String ENV_SHARED_DIR = "SONAR_IT_SOURCES";
   private static final String PROP_SHARED_DIR = "orchestrator.it_sources";
 
   private final Map<String, String> props;
   private final FileSystem fileSystem;
-  private final UpdateCenter updateCenter;
+  private final Locators locators;
 
-  private Configuration(File homeDir, Map<String, String> props, UpdateCenter updateCenter) {
-    this.updateCenter = updateCenter;
+  private Configuration(File homeDir, Map<String, String> props) {
     this.props = Collections.unmodifiableMap(new HashMap<>(props));
     this.fileSystem = new FileSystem(homeDir, this);
+    this.locators = new Locators(this.fileSystem, new ArtifactoryImpl(this));
   }
 
   public FileSystem fileSystem() {
     return fileSystem;
   }
 
-  public UpdateCenter updateCenter() {
-    return updateCenter;
-  }
-
-  public Version getSonarVersion() {
-    return Version.create(props.get(SONAR_VERSION_PROPERTY));
-  }
-
-  public Version getPluginVersion(String pluginKey) {
-    return Version.create(props.get(pluginKey + "Version"));
+  public Locators locators() {
+    return locators;
   }
 
   /**
@@ -163,7 +154,6 @@ public class Configuration {
 
   public static final class Builder {
     private Map<String, String> props = new HashMap<>();
-    private UpdateCenter updateCenter;
 
     private Builder() {
     }
@@ -209,11 +199,6 @@ public class Configuration {
 
     public Builder setProperty(String key, File file) {
       props.put(key, file.getAbsolutePath());
-      return this;
-    }
-
-    public Builder setUpdateCenter(UpdateCenter updateCenter) {
-      this.updateCenter = updateCenter;
       return this;
     }
 
@@ -270,7 +255,7 @@ public class Configuration {
     public Configuration build() {
       File homeDir = loadProperties();
       Map<String, String> interpolatedProperties = interpolateProperties(props);
-      return new Configuration(homeDir, interpolatedProperties, updateCenter);
+      return new Configuration(homeDir, interpolatedProperties);
     }
   }
 }

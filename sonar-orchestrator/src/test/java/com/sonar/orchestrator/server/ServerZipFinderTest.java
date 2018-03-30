@@ -19,11 +19,10 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,14 +39,14 @@ import static org.mockito.Mockito.when;
 
 public class ServerZipFinderTest {
 
-  private static final Version A_VERSION = Version.create("6.7");
+  private static final String A_VERSION = "6.7";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
-  private FileSystem fs = mock(FileSystem.class);
-  private ServerZipFinder underTest = new ServerZipFinder(fs);
+  private Locators locators = mock(Locators.class);
+  private ServerZipFinder underTest = new ServerZipFinder(locators);
 
   @Test
   public void use_local_zip() throws Exception {
@@ -55,30 +54,30 @@ public class ServerZipFinderTest {
     SonarDistribution distribution = new SonarDistribution().setZipFile(zip);
 
     assertThat(underTest.find(distribution).getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
-    verifyZeroInteractions(fs);
+    verifyZeroInteractions(locators);
   }
 
   @Test
   public void use_maven_zip() throws Exception {
     SonarDistribution distribution = new SonarDistribution().setVersion(A_VERSION);
     File zip = temp.newFile();
-    when(fs.locate(any())).thenReturn(zip);
+    when(locators.locate(any())).thenReturn(zip);
 
     File result = underTest.find(distribution);
 
     assertThat(result.getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
     ArgumentCaptor<Location> captor = ArgumentCaptor.forClass(Location.class);
-    verify(fs).locate(captor.capture());
+    verify(locators).locate(captor.capture());
     MavenLocation calledLocation = (MavenLocation) captor.getValue();
     assertThat(calledLocation.getGroupId()).isEqualTo("org.sonarsource.sonarqube");
     assertThat(calledLocation.getArtifactId()).isEqualTo("sonar-application");
-    assertThat(calledLocation.version()).isEqualTo(A_VERSION);
+    assertThat(calledLocation.getVersion()).isEqualTo(A_VERSION);
     assertThat(calledLocation.getPackaging()).isEqualTo("zip");
   }
 
   @Test
   public void throw_ISE_if_zip_not_found() {
-    when(fs.locate(any())).thenReturn(null);
+    when(locators.locate(any())).thenReturn(null);
 
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("SonarQube " + A_VERSION.toString() + " not found");

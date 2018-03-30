@@ -19,10 +19,9 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Optional;
 
@@ -30,10 +29,10 @@ import static java.lang.String.format;
 
 public class ServerZipFinder {
 
-  private final FileSystem fs;
+  private final Locators locators;
 
-  public ServerZipFinder(FileSystem fs) {
-    this.fs = fs;
+  public ServerZipFinder(Locators locators) {
+    this.locators = locators;
   }
 
   /**
@@ -45,8 +44,8 @@ public class ServerZipFinder {
     if (localZip.isPresent()) {
       return localZip.get();
     }
-    Version version = distrib.version().orElseThrow(() -> new IllegalStateException("Missing SonarQube version"));
-    File zip = fs.locate(MavenLocation.builder()
+    String version = distrib.getVersion().orElseThrow(() -> new IllegalStateException("Missing SonarQube version"));
+    File zip = locators.locate(MavenLocation.builder()
       .setGroupId("org.sonarsource.sonarqube")
       .setArtifactId("sonar-application")
       .setVersion(version)

@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.version.Version;
 import java.util.Properties;
 import org.junit.Test;
 
@@ -29,8 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SonarDistributionTest {
   @Test
   public void shouldCreate() {
-    SonarDistribution distribution = new SonarDistribution().setVersion(Version.create("2.7"));
-    assertThat(distribution.version().get().toString()).isEqualTo("2.7");
+    SonarDistribution distribution = new SonarDistribution().setVersion("2.7");
+    assertThat(distribution.getVersion().get()).isEqualTo("2.7");
     assertThat(distribution.getPluginLocations().size()).isEqualTo(0);
     assertThat(distribution.getProfileBackups().size()).isEqualTo(0);
     assertThat(distribution.removeDistributedPlugins()).isTrue();
@@ -44,7 +43,7 @@ public class SonarDistributionTest {
     MavenLocation mavenPlugin = (MavenLocation) distribution.getPluginLocations().get(0);
     assertThat(mavenPlugin.getGroupId()).isEqualTo("org.codehaus.sonar-plugins");
     assertThat(mavenPlugin.getArtifactId()).isEqualTo("sonar-clirr-plugin");
-    assertThat(mavenPlugin.version().toString()).isEqualTo("1.1");
+    assertThat(mavenPlugin.getVersion()).isEqualTo("1.1");
     assertThat(mavenPlugin.getPackaging()).isEqualTo("jar");
   }
 

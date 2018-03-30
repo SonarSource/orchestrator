@@ -19,11 +19,10 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.config.Configuration;
-import org.junit.Test;
-
+import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
 import java.io.InputStream;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -34,22 +33,10 @@ public class LocatorsTest {
   MavenLocator mavenLocator = mock(MavenLocator.class);
   ResourceLocator resourceLocator = mock(ResourceLocator.class);
   URLLocator urlLocator = mock(URLLocator.class);
-  PluginLocator pluginLocator = mock(PluginLocator.class);
 
-  Locators locators = new Locators(fileLocator, mavenLocator, resourceLocator, urlLocator, pluginLocator);
+  Locators locators = new Locators(fileLocator, mavenLocator, resourceLocator, urlLocator);
 
   // Locate
-
-  @Test
-  public void should_locate_with_plugin_locator() {
-    PluginLocation location = mock(PluginLocation.class);
-    File expectedFile = new File("found");
-    when(pluginLocator.locate(location)).thenReturn(expectedFile);
-
-    File actualFile = locators.locate(location);
-
-    assertThat(actualFile).isSameAs(expectedFile);
-  }
 
   @Test
   public void should_locate_with_file_locator() {
@@ -97,23 +84,12 @@ public class LocatorsTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void should_fail_to_locate_unsupported_location() {
-    Locators locators = new Locators(Configuration.createEnv());
+    Locators locators = new Locators(mock(FileSystem.class), mock(Artifactory.class));
 
     locators.locate(new UnsupportedLocation());
   }
 
   // Copy to file
-
-  @Test
-  public void should_copy_to_file_with_plugin_locator() {
-    PluginLocation location = mock(PluginLocation.class);
-    File expectedFile = new File("found");
-    when(pluginLocator.copyToFile(location, new File("destination"))).thenReturn(expectedFile);
-
-    File actualFile = locators.copyToFile(location, new File("destination"));
-
-    assertThat(actualFile).isSameAs(expectedFile);
-  }
 
   @Test
   public void should_copy_to_file_with_file_locator() {
@@ -161,23 +137,12 @@ public class LocatorsTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void should_fail_to_copy_to_file_unsupported_location() {
-    Locators locators = new Locators(Configuration.createEnv());
+    Locators locators = new Locators(mock(FileSystem.class), mock(Artifactory.class));
 
     locators.copyToFile(new UnsupportedLocation(), new File("destination"));
   }
 
   // Copy to directory
-
-  @Test
-  public void should_copy_to_directory_with_plugin_locator() {
-    PluginLocation location = mock(PluginLocation.class);
-    File expectedFile = new File("found");
-    when(pluginLocator.copyToDirectory(location, new File("destination"))).thenReturn(expectedFile);
-
-    File actualFile = locators.copyToDirectory(location, new File("destination"));
-
-    assertThat(actualFile).isSameAs(expectedFile);
-  }
 
   @Test
   public void should_copy_to_directory_with_file_locator() {
@@ -225,23 +190,12 @@ public class LocatorsTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void should_fail_to_copy_to_directory_unsupported_location() {
-    Locators locators = new Locators(Configuration.createEnv());
+    Locators locators = new Locators(mock(FileSystem.class), mock(Artifactory.class));
 
     locators.copyToDirectory(new UnsupportedLocation(), new File("destination"));
   }
 
   // Open Stream
-
-  @Test
-  public void should_open_stream_with_plugin_locator() {
-    PluginLocation location = mock(PluginLocation.class);
-    InputStream expectedStream = mock(InputStream.class);
-    when(pluginLocator.openInputStream(location)).thenReturn(expectedStream);
-
-    InputStream actualStream = locators.openInputStream(location);
-
-    assertThat(actualStream).isSameAs(expectedStream);
-  }
 
   @Test
   public void should_open_stream_with_file_locator() {
@@ -289,7 +243,7 @@ public class LocatorsTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void should_fail_to_open_stream_unsupported_location() {
-    Locators locators = new Locators(Configuration.createEnv());
+    Locators locators = new Locators(mock(FileSystem.class), mock(Artifactory.class));
 
     locators.openInputStream(new UnsupportedLocation());
   }

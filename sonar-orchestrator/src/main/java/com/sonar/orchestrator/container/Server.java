@@ -19,12 +19,12 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class Server {
   public static final String ADMIN_LOGIN = "admin";
   public static final String ADMIN_PASSWORD = "admin";
 
-  private final FileSystem fileSystem;
+  private final Locators locators;
   private final File home;
   private final SonarDistribution distribution;
   private HttpUrl url;
@@ -57,8 +57,8 @@ public class Server {
   private SonarClient sonarClient;
   private SonarClient adminSonarClient;
 
-  public Server(FileSystem fileSystem, File home, SonarDistribution distribution, HttpUrl url) {
-    this.fileSystem = fileSystem;
+  public Server(Locators locators, File home, SonarDistribution distribution, HttpUrl url) {
+    this.locators = locators;
     this.home = home;
     this.distribution = distribution;
     this.url = url;
@@ -204,7 +204,7 @@ public class Server {
    * if it does not exist yet, otherwise it is reset.
    */
   public Server restoreProfile(Location backup) {
-    try (InputStream input = fileSystem.openInputStream(backup)) {
+    try (InputStream input = locators.openInputStream(backup)) {
       newHttpCall("/api/qualityprofiles/restore")
         .setMethod(HttpMethod.MULTIPART_POST)
         .setAdminCredentials()

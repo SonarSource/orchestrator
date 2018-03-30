@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
 import okhttp3.HttpUrl;
 import org.junit.Before;
@@ -35,13 +35,13 @@ public class ServerLogsTest {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private File home;
-  private FileSystem fileSystem = mock(FileSystem.class);
+  private Locators locators = mock(Locators.class);
   private Server server;
 
   @Before
   public void setUp() throws Exception {
     home = temporaryFolder.newFolder();
-    server = new Server(fileSystem, home, new SonarDistribution(), HttpUrl.parse("http://localhost"));
+    server = new Server(locators, home, new SonarDistribution(), HttpUrl.parse("http://localhost"));
   }
 
   @Test

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.version.Version;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +30,7 @@ public class MavenLocationTest {
     MavenLocation location = MavenLocation.builder().setKey("org.codehaus.sonar-plugins", "sonar-clirr-plugin", "1.1").build();
     assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar-plugins");
     assertThat(location.getArtifactId()).isEqualTo("sonar-clirr-plugin");
-    assertThat(location.version()).isEqualTo(Version.create("1.1"));
+    assertThat(location.getVersion()).isEqualTo("1.1");
     assertThat(location.getPackaging()).isEqualTo("jar");
     assertThat(location.getFilename()).isEqualTo("sonar-clirr-plugin-1.1.jar");
   }
@@ -41,7 +40,7 @@ public class MavenLocationTest {
     MavenLocation location = MavenLocation.of("org.codehaus.sonar-plugins", "sonar-clirr-plugin", "1.1");
     assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar-plugins");
     assertThat(location.getArtifactId()).isEqualTo("sonar-clirr-plugin");
-    assertThat(location.version()).isEqualTo(Version.create("1.1"));
+    assertThat(location.getVersion()).isEqualTo("1.1");
     assertThat(location.getPackaging()).isEqualTo("jar");
     assertThat(location.getFilename()).isEqualTo("sonar-clirr-plugin-1.1.jar");
   }
@@ -51,7 +50,7 @@ public class MavenLocationTest {
     MavenLocation location = MavenLocation.builder().setKey("org.codehaus.sonar-plugins", "sonar-clirr-plugin", "1.1").withFilename("clirr11.jar").build();
     assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar-plugins");
     assertThat(location.getArtifactId()).isEqualTo("sonar-clirr-plugin");
-    assertThat(location.version()).isEqualTo(Version.create("1.1"));
+    assertThat(location.getVersion()).isEqualTo("1.1");
     assertThat(location.getPackaging()).isEqualTo("jar");
     assertThat(location.getFilename()).isEqualTo("clirr11.jar");
   }

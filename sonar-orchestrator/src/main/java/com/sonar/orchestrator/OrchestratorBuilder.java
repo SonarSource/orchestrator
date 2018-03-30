@@ -22,51 +22,24 @@ package com.sonar.orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.locator.PluginLocation;
 import com.sonar.orchestrator.locator.ResourceLocation;
-import com.sonar.orchestrator.locator.URLLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Properties;
 import javax.annotation.Nullable;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonar.updatecenter.common.Release;
-import org.sonar.updatecenter.common.UpdateCenter;
-import org.sonar.updatecenter.common.UpdateCenterDeserializer;
-import org.sonar.updatecenter.common.UpdateCenterDeserializer.Mode;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
-import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
-import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
 public class OrchestratorBuilder {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OrchestratorBuilder.class);
-
-  private static final String ALIAS_LTS_OR_OLDEST_COMPATIBLE = "LTS_OR_OLDEST_COMPATIBLE";
-  private static final String ALIAS_OLDEST_COMPATIBLE = "OLDEST_COMPATIBLE";
-
   private final Configuration config;
   private final SonarDistribution distribution;
   private final Map<String, String> overriddenProperties;
-  private UpdateCenter updateCenter;
   private StartupLogWatcher startupLogWatcher;
 
   OrchestratorBuilder(Configuration initialConfig) {
@@ -75,6 +48,13 @@ public class OrchestratorBuilder {
     this.overriddenProperties = new HashMap<>();
   }
 
+  /**
+   * Set the local distribution of SonarQube to be installed.
+   * <p/>
+   * Only one of methods {@link #setSonarVersion(String)} and {@link #setZipFile(File)} must be called.
+   *
+   * @throws IllegalArgumentException if the zip file does not exist
+   */
   public OrchestratorBuilder setZipFile(File zip) {
     checkArgument(zip.exists(), "SonarQube ZIP file does not exist: %s", zip.getAbsolutePath());
     checkArgument(zip.isFile(), "SonarQube ZIP is not a file: %s", zip.getAbsolutePath());
@@ -82,9 +62,28 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  /**
+   * Set the version of SonarQube to be installed. Can be:
+   * <ul>
+   *   <li>a fixed version like {@code "7.1.0.1234"} or {@code "7.1"} (GA release)</li>
+   *   <li>the alias {@code "DEV" for the latest official build that has been promoted (validated by QA).
+   *   Build comes from master branch, not from feature branches</li>
+   *   <li>the alias {@code "DEV[x.y]"}, same as "DEV" but restricted to series x.y.*. For example {@code "DEV[7.1]"} may
+   *   install the version 7.1.0.1234.</li>
+   *   <li>the alias {@code "LATEST_RELEASE"} for the latest official release</li>
+   *   <li>the alias {@code "LATEST_RELEASE[x.y]"}, same as {@code "LATEST_RELEASE"} but restricted to
+   *   series x.y.*. For example {@code "LATEST_RELEASE[7.1]"} may install the version 7.1.1.</li>
+   * </ul>
+   * The term "latest" refers to the highest version number, not the more recently published version.
+   * <p/>
+   * The alias {@code "LTS"} is no more supported. It should be replaced by {@code "LATEST_RELEASE[6.7]"} if
+   * the LTS series is 6.7.x.
+   * <p/>
+   * Only one of methods {@link #setSonarVersion(String)} and {@link #setZipFile(File)} must be called.
+   */
   public OrchestratorBuilder setSonarVersion(String s) {
     checkArgument(!isEmpty(s), "Empty SonarQube version");
-    this.overriddenProperties.put(Configuration.SONAR_VERSION_PROPERTY, s);
+    this.distribution.setVersion(s);
     return this;
   }
 
@@ -108,107 +107,28 @@ public class OrchestratorBuilder {
   }
 
   /**
-   * Resolve SonarQube version base on value of property sonar.runtimeVersion. Some aliases can be used:
+   * Install a plugin before starting SonarQube server. Location of plugin may be:
    * <ul>
-   *   <li>DEV: Return dev version of SonarQube as defined in update center</li>
-   *   <li>LTS: Return LTS version of SonarQube as defined in update center</li>
+   *   <li>a local JAR file: {@code addPlugin(FileLocation.of("/path/to/jar")}</li>
+   *   <li>a Maven ID: {@code addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "5.2.0.13398")}.
+   *   Artifact is searched from local cache (~/.sonar/orchestrator/cache), from local Maven repository
+   *   (if exists) then from Artifactory.</li>
    * </ul>
-   */
-  public Optional<String> getSonarVersion() {
-    String requestedVersion = getOrchestratorProperty(Configuration.SONAR_VERSION_PROPERTY);
-    if (isEmpty(requestedVersion)) {
-      return Optional.empty();
-    }
-    if (ALIAS_LTS_OR_OLDEST_COMPATIBLE.equals(requestedVersion)) {
-      throw new IllegalArgumentException("Alias '" + ALIAS_LTS_OR_OLDEST_COMPATIBLE + "' is not supported anymore for SonarQube versions");
-    }
-    String version;
-    try {
-      Release sonarRelease = getUpdateCenter().getSonar().getRelease(requestedVersion);
-      version = sonarRelease.getVersion().toString();
-    } catch (NoSuchElementException e) {
-      LOG.warn("Version " + requestedVersion + " of SonarQube does not exist in update center. Fallback to blindly use " + requestedVersion);
-      version = requestedVersion;
-    }
-    setOrchestratorProperty(Configuration.SONAR_VERSION_PROPERTY, version);
-    return Optional.of(version);
-  }
-
-  public String getPluginVersion(String pluginKey) {
-    Release pluginRelease = getPluginRelease(pluginKey);
-    return pluginRelease.getVersion().toString();
-  }
-
-  private String getRequestedPluginVersion(String pluginKey) {
-    String pluginVersionPropertyKey = getPluginVersionPropertyKey(pluginKey);
-    String pluginVersion = getOrchestratorProperty(pluginVersionPropertyKey);
-    checkState(!isEmpty(pluginVersion), "Missing %s plugin version. Please define property %s", pluginKey, pluginVersionPropertyKey);
-    return pluginVersion;
-  }
-
-  private static String getPluginVersionPropertyKey(String pluginKey) {
-    return pluginKey + "Version";
-  }
-
-  private Release getPluginRelease(String pluginKey) {
-    Release resolvedRelease = resolvePluginVersion(pluginKey, getRequestedPluginVersion(pluginKey));
-    // Override plugin version with actual value to allow later check (assumeThat)
-    setOrchestratorProperty(getPluginVersionPropertyKey(pluginKey), resolvedRelease.getVersion().toString());
-    return resolvedRelease;
-  }
-
-  private Release resolvePluginVersion(String pluginKey, String version) {
-    if (ALIAS_OLDEST_COMPATIBLE.equals(version)) {
-      throw new IllegalArgumentException("Alias " + ALIAS_OLDEST_COMPATIBLE + " is not supported anymore (plugin " + pluginKey + ")");
-    }
-    Release release = getUpdateCenter().getUpdateCenterPluginReferential().findPlugin(pluginKey).getRelease(version);
-    if (release == null) {
-      throw new IllegalStateException("Unable to resolve " + pluginKey + " plugin version " + version);
-    }
-    return release;
-  }
-
-  public UpdateCenter getUpdateCenter() {
-    if (updateCenter != null) {
-      return updateCenter;
-    }
-    File updateCenterFile = null;
-    try {
-      updateCenterFile = File.createTempFile("update-center", ".properties");
-      new Locators(config).copyToFile(URLLocation.create(getUpdateCenterUrl()), updateCenterFile);
-      Properties props = new Properties();
-      try (Reader propsReader = new FileReader(updateCenterFile)) {
-        props.load(propsReader);
-      }
-      updateCenter = new UpdateCenterDeserializer(Mode.DEV, false).fromProperties(props);
-    } catch (IOException e) {
-      throw new IllegalStateException("Unable to read update center properties file", e);
-    } finally {
-      FileUtils.deleteQuietly(updateCenterFile);
-    }
-    return updateCenter;
-  }
-
-  private URL getUpdateCenterUrl() {
-    String url = defaultIfEmpty(getOrchestratorProperty("orchestrator.updateCenterUrl"), "http://update.sonarsource.org/update-center-dev.properties");
-    try {
-      return new URL(url);
-    } catch (MalformedURLException e) {
-      throw new IllegalStateException(url + " is not a valid URL for update center", e);
-    }
-  }
-
-  /**
-   * Install a plugin. Examples :
+   * <p/>
+   * Using the Maven ID allows to reference version by an alias:
    * <ul>
-   *   <li>{@code addPlugin(MavenLocation.create("org.codehaus.sonar-plugins", "sonar-foo-plugin", "1.0")} seeks in local then remote repository</li>
-   *   <li>{@code addPlugin(FileLocation.of("/path/to/jar")} installs the given JAR file</li>
-   *   <li>{@code addPlugin(PluginLocation.of("foo")} seeks in local repo, remote repo then update center. The property "fooVersion" must be set in configuration.</li>
+   *   <li>the alias {@code "DEV" for the latest official build that has been promoted (validated by QA). Build comes from master branch, not from feature branches</li>
+   *   <li>the alias {@code "DEV[x.y]"}, same as "DEV" but restricted to series x.y.*. For example {@code "DEV[5.2]"} may install the
+   *   version 5.2.0.13398 which is latest promoted build of 5.2 series.</li>
+   *   <li>the alias {@code "LATEST_RELEASE"} for the latest official release</li>
+   *   <li>the alias {@code "LATEST_RELEASE[x.y]"}, same as {@code "LATEST_RELEASE"} but restricted to series x.y.*, for example {@code "LATEST_RELEASE[5.2]"}.</li>
    * </ul>
+   * <p/>
+   * Downloading and resolving aliases of commercial plugins requires the Artifactory credentials to be set
+   * (see parameter "orchestrator.artifactory.apiKey").
    */
   public OrchestratorBuilder addPlugin(Location location) {
-    requireNonNull(location);
-    distribution.addPluginLocation(location);
+    distribution.addPluginLocation(requireNonNull(location));
     return this;
   }
 
@@ -216,8 +136,6 @@ public class OrchestratorBuilder {
    * Install a plugin that is available in Maven repositories. The version of the plugin is passed using an orchestrator property.
    * This method doesn't use update center and as a result do not support version aliases like "RELEASE" and "SNAPSHOT"
    * nor plugin groups.
-   * <p/>
-   * Use {@link #addPlugin(String)} if you want to use advanced features provided by update center.
    * <p/>
    * Example: {@code addMavenPlugin("org.sonarsource.ldap", "sonar-ldap-plugin", "ldapVersion")}
    */
@@ -228,49 +146,10 @@ public class OrchestratorBuilder {
     return this;
   }
 
-  /**
-   * Install a plugin by its key. First groupId/artifactId is determined using update center.
-   * Once Maven coordinates are known the plugin is located in local Maven repository.<br/>
-   * If not found there will be an attempt to download it.<br/>
-   * If still not found URL defined in update center will be used.<br/>
-   * <p/>
-   * This method requires the property &lt;pluginKey&gt;Version to be set, for example "javaVersion". Aliases like DEV are supported.
-   * <p/>
-   * Example: {@code addPlugin("java")}
-   *
-   * @since 2.10
-   */
-  public OrchestratorBuilder addPlugin(String pluginKey) {
-    String version = getPluginVersion(pluginKey);
-
-    addPluginLocation(pluginKey, version);
-
-    return this;
-  }
-
-  private void addPluginLocation(String pluginKey, String version) {
-    try {
-      Release r = updateCenter.getUpdateCenterPluginReferential().findPlugin(pluginKey).getRelease(version);
-      String groupId = r.groupId();
-      String artifactId = r.artifactId();
-      distribution.addPluginLocation(PluginLocation.create(pluginKey, version, groupId, artifactId));
-    } catch (NoSuchElementException e) {
-      throw new IllegalStateException("Unable to find plugin " + pluginKey + " version " + version + " in update center", e);
-    }
-  }
-
   public OrchestratorBuilder setOrchestratorProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     overriddenProperties.put(key, value);
     return this;
-  }
-
-  public String getOrchestratorProperty(String key) {
-    return defaultIfNull(overriddenProperties.get(key), config.getString(key));
-  }
-
-  public Configuration getOrchestratorConfiguration() {
-    return this.config;
   }
 
   public OrchestratorBuilder setServerProperty(String key, @Nullable String value) {
@@ -281,10 +160,6 @@ public class OrchestratorBuilder {
 
   private static void checkNotEmpty(String key) {
     checkArgument(!isEmpty(key), "Empty property key");
-  }
-
-  public String getServerProperty(String key) {
-    return distribution.getServerProperty(key);
   }
 
   public OrchestratorBuilder restoreProfileAtStartup(Location profileBackup) {
@@ -329,13 +204,11 @@ public class OrchestratorBuilder {
   }
 
   public Orchestrator build() {
-    getSonarVersion().ifPresent(s -> this.distribution.setVersion(Version.create(s)));
-    checkState(distribution.getZipFile().isPresent() || distribution.version().isPresent(), "Version or path to ZIP of SonarQube is missing");
+    checkState(distribution.getZipFile().isPresent() || distribution.getVersion().isPresent(), "Version or path to ZIP of SonarQube is missing");
     Configuration.Builder configBuilder = Configuration.builder();
     Configuration finalConfig = configBuilder
       .addConfiguration(config)
       .addMap(overriddenProperties)
-      .setUpdateCenter(getUpdateCenter())
       .build();
 
     this.distribution.addPluginLocation(ResourceLocation.create("/com/sonar/orchestrator/sonar-reset-data-plugin-1.0-SNAPSHOT.jar"));

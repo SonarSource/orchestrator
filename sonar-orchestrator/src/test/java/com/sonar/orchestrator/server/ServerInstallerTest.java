@@ -24,7 +24,6 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.when;
 public class ServerInstallerTest {
 
   private static final File ZIP_4_5_6 = FileUtils.toFile(ServerInstallerTest.class.getResource("ServerInstallerTest/sonarqube-4.5.6-lite.zip"));
-  private static final Version VERSION_4_5_6 = Version.create("4.5.6");
+  private static final String VERSION_4_5_6 = "4.5.6";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -74,8 +73,8 @@ public class ServerInstallerTest {
   public void test_install() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
-    Server server = newInstaller().install(new SonarDistribution(VERSION_4_5_6));
-    assertThat(server.getDistribution().version().get()).isEqualTo(VERSION_4_5_6);
+    Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
+    assertThat(server.getDistribution().getVersion().get()).isEqualTo(VERSION_4_5_6);
     // installed in a unique location. Home directory is the name defined in zip structure
     assertThat(server.getHome().getParentFile().getParentFile()).isEqualTo(workspaceDir);
     Properties props = openPropertiesFile(server);
@@ -86,7 +85,7 @@ public class ServerInstallerTest {
   public void use_random_web_port_on_loopback_address_if_not_defined() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
-    Server server = newInstaller().install(new SonarDistribution(VERSION_4_5_6));
+    Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
 
     URL serverUrl = new URL(server.getUrl());
     assertThat(InetAddress.getByName(serverUrl.getHost()).isLoopbackAddress()).isTrue();
@@ -98,7 +97,7 @@ public class ServerInstallerTest {
   @Test
   public void web_server_is_configured_through_sonar_properties() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distribution = new SonarDistribution(VERSION_4_5_6);
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     distribution
       .setServerProperty("sonar.web.port", "9999")
       .setServerProperty("sonar.web.context", "/foo");
@@ -112,7 +111,7 @@ public class ServerInstallerTest {
   @Test
   public void web_port_can_be_set_through_special_property_in_orchestrator_properties_file() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distribution = new SonarDistribution(VERSION_4_5_6);
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     Configuration.Builder configBuilder = Configuration.builder()
       .setProperty("orchestrator.container.port", "9999");
     Server server = newInstaller(configBuilder).install(distribution);
@@ -126,7 +125,7 @@ public class ServerInstallerTest {
   @Test
   public void special_orchestrator_property_for_web_port_is_not_used_if_port_defined_explicitly() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distribution = new SonarDistribution(VERSION_4_5_6)
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6)
       .setServerProperty("sonar.web.port", "10000");
 
     Configuration.Builder configBuilder = Configuration.builder()
@@ -141,8 +140,8 @@ public class ServerInstallerTest {
   public void installation_directories_do_not_overlap() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
 
-    Server server1 = newInstaller().install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "1"));
-    Server server2 = newInstaller().install(new SonarDistribution(VERSION_4_5_6).setServerProperty("test.id", "2"));
+    Server server1 = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6).setServerProperty("test.id", "1"));
+    Server server2 = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6).setServerProperty("test.id", "2"));
     assertThat(server1.getHome()).exists().isDirectory();
     assertThat(server2.getHome()).exists().isDirectory();
     assertThat(server1.getHome()).isNotEqualTo(server2.getHome());
@@ -156,7 +155,7 @@ public class ServerInstallerTest {
     when(dbClient.getDriverFile()).thenReturn(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-oracle-driver.jar")));
     when(dbClient.getDialect()).thenReturn("oracle");
 
-    Server server = newInstaller().install(new SonarDistribution(VERSION_4_5_6));
+    Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
     assertThat(new File(server.getHome(), "extensions/jdbc-driver/oracle/fake-oracle-driver.jar")).exists().isFile();
   }
 
@@ -171,13 +170,13 @@ public class ServerInstallerTest {
     when(dbClient.getDriverFile()).thenReturn(invalidDriver);
     when(dbClient.getDialect()).thenReturn("oracle");
 
-    newInstaller().install(new SonarDistribution(VERSION_4_5_6));
+    newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
   }
 
   @Test
   public void copy_plugins() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
+    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
     distrib.addPluginLocation(FileLocation.of(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-plugin.jar"))));
 
     Server server = newInstaller().install(distrib);
@@ -191,7 +190,7 @@ public class ServerInstallerTest {
     expectedException.expectMessage("Can not find the plugin");
 
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
+    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
     File invalidPlugin = temp.newFile("plugin.jar");
     invalidPlugin.delete();
     distrib.addPluginLocation(FileLocation.of(invalidPlugin));
@@ -202,7 +201,7 @@ public class ServerInstallerTest {
   @Test
   public void remove_bundled_plugins_by_default() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6);
+    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
 
     Server server = newInstaller().install(distrib);
 
@@ -212,7 +211,7 @@ public class ServerInstallerTest {
   @Test
   public void do_not_remove_bundled_plugins() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution(VERSION_4_5_6).setRemoveDistributedPlugins(false);
+    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6).setRemoveDistributedPlugins(false);
 
     Server server = newInstaller().install(distrib);
 

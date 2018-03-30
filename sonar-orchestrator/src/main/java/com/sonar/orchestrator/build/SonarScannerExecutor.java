@@ -36,7 +36,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
 
   @Override
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
-    return execute(build, config, adjustedProperties, new SonarScannerInstaller(config.fileSystem()), create);
+    return execute(build, config, adjustedProperties, new SonarScannerInstaller(config.locators()), create);
   }
 
   BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,

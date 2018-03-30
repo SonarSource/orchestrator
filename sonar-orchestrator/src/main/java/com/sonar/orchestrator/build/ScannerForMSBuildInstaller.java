@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -42,12 +40,10 @@ public class ScannerForMSBuildInstaller {
   public static final String DEFAULT_SCANNER_VERSION = "2.2.0.24";
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuildInstaller.class);
 
-  private final FileSystem fileSystem;
   private final Locators locators;
 
-  public ScannerForMSBuildInstaller(Configuration config) {
-    this.fileSystem = config.fileSystem();
-    this.locators = new Locators(config);
+  public ScannerForMSBuildInstaller(Locators locators) {
+    this.locators = locators;
   }
 
   /**
@@ -115,7 +111,7 @@ public class ScannerForMSBuildInstaller {
       }
     } else {
       LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Searching for Scanner for MSBuild {} in maven repository", scannerVersion);
-      zipFile = fileSystem.locate(mavenLocation(scannerVersion));
+      zipFile = locators.locate(mavenLocation(scannerVersion));
     }
     return zipFile;
   }
@@ -126,7 +122,7 @@ public class ScannerForMSBuildInstaller {
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
-      .setVersion(scannerVersion)
+      .setVersion(scannerVersion.toString())
       .withPackaging("zip")
       .build();
   }

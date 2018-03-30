@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
 import java.io.InputStream;
 
@@ -29,29 +29,24 @@ public class Locators {
   private final MavenLocator mavenLocator;
   private final ResourceLocator resourceLocator;
   private final URLLocator urlLocator;
-  private final PluginLocator pluginLocator;
 
-  public Locators(Configuration config) {
+  public Locators(FileSystem fileSystem, Artifactory artifactory) {
     fileLocator = new FileLocator();
-    mavenLocator = new MavenLocator(config);
+    mavenLocator = new MavenLocator(fileSystem, artifactory);
     resourceLocator = new ResourceLocator();
     urlLocator = new URLLocator();
-    pluginLocator = new PluginLocator(config, mavenLocator, urlLocator);
   }
 
-  Locators(FileLocator fileLocator, MavenLocator mavenLocator, ResourceLocator resourceLocator, URLLocator urlLocator, PluginLocator pluginLocator) {
+  Locators(FileLocator fileLocator, MavenLocator mavenLocator, ResourceLocator resourceLocator, URLLocator urlLocator) {
     this.fileLocator = fileLocator;
     this.mavenLocator = mavenLocator;
     this.resourceLocator = resourceLocator;
     this.urlLocator = urlLocator;
-    this.pluginLocator = pluginLocator;
   }
 
   public File locate(Location location) {
     File file;
-    if (location instanceof PluginLocation) {
-      file = pluginLocator.locate((PluginLocation) location);
-    } else if (location instanceof FileLocation) {
+    if (location instanceof FileLocation) {
       file = fileLocator.locate((FileLocation) location);
     } else if (location instanceof MavenLocation) {
       file = mavenLocator.locate((MavenLocation) location);
@@ -76,9 +71,7 @@ public class Locators {
    */
   public File copyToDirectory(Location location, File toDir) {
     File file;
-    if (location instanceof PluginLocation) {
-      file = pluginLocator.copyToDirectory((PluginLocation) location, toDir);
-    } else if (location instanceof FileLocation) {
+    if (location instanceof FileLocation) {
       file = fileLocator.copyToDirectory((FileLocation) location, toDir);
     } else if (location instanceof MavenLocation) {
       file = mavenLocator.copyToDirectory((MavenLocation) location, toDir);
@@ -94,9 +87,7 @@ public class Locators {
 
   public File copyToFile(Location location, File toFile) {
     File file;
-    if (location instanceof PluginLocation) {
-      file = pluginLocator.copyToFile((PluginLocation) location, toFile);
-    } else if (location instanceof FileLocation) {
+    if (location instanceof FileLocation) {
       file = fileLocator.copyToFile((FileLocation) location, toFile);
     } else if (location instanceof MavenLocation) {
       file = mavenLocator.copyToFile((MavenLocation) location, toFile);
@@ -112,9 +103,7 @@ public class Locators {
 
   public InputStream openInputStream(Location location) {
     InputStream input;
-    if (location instanceof PluginLocation) {
-      input = pluginLocator.openInputStream((PluginLocation) location);
-    } else if (location instanceof FileLocation) {
+    if (location instanceof FileLocation) {
       input = fileLocator.openInputStream((FileLocation) location);
     } else if (location instanceof MavenLocation) {
       input = mavenLocator.openInputStream((MavenLocation) location);

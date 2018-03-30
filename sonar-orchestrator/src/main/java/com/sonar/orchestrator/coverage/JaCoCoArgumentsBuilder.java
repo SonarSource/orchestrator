@@ -21,7 +21,6 @@ package com.sonar.orchestrator.coverage;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.locator.MavenLocator;
 import java.io.File;
 import java.util.Properties;
 import org.apache.commons.io.FilenameUtils;
@@ -76,7 +75,7 @@ public class JaCoCoArgumentsBuilder {
     String destFile = config.getString("orchestrator.coverageReportPath", "target/jacoco.exec");
     destFile = FilenameUtils.separatorsToUnix(destFile);
 
-    File jacocoLocation = new MavenLocator(config).locate(agentLocation);
+    File jacocoLocation = config.locators().locate(agentLocation);
     if (jacocoLocation == null) {
       throw new IllegalStateException("Unable to locate jacoco: " + agentLocation + " in " + config.fileSystem().mavenLocalRepository());
     }

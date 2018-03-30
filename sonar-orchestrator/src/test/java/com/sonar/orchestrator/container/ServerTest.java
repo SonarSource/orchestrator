@@ -19,12 +19,10 @@
  */
 package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.io.IOException;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -38,7 +36,9 @@ import org.junit.rules.TemporaryFolder;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ServerTest {
 
@@ -68,7 +68,7 @@ public class ServerTest {
     File home = temp.newFolder();
     FileUtils.touch(new File(home, "lib/sonar-application-6.3.0.1234.jar"));
 
-    Server underTest = new Server(mock(FileSystem.class), home, new SonarDistribution(), A_URL);
+    Server underTest = new Server(mock(Locators.class), home, new SonarDistribution(), A_URL);
 
     assertThat(underTest.version()).isEqualTo(Version.create("6.3.0.1234"));
   }
@@ -77,7 +77,7 @@ public class ServerTest {
   public void version_throws_ISE_if_installation_dir_does_not_exist() throws Exception {
     File home = temp.newFolder();
     deleteDirectory(home);
-    Server underTest = new Server(mock(FileSystem.class), home, new SonarDistribution(), A_URL);
+    Server underTest = new Server(mock(Locators.class), home, new SonarDistribution(), A_URL);
 
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Installation incomplete, missing directory " + home.getAbsolutePath());
@@ -90,7 +90,7 @@ public class ServerTest {
     // libs dir exists, but does not contain the expected jar
     File home = temp.newFolder();
     forceMkdir(new File(home, "lib"));
-    Server underTest = new Server(mock(FileSystem.class), home, new SonarDistribution(), A_URL);
+    Server underTest = new Server(mock(Locators.class), home, new SonarDistribution(), A_URL);
 
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("No files match");
@@ -105,7 +105,9 @@ public class ServerTest {
     server.enqueue(new MockResponse());
     File home = temp.newFolder();
     FileUtils.touch(new File(home, "lib/sonar-application-6.3.0.1234.jar"));
-    Server underTest = new Server(new FileSystem(temp.newFolder(), Configuration.builder().build()), home, new SonarDistribution(),
+    Locators locators = mock(Locators.class);
+    when(locators.openInputStream(any())).thenReturn(FileUtils.openInputStream(backup));
+    Server underTest = new Server(locators, home, new SonarDistribution(),
       HttpUrl.parse(this.server.url("").toString()));
 
     underTest.restoreProfile(FileLocation.of(backup));
@@ -133,9 +135,8 @@ public class ServerTest {
     assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("key=foo&name=Foo");
   }
 
-  private Server newServerForUrl(String url) throws IOException {
-    FileSystem fs = new FileSystem(temp.newFolder(), Configuration.builder().build());
-    return new Server(fs, mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
+  private Server newServerForUrl(String url) {
+    return new Server(mock(Locators.class), mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
   }
 
 }

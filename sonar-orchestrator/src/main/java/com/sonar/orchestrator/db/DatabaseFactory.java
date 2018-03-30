@@ -20,7 +20,7 @@
 package com.sonar.orchestrator.db;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 
@@ -34,11 +34,7 @@ public final class DatabaseFactory {
     // only static methods
   }
 
-  public static DatabaseClient create(Configuration config) {
-    return create(config, config.fileSystem());
-  }
-
-  static DatabaseClient create(Configuration config, FileSystem fileSystem) {
+  public static DatabaseClient create(Configuration config, Locators locators) {
     String url = config.getString("sonar.jdbc.url");
     DatabaseClient.Builder builder = newBuilderForUrl(url);
 
@@ -72,7 +68,7 @@ public final class DatabaseFactory {
     }
     s = config.getString("sonar.jdbc.driverMavenKey");
     if (!isEmpty(s)) {
-      feedDriverMavenKey(fileSystem, builder, s);
+      feedDriverMavenKey(locators, builder, s);
     }
 
     String value = config.getString("orchestrator.keepDatabase", "false");
@@ -84,11 +80,11 @@ public final class DatabaseFactory {
     return builder.build();
   }
 
-  private static void feedDriverMavenKey(FileSystem fileSystem, DatabaseClient.Builder builder, String propertyValue) {
+  private static void feedDriverMavenKey(Locators locators, DatabaseClient.Builder builder, String propertyValue) {
     String[] fields = propertyValue.split(":");
     checkArgument(fields.length == 3, "Format is groupId:artifactId:version. Please check the property sonar.jdbc.driverMavenKey: %s", propertyValue);
     MavenLocation location = MavenLocation.create(fields[0], fields[1], fields[2]);
-    File file = fileSystem.locate(location);
+    File file = locators.locate(location);
     checkState(file.exists(), "Driver file does not exist: %s", location);
     builder.setDriverFile(file);
   }

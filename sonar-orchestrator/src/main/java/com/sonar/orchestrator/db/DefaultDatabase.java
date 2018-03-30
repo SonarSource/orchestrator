@@ -48,7 +48,7 @@ public final class DefaultDatabase implements Database {
   private boolean started = false;
 
   public DefaultDatabase(Configuration config) {
-    this.databaseClient = DatabaseFactory.create(config);
+    this.databaseClient = DatabaseFactory.create(config, config.locators());
   }
 
   public DefaultDatabase(DatabaseClient client) {

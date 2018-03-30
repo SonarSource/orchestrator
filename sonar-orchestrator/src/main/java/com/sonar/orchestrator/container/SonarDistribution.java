@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +32,7 @@ import static java.util.Objects.requireNonNull;
 
 public final class SonarDistribution {
 
-  private Version version;
+  private String version;
   private List<Location> pluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
@@ -45,10 +44,6 @@ public final class SonarDistribution {
     // A distribution without a version yet
   }
 
-  public SonarDistribution(Version version) {
-    this.version = version;
-  }
-
   public Optional<File> getZipFile() {
     return Optional.ofNullable(zipFile);
   }
@@ -58,7 +53,7 @@ public final class SonarDistribution {
     return this;
   }
 
-  public SonarDistribution setVersion(@Nullable Version s) {
+  public SonarDistribution setVersion(@Nullable String s) {
     this.version = s;
     return this;
   }
@@ -73,7 +68,7 @@ public final class SonarDistribution {
    * When using local zip (see {@link com.sonar.orchestrator.OrchestratorBuilder#setZipFile(File)},
    * then returned version is {@code null}.
    */
-  public Optional<Version> version() {
+  public Optional<String> getVersion() {
     return Optional.ofNullable(version);
   }
 
@@ -116,10 +111,6 @@ public final class SonarDistribution {
   public SonarDistribution addServerProperties(Properties props) {
     serverProperties.putAll(props);
     return this;
-  }
-
-  public boolean isRelease() {
-    return version.isRelease();
   }
 
   public SonarDistribution activateLicense() {
