@@ -25,7 +25,7 @@ An instance of class `com.sonar.orchestrator.Orchestrator` represents a SonarQub
     
     orchestrator.stop();
     
-### Version Aliases
+## Version Aliases
 
 Aliases can be used to define the versions of SonarQube and plugins to be installed. Supported values are:
 
@@ -34,12 +34,18 @@ Aliases can be used to define the versions of SonarQube and plugins to be instal
 * `DEV` for the latest official build (in terms of version number, not date)
 * `DEV[x.y]` for the latest official build of a series. For example `DEV[5.2]` may install version `5.2.0.1234`.
 
+The alias `LTS` is no more supported for SonarQube since Orchestrator 3.17. It should be replaced by `LATEST_RELEASE[6.7]`.
+## Local Cache
+
+The artifacts downloaded from Artifactory (SonarQube, plugins) are copied to the local directory `~/.sonar/orchestrator/cache`.
+This directory is *not* automatically purged and may grow significantly when using the version alias
+`DEV`.
+
 ## Configuration
 
 Test environment is defined in the file `~/.sonar/orchestrator/orchestrator.properties`:
 
-    # Token used to download SonarSource private artifacts from https://repox.sonarsource.com,
-    # required for the category "Plugins".
+    # Token used to download SonarSource private artifacts from https://repox.sonarsource.com
     # Generate your API key at https://repox.sonarsource.com/webapp/#/profile
     #orchestrator.artifactory.apiKey=xxx
     
@@ -58,6 +64,9 @@ Test environment is defined in the file `~/.sonar/orchestrator/orchestrator.prop
     # downloading from Artifactory. 
     # Default is ~/.m2/repository
     #maven.localRepository=/path/to/maven/repository
+    
+    # Instance of Artifactory. Default is SonarSource's instance.
+    #orchestrator.artifactory.url=https://repox.sonarsource.com
 
 The path to configuration file can be overridden with the system property `orchestrator.configUrl` 
 or the environment variable `ORCHESTRATOR_CONFIG_URL`.
