@@ -22,7 +22,6 @@ package com.sonar.orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.io.File;
@@ -129,20 +128,6 @@ public class OrchestratorBuilder {
    */
   public OrchestratorBuilder addPlugin(Location location) {
     distribution.addPluginLocation(requireNonNull(location));
-    return this;
-  }
-
-  /**
-   * Install a plugin that is available in Maven repositories. The version of the plugin is passed using an orchestrator property.
-   * This method doesn't use update center and as a result do not support version aliases like "RELEASE" and "SNAPSHOT"
-   * nor plugin groups.
-   * <p/>
-   * Example: {@code addMavenPlugin("org.sonarsource.ldap", "sonar-ldap-plugin", "ldapVersion")}
-   */
-  public OrchestratorBuilder addMavenPlugin(String groupId, String artifactId, String versionPropertyKey) {
-    String version = getOrchestratorProperty(versionPropertyKey);
-    requireNonNull(version, "Property " + versionPropertyKey + " is not defined");
-    distribution.addPluginLocation(MavenLocation.create(groupId, artifactId, version));
     return this;
   }
 
