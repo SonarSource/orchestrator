@@ -166,33 +166,9 @@ public class OrchestratorBuilder {
     return this;
   }
 
-  /**
-   * Set the root context for the webapp. Default value is {@code ""}. Value cannot be
-   * overridden on version 5.4 of SonarQube (feature was disabled then re-introduced
-   * in 5.5, see https://jira.sonarsource.com/browse/SONAR-7122 and
-   * https://jira.sonarsource.com/browse/SONAR-7494)
-   * @since 2.8
-   * @deprecated in 3.15. Use the property "sonar.web.context" via {@link #setServerProperty(String, String)}.
-   */
-  @Deprecated
-  public OrchestratorBuilder setContext(String context) {
-    setServerProperty("sonar.web.context", context);
-    return this;
-  }
-
-  /**
-   * Remove all plugins distributed with SonarQube (ie extensions/plugins/*)
-   * @since 2.9
-   * @deprecated removal becomes the default since 3.0. Indeed now any plugin must be load explicitly
-   */
-  @Deprecated
-  public OrchestratorBuilder removeDistributedPlugins() {
-    distribution.setRemoveDistributedPlugins(true);
-    return this;
-  }
-
   public Orchestrator build() {
-    checkState(distribution.getZipFile().isPresent() || distribution.getVersion().isPresent(), "Version or path to ZIP of SonarQube is missing");
+    checkState(distribution.getZipFile().isPresent() ^ distribution.getVersion().isPresent(),
+      "One, and only one, of methods setSonarVersion(String) or setZipFile(File) must be called");
     Configuration.Builder configBuilder = Configuration.builder();
     Configuration finalConfig = configBuilder
       .addConfiguration(config)
