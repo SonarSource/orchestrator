@@ -65,7 +65,7 @@ public class OrchestratorBuilder {
    * Set the version of SonarQube to be installed. Can be:
    * <ul>
    *   <li>a fixed version like {@code "7.1.0.1234"} or {@code "7.1"} (GA release)</li>
-   *   <li>the alias {@code "DEV" for the latest official build that has been promoted (validated by QA).
+   *   <li>the alias {@code "DEV"} for the latest official build that has been promoted (validated by QA).
    *   Build comes from master branch, not from feature branches</li>
    *   <li>the alias {@code "DEV[x.y]"}, same as "DEV" but restricted to series x.y.*. For example {@code "DEV[7.1]"} may
    *   install the version 7.1.0.1234.</li>
@@ -79,6 +79,9 @@ public class OrchestratorBuilder {
    * the LTS series is 6.7.x.
    * <p/>
    * Only one of methods {@link #setSonarVersion(String)} and {@link #setZipFile(File)} must be called.
+   * <p/>Since version 3.17, the property "sonar.runtimeVersion" is no longer automatically
+   * supported. The caller is responsible for loading the version of SonarQube from wherever it
+   * needs.
    */
   public OrchestratorBuilder setSonarVersion(String s) {
     checkArgument(!isEmpty(s), "Empty SonarQube version");
@@ -116,7 +119,7 @@ public class OrchestratorBuilder {
    * <p/>
    * Using the Maven ID allows to reference version by an alias:
    * <ul>
-   *   <li>the alias {@code "DEV" for the latest official build that has been promoted (validated by QA). Build comes from master branch, not from feature branches</li>
+   *   <li>the alias {@code "DEV"} for the latest official build that has been promoted (validated by QA). Build comes from master branch, not from feature branches</li>
    *   <li>the alias {@code "DEV[x.y]"}, same as "DEV" but restricted to series x.y.*. For example {@code "DEV[5.2]"} may install the
    *   version 5.2.0.13398 which is latest promoted build of 5.2 series.</li>
    *   <li>the alias {@code "LATEST_RELEASE"} for the latest official release</li>
