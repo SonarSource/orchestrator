@@ -24,17 +24,15 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentMatcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -185,7 +183,7 @@ public class MavenBuildExecutorTest {
     BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), new HashMap<>());
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
-    assertThat(result.getLogs()).containsSequence("[INFO] Scanning for projects...", "[INFO] Total time");
+    assertThat(result.getLogs()).containsSubsequence("[INFO] Scanning for projects...", "[INFO] Total time");
   }
 
   // ORCH-179
@@ -213,33 +211,25 @@ public class MavenBuildExecutorTest {
     props.put("sonar.jdbc.dialect", "h2");
 
     CommandExecutor executor = mock(CommandExecutor.class);
-    when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
+    when(executor.execute(any(), any(), anyLong())).thenReturn(2);
 
     new MavenBuildExecutor().execute(build, Configuration.create(), props, executor);
 
-    verify(executor).execute(argThat(mvnMatcher(pom, "clean")), any(StreamConsumer.class), eq(30000L));
-    verify(executor).execute(argThat(mvnMatcher(pom, "sonar:sonar")), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(mvnMatcher(pom, "clean")), any(), eq(30000L));
+    verify(executor).execute(argThat(mvnMatcher(pom, "sonar:sonar")), any(), eq(30000L));
   }
 
-  private BaseMatcher<Command> mvnMatcher(final File pom, final String goal) {
-    return new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        // Windows directory with space use case
-        String quote = "";
-        if (pom.getAbsolutePath().contains(" ")) {
-          quote = "\"";
-        }
-        return c.toCommandLine().contains("mvn")
-          && c.toCommandLine().contains("-f " + quote + pom.getAbsolutePath())
-          && c.toCommandLine().contains("-X")
-          && c.toCommandLine().contains(goal);
+  private ArgumentMatcher<Command> mvnMatcher(final File pom, final String goal) {
+    return c -> {
+      // Windows directory with space use case
+      String quote = "";
+      if (pom.getAbsolutePath().contains(" ")) {
+        quote = "\"";
       }
-
-      @Override
-      public void describeTo(Description description) {
-      }
+      return c.toCommandLine().contains("mvn")
+        && c.toCommandLine().contains("-f " + quote + pom.getAbsolutePath())
+        && c.toCommandLine().contains("-X")
+        && c.toCommandLine().contains(goal);
     };
   }
 

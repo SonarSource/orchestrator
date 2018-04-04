@@ -187,7 +187,7 @@ public class HttpCallTest {
     RecordedRequest recordedRequest = server.takeRequest();
     verifyRecorded(recordedRequest, "POST", "api/system/ping");
     assertThat(recordedRequest.getBody().readUtf8())
-      .containsSequence("Content-Disposition: form-data; name=\"foo\"", "foz", "Content-Disposition: form-data; name=\"bar\"", "baz");
+      .containsSubsequence("Content-Disposition: form-data; name=\"foo\"", "foz", "Content-Disposition: form-data; name=\"bar\"", "baz");
   }
 
   @Test
