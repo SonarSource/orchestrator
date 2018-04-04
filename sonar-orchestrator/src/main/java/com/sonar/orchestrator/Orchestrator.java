@@ -272,22 +272,11 @@ public class Orchestrator extends SingleStartExternalResource {
     }
   }
 
-  /**
-   * Use environment variables and system properties
-   */
-  public static Orchestrator createEnv() {
-    return new OrchestratorBuilder(Configuration.createEnv()).build();
-  }
-
   public static OrchestratorBuilder builderEnv() {
     return new OrchestratorBuilder(Configuration.createEnv());
   }
 
   public static OrchestratorBuilder builder(Configuration config) {
     return new OrchestratorBuilder(config);
-  }
-
-  public Licenses getLicenses() {
-    return licenses;
   }
 }
