@@ -26,10 +26,10 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpException;
+import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 import okhttp3.HttpUrl;
@@ -115,9 +115,9 @@ public class ArtifactoryImpl implements Artifactory {
       JsonArray results = json.asObject().get("results").asArray();
       return StreamSupport.stream(results.spliterator(), false)
         .map(result -> result.asObject().get("version").asString())
-        .map(Version::new)
+        .map(Version::create)
         .max(Comparator.naturalOrder())
-        .map(v -> v.asString);
+        .map(Version::toString);
 
     } catch (Exception e) {
       throw new IllegalStateException("Fail to request versions at " + url, e);
@@ -150,71 +150,6 @@ public class ArtifactoryImpl implements Artifactory {
       return s.substring(start + 1, end);
     }
     return "";
-  }
-
-  static class Version implements Comparable<Version> {
-    private final String asString;
-    private final long asNumber;
-    private final String qualifier;
-
-    Version(String s) {
-      String[] fields = StringUtils.substringBeforeLast(s, "-").split("\\.");
-      long l = 0;
-      // max representation: 9999.9999.9999.999999
-      if (fields.length > 0) {
-        l += 1_0000_0000_000000L * Integer.parseInt(fields[0]);
-        if (fields.length > 1) {
-          l += 1_0000_000000L * Integer.parseInt(fields[1]);
-          if (fields.length > 2) {
-            l += 1_000000L * Integer.parseInt(fields[2]);
-            if (fields.length > 3) {
-              l += Integer.parseInt(fields[3]);
-            }
-          }
-        }
-      }
-      this.asNumber = l;
-      this.asString = s;
-      this.qualifier = s.contains("-") ? StringUtils.substringAfterLast(s, "-") : "ZZZ";
-    }
-
-    String asString() {
-      return asString;
-    }
-
-    long asNumber() {
-      return asNumber;
-    }
-
-    String qualifier() {
-      return qualifier;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      Version version = (Version) o;
-      return asNumber == version.asNumber && Objects.equals(qualifier, version.qualifier);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(asNumber, qualifier);
-    }
-
-    @Override
-    public int compareTo(Version o) {
-      int i = Long.compare(asNumber, o.asNumber);
-      if (i ==0) {
-        i = qualifier.compareTo(o.qualifier);
-      }
-      return i;
-    }
   }
 
 }

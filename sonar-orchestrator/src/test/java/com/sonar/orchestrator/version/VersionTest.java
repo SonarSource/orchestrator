@@ -73,18 +73,18 @@ public class VersionTest {
   @Test
   public void test_toString() {
     Version underTest = new Version("1.2.3.4");
-    assertThat(underTest.asString()).isEqualTo("1.2.3.4");
+    assertThat(underTest.toString()).isEqualTo("1.2.3.4");
 
     underTest = new Version("1.2");
-    assertThat(underTest.asString()).isEqualTo("1.2");
+    assertThat(underTest.toString()).isEqualTo("1.2");
 
     underTest = new Version("1.2.3");
-    assertThat(underTest.asString()).isEqualTo("1.2.3");
+    assertThat(underTest.toString()).isEqualTo("1.2.3");
 
     underTest = new Version("1.2.3.456789");
-    assertThat(underTest.asString()).isEqualTo("1.2.3.456789");
+    assertThat(underTest.toString()).isEqualTo("1.2.3.456789");
 
     underTest = new Version("9999.9999.9999.999999");
-    assertThat(underTest.asString()).isEqualTo("9999.9999.9999.999999");
+    assertThat(underTest.toString()).isEqualTo("9999.9999.9999.999999");
   }
 }

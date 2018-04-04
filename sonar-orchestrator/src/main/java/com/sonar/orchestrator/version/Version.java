@@ -53,18 +53,6 @@ public class Version implements Comparable<Version> {
     return new Version(version);
   }
 
-  String asString() {
-    return asString;
-  }
-
-  long asNumber() {
-    return asNumber;
-  }
-
-  String qualifier() {
-    return qualifier;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -85,7 +73,7 @@ public class Version implements Comparable<Version> {
   @Override
   public int compareTo(Version o) {
     int i = Long.compare(asNumber, o.asNumber);
-    if (i ==0) {
+    if (i == 0) {
       i = qualifier.compareTo(o.qualifier);
     }
     return i;
