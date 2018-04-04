@@ -171,11 +171,4 @@ public class SonarScannerInstallerTest {
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.cli");
     assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-cli");
   }
-
-  @Test
-  public void corrupted_zip() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Fail to unzip sonar-scanner");
-    installer.install(Version.create("corrupted"), temp.newFolder(), true);
-  }
 }

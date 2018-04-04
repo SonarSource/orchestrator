@@ -19,19 +19,81 @@
  */
 package com.sonar.orchestrator.version;
 
+import java.util.Objects;
+import org.apache.commons.lang.StringUtils;
+
 public class Version implements Comparable<Version> {
 
-  private final String version;
-  // Internally we use Version from update center but don't want to expose it
-  private final org.sonar.updatecenter.common.Version sonarVersion;
+  private final String asString;
+  private final long asNumber;
+  private final String qualifier;
 
-  private Version(String version) {
-    this.version = version;
-    this.sonarVersion = org.sonar.updatecenter.common.Version.create(version);
+  Version(String s) {
+    String[] fields = StringUtils.substringBeforeLast(s, "-").split("\\.");
+    long l = 0;
+    // max representation: 9999.9999.9999.999999
+    if (fields.length > 0) {
+      l += 1_0000_0000_000000L * Integer.parseInt(fields[0]);
+      if (fields.length > 1) {
+        l += 1_0000_000000L * Integer.parseInt(fields[1]);
+        if (fields.length > 2) {
+          l += 1_000000L * Integer.parseInt(fields[2]);
+          if (fields.length > 3) {
+            l += Integer.parseInt(fields[3]);
+          }
+        }
+      }
+    }
+    this.asNumber = l;
+    this.asString = s;
+    this.qualifier = s.contains("-") ? StringUtils.substringAfterLast(s, "-") : "ZZZ";
   }
 
   public static Version create(String version) {
     return new Version(version);
+  }
+
+  String asString() {
+    return asString;
+  }
+
+  long asNumber() {
+    return asNumber;
+  }
+
+  String qualifier() {
+    return qualifier;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Version version = (Version) o;
+    return asNumber == version.asNumber && Objects.equals(qualifier, version.qualifier);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(asNumber, qualifier);
+  }
+
+  @Override
+  public int compareTo(Version o) {
+    int i = Long.compare(asNumber, o.asNumber);
+    if (i ==0) {
+      i = qualifier.compareTo(o.qualifier);
+    }
+    return i;
+  }
+
+  @Override
+  public String toString() {
+    return asString;
   }
 
   public boolean isGreaterThan(String other) {
@@ -55,33 +117,6 @@ public class Version implements Comparable<Version> {
   }
 
   public boolean isSnapshot() {
-    return version.endsWith("-SNAPSHOT");
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof Version) {
-      Version other = (Version) obj;
-      return 0 == other.compareTo(this);
-    }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return this.sonarVersion.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return version;
-  }
-
-  @Override
-  public int compareTo(Version o) {
-    // This is very specific to Orchestrator and ITs. 1.0-SNAPSHOT is supposed equal to 1.0
-    org.sonar.updatecenter.common.Version thisRelease = org.sonar.updatecenter.common.Version.create(this.version).removeQualifier();
-    org.sonar.updatecenter.common.Version otherRelease = org.sonar.updatecenter.common.Version.create(o.toString()).removeQualifier();
-    return thisRelease.compareTo(otherRelease);
+    return asString.endsWith("-SNAPSHOT");
   }
 }
