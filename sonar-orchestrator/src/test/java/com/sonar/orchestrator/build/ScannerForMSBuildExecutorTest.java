@@ -27,10 +27,9 @@ import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Test;
 
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.argThat;
@@ -62,24 +61,14 @@ public class ScannerForMSBuildExecutorTest {
 
     new ScannerForMSBuildExecutor().execute(build, Configuration.create(), props, installer, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("SonarQube.Scanner.MSBuild.exe")
-          && c.toCommandLine().contains("/d:sonar.verbose=true")
-          && c.toCommandLine().contains("/k:SAMPLE")
-          && c.toCommandLine().contains("/n:Name")
-          && c.toCommandLine().contains("/v:1.1")
-          && c.toCommandLine().contains("/d:sonar.jdbc.dialect=h2")
-          && c.getEnvironmentVariables().get("FOO").equals("BAR");
-      }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
+      && c.toCommandLine().contains("SonarQube.Scanner.MSBuild.exe")
+      && c.toCommandLine().contains("/d:sonar.verbose=true")
+      && c.toCommandLine().contains("/k:SAMPLE")
+      && c.toCommandLine().contains("/n:Name")
+      && c.toCommandLine().contains("/v:1.1")
+      && c.toCommandLine().contains("/d:sonar.jdbc.dialect=h2")
+      && c.getEnvironmentVariables().get("FOO").equals("BAR")), any(StreamConsumer.class), eq(30000L));
   }
 
   @Test
@@ -90,23 +79,13 @@ public class ScannerForMSBuildExecutorTest {
     Map<String, String> props = new TreeMap<>();
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(eq(null), eq(null), any(File.class), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
+    when(installer.install(isNull(), isNull(), any(), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
     CommandExecutor executor = mock(CommandExecutor.class);
-    when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
+    when(executor.execute(any(Command.class), any(), anyLong())).thenReturn(2);
 
     new ScannerForMSBuildExecutor().execute(build, Configuration.create(), props, installer, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("SonarQube.Scanner.MSBuild.exe");
-      }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
+      && c.toCommandLine().contains("SonarQube.Scanner.MSBuild.exe")), any(), eq(30000L));
   }
 }

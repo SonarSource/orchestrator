@@ -27,15 +27,11 @@ import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -62,21 +58,11 @@ public class SonarScannerExecutorTest {
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("sonar-runner")
-          && c.toCommandLine().contains("-X")
-          && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
-          && c.toCommandLine().contains("-Dsonar.projectKey");
-      }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
+      && c.toCommandLine().contains("sonar-runner")
+      && c.toCommandLine().contains("-X")
+      && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
+      && c.toCommandLine().contains("-Dsonar.projectKey")), any(), eq(30000L));
   }
 
   @Test
@@ -98,26 +84,18 @@ public class SonarScannerExecutorTest {
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        // Windows directory with space use case
-        String quote = "";
-        if (c.getDirectory().getAbsolutePath().contains(" ")) {
-          quote = "\"";
-        }
-        return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("sonar-runner.sh" + quote + " my-task")
-          && c.toCommandLine().contains("-e")
-          && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
-          && c.toCommandLine().contains("-Dsonar.projectKey");
+    verify(executor).execute(argThat(c -> {
+      // Windows directory with space use case
+      String quote = "";
+      if (c.getDirectory().getAbsolutePath().contains(" ")) {
+        quote = "\"";
       }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+      return c.getDirectory().equals(new File("."))
+        && c.toCommandLine().contains("sonar-runner.sh" + quote + " my-task")
+        && c.toCommandLine().contains("-e")
+        && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
+        && c.toCommandLine().contains("-Dsonar.projectKey");
+    }), any(), eq(30000L));
   }
 
   @Test
@@ -139,21 +117,11 @@ public class SonarScannerExecutorTest {
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("sonar-runner")
-          && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
-          && c.toCommandLine().contains("-Dsonar.projectKey")
-          && c.toCommandLine().contains("-Dsonar.task");
-      }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
+      && c.toCommandLine().contains("sonar-runner")
+      && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
+      && c.toCommandLine().contains("-Dsonar.projectKey")
+      && c.toCommandLine().contains("-Dsonar.task")), any(), eq(30000L));
   }
 
   @Test
@@ -172,19 +140,9 @@ public class SonarScannerExecutorTest {
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        return c.getDirectory().equals(new File("."))
-          && c.toCommandLine().contains("sonar-runner.sh")
-          && c.toCommandLine().contains("--help");
-      }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
+      && c.toCommandLine().contains("sonar-runner.sh")
+      && c.toCommandLine().contains("--help")), any(), eq(30000L));
   }
 
   @Test
@@ -196,12 +154,12 @@ public class SonarScannerExecutorTest {
     Map<String, String> props = new TreeMap<>();
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(build.scannerVersion()), eq(classifier), any(File.class), eq(false)))
+    when(installer.install(eq(build.scannerVersion()), eq(classifier), any(), eq(false)))
       .thenReturn(new File("dummy.sh"));
 
     CommandExecutor executor = mock(CommandExecutor.class);
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
-    verify(installer).install(eq(build.scannerVersion()), eq(classifier), any(File.class), eq(false));
+    verify(installer).install(eq(build.scannerVersion()), eq(classifier), any(), eq(false));
   }
 }

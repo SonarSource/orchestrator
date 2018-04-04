@@ -26,8 +26,6 @@ import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.util.Map;
 import java.util.TreeMap;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Test;
 
 import static org.mockito.Matchers.any;
@@ -55,18 +53,8 @@ public class AntBuildExecutorTest {
 
     new AntBuildExecutor().execute(build, Configuration.create(), props, executor);
 
-    verify(executor).execute(argThat(new BaseMatcher<Command>() {
-      @Override
-      public boolean matches(Object o) {
-        Command c = (Command) o;
-        return c.toCommandLine().contains("ant")
-          && c.toCommandLine().contains("-f")
-          && c.toCommandLine().contains("-Dsonar.jdbc.dialect=");
-      }
-
-      @Override
-      public void describeTo(Description description) {
-      }
-    }), any(StreamConsumer.class), eq(30000L));
+    verify(executor).execute(argThat(c -> c.toCommandLine().contains("ant") &&
+      c.toCommandLine().contains("-f") &&
+      c.toCommandLine().contains("-Dsonar.jdbc.dialect=")), any(), eq(30000L));
   }
 }
