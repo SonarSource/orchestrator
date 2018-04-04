@@ -56,7 +56,7 @@ public class ServerProcessImpl implements ServerProcess {
 
   private DefaultExecuteResultHandler processResultHandler;
   private DefaultExecutor executor;
-  private Thread shutdhownHook;
+  private Thread shutdownHook;
 
   public ServerProcessImpl(ServerCommandLineFactory serverCommandLineFactory, Server server,
     @Nullable StartupLogWatcher startupLogWatcher) {
@@ -102,8 +102,8 @@ public class ServerProcessImpl implements ServerProcess {
 
     for (int i = 0; i < startTimeoutMs / START_RETRY_TIMEOUT_MS; i++) {
       if (listener.isStarted()) {
-        shutdhownHook = new Thread(new StopShutdownHook());
-        Runtime.getRuntime().addShutdownHook(shutdhownHook);
+        shutdownHook = new Thread(new StopShutdownHook());
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
         return;
       }
       if (processResultHandler.hasResult()) {
@@ -184,12 +184,11 @@ public class ServerProcessImpl implements ServerProcess {
   private void cleanState() {
     processResultHandler = null;
     executor = null;
-    shutdhownHook = null;
+    shutdownHook = null;
   }
 
   private static Map<String, String> freshEnv() {
-    Map<String, String> env = new HashMap<>();
-    env.putAll(System.getenv());
+    Map<String, String> env = new HashMap<>(System.getenv());
     env.remove("GEM_PATH");
     env.remove("GEM_HOME");
     env.remove("RAILS_ENV");
