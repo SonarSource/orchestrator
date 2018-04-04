@@ -122,11 +122,4 @@ public class ScannerForMSBuildInstallerTest {
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
     assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-msbuild");
   }
-
-  @Test
-  public void corrupted_zip() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Fail to unzip Scanner for MSBuild");
-    installer.install(Version.create("corrupted"), null, temp.newFolder(), true);
-  }
 }

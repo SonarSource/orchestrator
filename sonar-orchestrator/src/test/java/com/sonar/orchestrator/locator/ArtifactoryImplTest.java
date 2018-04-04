@@ -23,7 +23,6 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.locator.ArtifactoryImpl.Version;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -179,35 +178,6 @@ public class ArtifactoryImplTest {
     });
 
     underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
-  }
-
-  @Test
-  public void test_Version_toString() {
-    Version underTest = new Version("1.2.3.4");
-    assertThat(underTest.asString()).isEqualTo("1.2.3.4");
-
-    underTest = new Version("1.2");
-    assertThat(underTest.asString()).isEqualTo("1.2");
-
-    underTest = new Version("1.2.3");
-    assertThat(underTest.asString()).isEqualTo("1.2.3");
-
-    underTest = new Version("1.2.3.456789");
-    assertThat(underTest.asString()).isEqualTo("1.2.3.456789");
-
-    underTest = new Version("9999.9999.9999.999999");
-    assertThat(underTest.asString()).isEqualTo("9999.9999.9999.999999");
-  }
-
-  @Test
-  public void test_Version_comparison() {
-    assertThat(new Version("1.0")).isGreaterThan(new Version("0.9"));
-    assertThat(new Version("1.0.1")).isGreaterThan(new Version("1.0"));
-    assertThat(new Version("1.2.3.1000")).isGreaterThan(new Version("1.2.3.999"));
-    assertThat(new Version("1.2.3.1000")).isEqualByComparingTo(new Version("1.2.3.1000"));
-    assertThat(new Version("6.7-RC2")).isGreaterThan(new Version("6.7-RC1"));
-    assertThat(new Version("6.7-RC2")).isEqualByComparingTo(new Version("6.7-RC2"));
-    assertThat(new Version("6.7")).isGreaterThan(new Version("6.7-RC1"));
   }
 
   @Test
