@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SonarSource/orchestrator.svg)](https://travis-ci.org/SonarSource/orchestrator)
+[![Build Status](https://travis-ci.org/SonarSource/orchestrator.svg?branch=master)](https://travis-ci.org/SonarSource/orchestrator)  [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.sonarsource.orchestrator%3Aorchestrator-parent&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.sonarsource.orchestrator%3Aorchestrator-parent)
 
 Orchestrator is a Java library to install SonarQube from tests.
 
