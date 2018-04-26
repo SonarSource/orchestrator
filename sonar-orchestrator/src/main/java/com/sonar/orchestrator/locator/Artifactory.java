@@ -22,8 +22,10 @@ package com.sonar.orchestrator.locator;
 import java.io.File;
 import java.util.Optional;
 
-interface Artifactory {
+public interface Artifactory {
   boolean downloadToFile(MavenLocation location, File toFile);
+
+  Optional<File> downloadToDir(MavenLocation location, File toDir);
 
   Optional<String> resolveVersion(MavenLocation location);
 }

@@ -55,7 +55,7 @@ public class Configuration {
   private Configuration(File homeDir, Map<String, String> props) {
     this.props = Collections.unmodifiableMap(new HashMap<>(props));
     this.fileSystem = new FileSystem(homeDir, this);
-    this.locators = new Locators(this.fileSystem, new ArtifactoryImpl(this));
+    this.locators = new Locators(this.fileSystem, ArtifactoryImpl.create(this));
   }
 
   public FileSystem fileSystem() {

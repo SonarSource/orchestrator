@@ -29,7 +29,7 @@ public class Version implements Comparable<Version> {
   private final String qualifier;
 
   Version(String s) {
-    String[] fields = StringUtils.substringBeforeLast(s, "-").split("\\.");
+    String[] fields = StringUtils.substringBefore(s, "-").split("\\.");
     long l = 0;
     // max representation: 9999.9999.9999.999999
     if (fields.length > 0) {
@@ -46,7 +46,7 @@ public class Version implements Comparable<Version> {
     }
     this.asNumber = l;
     this.asString = s;
-    this.qualifier = s.contains("-") ? StringUtils.substringAfterLast(s, "-") : "ZZZ";
+    this.qualifier = s.contains("-") ? StringUtils.substringAfter(s, "-") : "ZZZ";
   }
 
   public static Version create(String version) {

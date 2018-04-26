@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
+import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -46,17 +47,41 @@ public class ArtifactoryImpl implements Artifactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(ArtifactoryImpl.class);
 
-  private final Configuration configuration;
+  private final File tempDir;
+  private final String baseUrl;
+  @Nullable
+  private final String apiKey;
 
-  public ArtifactoryImpl(Configuration configuration) {
-    this.configuration = configuration;
+  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String apiKey) {
+    this.tempDir = tempDir;
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
+  }
+
+  public static ArtifactoryImpl create(Configuration configuration) {
+    File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
+    String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.sonarsource.com");
+    String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
+    return new ArtifactoryImpl(downloadTempDir, baseUrl, apiKey);
   }
 
   @Override
   public boolean downloadToFile(MavenLocation location, File toFile) {
-    String baseUrl = getBaseUrl();
-    File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
+    Optional<File> tempFile = downloadToDir(location, tempDir);
+    if (tempFile.isPresent()) {
+      try {
+        FileUtils.deleteQuietly(toFile);
+        FileUtils.moveFile(tempFile.get(), toFile);
+        return true;
+      } catch (IOException e) {
+        throw new IllegalStateException("Fail to move file " + toFile, e);
+      }
+    }
+    return false;
+  }
 
+  @Override
+  public Optional<File> downloadToDir(MavenLocation location, File toDir) {
     for (String repository : asList("sonarsource", "sonarsource-qa")) {
       HttpUrl url = HttpUrl.parse(baseUrl).newBuilder()
         .addPathSegment(repository)
@@ -69,20 +94,16 @@ public class ArtifactoryImpl implements Artifactory {
       HttpCall call = newArtifactoryCall(url);
       try {
         LOG.info("Downloading {}", url);
-        File tempFile = call.downloadToDirectory(downloadTempDir);
-        FileUtils.deleteQuietly(toFile);
-        FileUtils.moveFile(tempFile, toFile);
+        File toFile = call.downloadToDirectory(toDir);
         LOG.info("Found {} at {}", location, url);
-        return true;
+        return Optional.of(toFile);
       } catch (HttpException e) {
         if (e.getCode() != 404 && e.getCode() != 401 && e.getCode() != 403) {
           throw new IllegalStateException("Failed to request " + url, e);
         }
-      } catch (IOException e) {
-        throw new IllegalStateException("Fail to download " + url + " into " + toFile, e);
       }
     }
-    return false;
+    return Optional.empty();
   }
 
   @Override
@@ -100,7 +121,7 @@ public class ArtifactoryImpl implements Artifactory {
       return Optional.of(location.getVersion());
     }
 
-    HttpUrl url = HttpUrl.parse(getBaseUrl()).newBuilder()
+    HttpUrl url = HttpUrl.parse(baseUrl).newBuilder()
       .addPathSegments("api/search/versions")
       .addQueryParameter("g", location.getGroupId())
       .addQueryParameter("a", location.getArtifactId())
@@ -124,13 +145,8 @@ public class ArtifactoryImpl implements Artifactory {
     }
   }
 
-  private String getBaseUrl() {
-    return defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.sonarsource.com");
-  }
-
   private HttpCall newArtifactoryCall(HttpUrl url) {
     HttpCall call = HttpClientFactory.create().newCall(url);
-    String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     if (!isEmpty(apiKey)) {
       call.setHeader("X-JFrog-Art-Api", apiKey);
     }

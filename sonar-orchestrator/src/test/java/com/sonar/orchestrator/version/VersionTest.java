@@ -29,8 +29,12 @@ public class VersionTest {
   public void testEquals() {
     assertThat(Version.create("1.1").equals(Version.create("1.1"))).isTrue();
     assertThat(Version.create("1.1").equals(Version.create("1.1.0"))).isTrue();
+    assertThat(Version.create("1.2-M7_2016-03-30").equals(Version.create("1.2-M7_2016-03-30"))).isTrue();
+    assertThat(Version.create("2-M8_2016-03").equals(Version.create("2-M8_2016-03"))).isTrue();
     assertThat(Version.create("1.1").equals(Version.create("1.1-beta"))).isFalse();
     assertThat(Version.create("1.1.2").equals(Version.create("1.1.0"))).isFalse();
+    assertThat(Version.create("1.2-M7_2016-03-30").equals(Version.create("1.2-M7_2016-02-01"))).isFalse();
+    assertThat(Version.create("2-M8_2016-03").equals(Version.create("1-M8_2016-03"))).isFalse();
     assertThat(Version.create("1.0.0").equals("otherclass")).isFalse();
   }
 
@@ -47,6 +51,8 @@ public class VersionTest {
     assertThat(Version.create("6.7-RC2").isGreaterThanOrEquals("6.7")).isFalse();
     assertThat(Version.create("6.7-RC2").isGreaterThanOrEquals("6.7-RC1")).isTrue();
     assertThat(Version.create("6.7-RC2").isGreaterThanOrEquals("6.7-RC2")).isTrue();
+    assertThat(Version.create("1.2").isGreaterThanOrEquals("1.2-M7_2016-03-30")).isTrue();
+    assertThat(Version.create("1.1").isGreaterThanOrEquals("1.2-M7_2016-03-30")).isFalse();
     assertThat(Version.create("9999.9999.9999.999999").isGreaterThanOrEquals("9999.9999.9999.999999")).isTrue();
     assertThat(Version.create("9999.9999.9999.999999").isGreaterThanOrEquals("9999.9999.9999.999998")).isTrue();
   }
@@ -86,5 +92,12 @@ public class VersionTest {
 
     underTest = new Version("9999.9999.9999.999999");
     assertThat(underTest.toString()).isEqualTo("9999.9999.9999.999999");
+
+    underTest = new Version("1.2-M7_2016-03-30");
+    assertThat(underTest.toString()).isEqualTo("1.2-M7_2016-03-30");
+
+    underTest = new Version("2-M8_2016-03");
+    assertThat(underTest.toString()).isEqualTo("2-M8_2016-03");
   }
+
 }
