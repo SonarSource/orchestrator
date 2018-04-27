@@ -115,6 +115,8 @@ public class ArtifactoryImpl implements Artifactory {
     } else if (location.getVersion().startsWith("DEV")) {
       // only the artifacts that have been promoted (master + release branches)
       repositories = "sonarsource-builds";
+    } else if (location.getVersion().startsWith("DOGFOOD")) {
+      repositories = "sonarsource-dogfood-builds";
     } else if (location.getVersion().startsWith("LTS") || location.getVersion().contains("COMPATIBLE")) {
       throw new IllegalStateException("Unsupported version alias for " + location);
     } else {
