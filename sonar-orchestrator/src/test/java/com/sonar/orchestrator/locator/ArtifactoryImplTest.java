@@ -284,6 +284,20 @@ public class ArtifactoryImplTest {
   }
 
   @Test
+  public void resolveVersion_resolves_DOGFOOD_alias() throws Exception {
+    prepareVersions("6.7.0.1000", "7.0.0.1010", "7.1.0.1030", "7.1.0.1020");
+
+    Configuration configuration = newConfiguration().build();
+    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DOGFOOD");
+
+    Optional<String> version = underTest.resolveVersion(location);
+    assertThat(version).hasValue("7.1.0.1030");
+
+    verifyVersionsRequest(location.getGroupId(), location.getArtifactId(), "*", "sonarsource-dogfood-builds");
+  }
+
+  @Test
   public void resolveVersion_sends_access_token_if_defined() throws Exception {
     prepareVersions("7.1", "7.2");
     Configuration configuration = newConfiguration()

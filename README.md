@@ -33,6 +33,8 @@ Aliases can be used to define the versions of SonarQube and plugins to be instal
 * `LATEST_RELEASE[x.y]` for the latest release of a series, for example `LATEST_RELEASE[5.2]`
 * `DEV` for the latest official build (in terms of version number, not date)
 * `DEV[x.y]` for the latest official build of a series. For example `DEV[5.2]` may install version `5.2.0.1234`.
+* `DOGFOOD` for the latest build of dogfood branch
+* `DOGFOOD[x.y]` for the latest build of a series in dogfood branch
 
 The alias `LTS` is no more supported for SonarQube since Orchestrator 3.17. It should be replaced by `LATEST_RELEASE[6.7]`.
 ## Local Cache
