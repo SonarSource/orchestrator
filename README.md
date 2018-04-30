@@ -29,12 +29,12 @@ An instance of class `com.sonar.orchestrator.Orchestrator` represents a SonarQub
 
 Aliases can be used to define the versions of SonarQube and plugins to be installed. Supported values are:
 
-* `LATEST_RELEASE` for the latest release (in terms of version number, not date)
-* `LATEST_RELEASE[x.y]` for the latest release of a series, for example `LATEST_RELEASE[5.2]`
 * `DEV` for the latest official build (in terms of version number, not date)
 * `DEV[x.y]` for the latest official build of a series. For example `DEV[5.2]` may install version `5.2.0.1234`.
 * `DOGFOOD` for the latest build of dogfood branch
 * `DOGFOOD[x.y]` for the latest build of a series in dogfood branch
+* `LATEST_RELEASE` for the latest release (in terms of version number, not date)
+* `LATEST_RELEASE[x.y]` for the latest release of a series, for example `LATEST_RELEASE[5.2]`
 
 The alias `LTS` is no more supported for SonarQube since Orchestrator 3.17. It should be replaced by `LATEST_RELEASE[6.7]`.
 ## Local Cache
@@ -45,14 +45,16 @@ This directory is *not* automatically purged and may grow significantly when usi
 
 ## Configuration
 
-Test environment is defined in the file `~/.sonar/orchestrator/orchestrator.properties`:
+The test environment is configured in the file `~/.sonar/orchestrator/orchestrator.properties`:
 
     # Token used to download SonarSource private artifacts from https://repox.sonarsource.com
     # Generate your API key at https://repox.sonarsource.com/webapp/#/profile
+    # This property can be replaced by the environment variable ARTIFACTORY_API_KEY.
     #orchestrator.artifactory.apiKey=xxx
     
     # Personal access token used to request SonarSource development licenses at https://github.com/sonarsource/licenses. 
     # Generate a token from https://github.com/settings/tokens
+    # This property can be replaced by the environment variable GITHUB_TOKEN.
     #github.token=xxx
       
     # Port of SonarQube server. Default value is 0 (random).
@@ -68,6 +70,7 @@ Test environment is defined in the file `~/.sonar/orchestrator/orchestrator.prop
     #maven.localRepository=/path/to/maven/repository
     
     # Instance of Artifactory. Default is SonarSource's instance.
+    # This property can be replaced by the environment variable ARTIFACTORY_URL.
     #orchestrator.artifactory.url=https://repox.sonarsource.com
 
 The path to configuration file can be overridden with the system property `orchestrator.configUrl` 
