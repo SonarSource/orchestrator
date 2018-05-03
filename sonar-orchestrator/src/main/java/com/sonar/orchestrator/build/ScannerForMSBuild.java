@@ -28,6 +28,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
@@ -37,10 +38,12 @@ import static java.util.Objects.requireNonNull;
  * @since 3.13
  */
 public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
+  public static final String DOT_NET_CORE_INTRODUCTION_VERSION = "4.1.0.1148";
   private Version scannerVersion = null;
   private File projectDir;
   private boolean debugLogs = false;
   private boolean useOldRunnerScript = false;
+  private boolean useDotnetCore = false;
   private String projectKey;
   private String projectName;
   private String projectVersion;
@@ -65,6 +68,24 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     }
 
     return !scannerVersion.isGreaterThanOrEquals("2.2") || useOldRunnerScript;
+  }
+
+  public ScannerForMSBuild setUseDotNetCore(boolean useDotnetCore) {
+    if (useDotnetCore && scannerVersion != null) {
+      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION),
+        "Version of ScannerForMSBuild should be higher than or equals to %s to be able to use .Net Core.",
+        DOT_NET_CORE_INTRODUCTION_VERSION);
+    }
+    this.useDotnetCore = useDotnetCore;
+    return this;
+  }
+
+  public boolean isUsingDotNetCore() {
+    if (scannerVersion == null) {
+      return useDotnetCore;
+    }
+    // .Net Core only available starting from ScannerForMSBuild 4.1.0.1148
+    return useDotnetCore && scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION);
   }
 
   public File getProjectDir() {

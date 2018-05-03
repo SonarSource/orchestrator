@@ -25,15 +25,16 @@ import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import org.junit.Test;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,7 +56,7 @@ public class ScannerForMSBuildExecutorTest {
     props.put("sonar.jdbc.dialect", "h2");
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(eq(Version.create("2.2")), eq(null), any(File.class), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
+    when(installer.install(eq(Version.create("2.2")), eq(null), any(File.class), eq(false), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -72,6 +73,33 @@ public class ScannerForMSBuildExecutorTest {
   }
 
   @Test
+  public void execute_command_with_dot_net_core() {
+    ScannerForMSBuild build = ScannerForMSBuild.create()
+      .setProjectDir(new File("."))
+      .setProjectKey("SAMPLE")
+      .setProjectName("Name")
+      .setTimeoutSeconds(30)
+      .setUseDotNetCore(true)
+      .setScannerVersion("4.1.0.1148");
+
+    ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
+    when(installer.install(eq(Version.create("4.1.0.1148")), eq(null), any(File.class), eq(false), eq(true))).thenReturn(new File("SonarScanner.MSBuild.dll"));
+    CommandExecutor executor = mock(CommandExecutor.class);
+    when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
+
+    new ScannerForMSBuildExecutor().execute(build, Configuration.create(), new HashMap<>(), installer, executor);
+
+    verify(executor).execute(argThat(c -> {
+      String commandLine = c.toCommandLine();
+      return c.getDirectory().equals(new File("."))
+        && commandLine.startsWith("dotnet")
+        && commandLine.contains("SonarScanner.MSBuild.dll")
+        && commandLine.contains("/k:SAMPLE")
+        && commandLine.contains("/n:Name");
+    }), any(StreamConsumer.class), eq(30000L));
+  }
+
+  @Test
   public void execute_command_no_param() {
     ScannerForMSBuild build = ScannerForMSBuild.create()
       .setProjectDir(new File("."))
@@ -79,7 +107,7 @@ public class ScannerForMSBuildExecutorTest {
     Map<String, String> props = new TreeMap<>();
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(isNull(), isNull(), any(), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
+    when(installer.install(isNull(), isNull(), any(), eq(false), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(), anyLong())).thenReturn(2);
 

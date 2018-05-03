@@ -31,7 +31,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -55,7 +55,7 @@ public class ScannerForMSBuildInstallerTest {
   @Test
   public void install_embedded_version() throws Exception {
     File toDir = temp.newFolder();
-    File script = installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true);
+    File script = installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true, false);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
@@ -70,7 +70,7 @@ public class ScannerForMSBuildInstallerTest {
     URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + ".zip");
     FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
     when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
-    File script = installer.install(null, zipLocation, toDir, true);
+    File script = installer.install(null, zipLocation, toDir, true, false);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
@@ -78,14 +78,64 @@ public class ScannerForMSBuildInstallerTest {
   }
 
   @Test
+  public void install_zip_after_dot_net_core_support() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-msbuild-4.2.0.1214-net46.zip");
+    FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
+    when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
+    File script = installer.install(null, zipLocation, toDir, false, false);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarQube.Scanner.MSBuild.exe");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild");
+  }
+
+  @Test
+  public void install_zip_after_dot_net_core_support_with_dot_net_core() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-msbuild-4.2.0.1214-netcoreapp2.0.zip");
+    FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
+    when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
+    File script = installer.install(null, zipLocation, toDir, false, true);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild");
+  }
+
+  @Test
+  public void install_zip_after_dot_net_core_support_by_providing_version() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-msbuild-4.2.0.1214-net46.zip");
+    when(locators.locate(any())).thenReturn(new File(zip.toURI()));
+    File script = installer.install(Version.create("4.2.0.1214"), null, toDir, false, false);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-4.2.0.1214");
+  }
+
+  @Test
+  public void install_zip_after_dot_net_core_support_by_providing_version_dot_net_core() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-msbuild-4.2.0.1214-netcoreapp2.0.zip");
+    when(locators.locate(any())).thenReturn(new File(zip.toURI()));
+    File script = installer.install(Version.create("4.2.0.1214"), null, toDir, false, true);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-4.2.0.1214");
+  }
+
+  @Test
   public void do_not_install_twice_with_version() throws Exception {
     File toDir = temp.newFolder();
-    File script = installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true);
+    File script = installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true, false);
     File txt = new File(script.getParentFile(), "text.txt");
     txt.createNewFile();
     assertThat(txt).exists();
 
-    installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true);
+    installer.install(Version.create(ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION), null, toDir, true, false);
     assertThat(txt).exists();
   }
 
@@ -96,12 +146,13 @@ public class ScannerForMSBuildInstallerTest {
     FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
     when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
 
-    File script = installer.install(null, zipLocation, toDir, true);
+
+    File script = installer.install(null, zipLocation, toDir, true, false);
     File txt = new File(script.getParentFile(), "text.txt");
     txt.createNewFile();
     assertThat(txt).exists();
 
-    installer.install(null, zipLocation, toDir, true);
+    installer.install(null, zipLocation, toDir, true, false);
     assertThat(txt).doesNotExist();
   }
 
@@ -111,7 +162,7 @@ public class ScannerForMSBuildInstallerTest {
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("File doesn't exist");
-    installer.install(null, FileLocation.of(new File("unknown")), toDir, true);
+    installer.install(null, FileLocation.of(new File("unknown")), toDir, true, false);
   }
 
   @Test
@@ -121,5 +172,26 @@ public class ScannerForMSBuildInstallerTest {
     assertThat(location.getVersion()).isEqualTo("2.1-SNAPSHOT");
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
     assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-msbuild");
+    assertThat(location.getClassifier()).isEmpty();
+  }
+
+  @Test
+  public void maven_location_after_dot_net_core_support() {
+    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("4.2"), false);
+    assertThat(location.getPackaging()).isEqualTo("zip");
+    assertThat(location.getVersion()).isEqualTo("4.2");
+    assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
+    assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-msbuild");
+    assertThat(location.getClassifier()).isEqualTo("net46");
+  }
+
+  @Test
+  public void maven_location_after_dot_net_core_support_with_dot_net_core() {
+    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("4.2"), true);
+    assertThat(location.getPackaging()).isEqualTo("zip");
+    assertThat(location.getVersion()).isEqualTo("4.2");
+    assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
+    assertThat(location.getArtifactId()).isEqualTo("sonar-scanner-msbuild");
+    assertThat(location.getClassifier()).isEqualTo("netcoreapp2.0");
   }
 }
