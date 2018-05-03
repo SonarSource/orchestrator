@@ -39,7 +39,12 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, ScannerForMSBuildInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
-    File runnerScript = installer.install(build.scannerVersion(), build.getLocation(), config.fileSystem().workspace(), build.isUseOldRunnerScript());
+    File runnerScript = installer.install(
+      build.scannerVersion(),
+      build.getLocation(),
+      config.fileSystem().workspace(),
+      build.isUseOldRunnerScript(),
+      build.isUsingDotNetCore());
     try {
       Command command = createCommand(build, adjustedProperties, runnerScript);
       LoggerFactory.getLogger(ScannerForMSBuild.class).info("Execute: {}", command);
@@ -54,7 +59,14 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
   }
 
   private static Command createCommand(ScannerForMSBuild build, Map<String, String> adjustedProperties, File runnerScript) {
-    Command command = Command.create(runnerScript.getAbsolutePath());
+    String runnerScriptAbsolutePath = runnerScript.getAbsolutePath();
+    Command command;
+    if (build.isUsingDotNetCore()) {
+      // Assuming .Net Core executable 'dotnet' is declared in PATH
+      command = Command.create("dotnet " + runnerScriptAbsolutePath);
+    } else {
+      command = Command.create(runnerScriptAbsolutePath);
+    }
     command.setDirectory(build.getProjectDir());
     for (Map.Entry<String, String> env : build.getEffectiveEnvironmentVariables().entrySet()) {
       command.setEnvironmentVariable(env.getKey(), env.getValue());

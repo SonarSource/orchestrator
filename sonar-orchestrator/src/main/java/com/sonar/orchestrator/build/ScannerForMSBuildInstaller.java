@@ -49,17 +49,17 @@ public class ScannerForMSBuildInstaller {
   /**
    * Installs an ephemeral Scanner for MSBuild and returns the path to the exe to execute
    */
-  public File install(@Nullable Version scannerVersion, @Nullable Location location, File toDir, boolean useOldScript) {
+  public File install(@Nullable Version scannerVersion, @Nullable Location location, File toDir, boolean useOldScript, boolean useDotNetCore) {
     if (location != null) {
-      return install(location, toDir, useOldScript);
+      return install(location, toDir, useOldScript, useDotNetCore);
     } else if (scannerVersion != null) {
-      return install(scannerVersion, toDir, useOldScript);
+      return install(scannerVersion, toDir, useOldScript, useDotNetCore);
     } else {
-      return install(Version.create(DEFAULT_SCANNER_VERSION), toDir, useOldScript);
+      return install(Version.create(DEFAULT_SCANNER_VERSION), toDir, useOldScript, useDotNetCore);
     }
   }
 
-  private File install(Location location, File toDir, boolean useOldScript) {
+  private File install(Location location, File toDir, boolean useOldScript, boolean useDotNetCore) {
     clearCachedSnapshot(null, toDir);
     if (!isInstalled(null, toDir)) {
       LOG.info("Installing Scanner for MSBuild from {}", location);
@@ -70,14 +70,14 @@ public class ScannerForMSBuildInstaller {
       }
       doInstall(zipFile, toDir, null);
     }
-    return locateInstalledScript(null, toDir, useOldScript);
+    return locateInstalledScript(null, toDir, useOldScript, useDotNetCore);
   }
 
-  private File install(Version scannerVersion, File toDir, boolean useOldScript) {
+  private File install(Version scannerVersion, File toDir, boolean useOldScript, boolean useDotNetCore) {
     clearCachedSnapshot(scannerVersion, toDir);
     if (!isInstalled(scannerVersion, toDir)) {
       LOG.info("Installing Scanner for MSBuild {}", scannerVersion);
-      File zipFile = locateZip(scannerVersion);
+      File zipFile = locateZip(scannerVersion, useDotNetCore);
 
       if (zipFile == null || !zipFile.exists()) {
         throw new IllegalArgumentException("Unsupported scanner for MSBuild version: " + scannerVersion);
@@ -85,7 +85,7 @@ public class ScannerForMSBuildInstaller {
 
       doInstall(zipFile, toDir, scannerVersion);
     }
-    return locateInstalledScript(scannerVersion, toDir, useOldScript);
+    return locateInstalledScript(scannerVersion, toDir, useOldScript, useDotNetCore);
   }
 
   void doInstall(File zipFile, File toDir, @Nullable Version scannerVersion) {
@@ -98,7 +98,7 @@ public class ScannerForMSBuildInstaller {
     }
   }
 
-  private File locateZip(Version scannerVersion) {
+  private File locateZip(Version scannerVersion, boolean useDotNetCore) {
     File zipFile = null;
     URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + scannerVersion.toString() + ".zip");
     if (zip != null) {
@@ -111,20 +111,27 @@ public class ScannerForMSBuildInstaller {
       }
     } else {
       LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Searching for Scanner for MSBuild {} in maven repository", scannerVersion);
-      zipFile = locators.locate(mavenLocation(scannerVersion));
+      zipFile = locators.locate(mavenLocation(scannerVersion, useDotNetCore));
     }
     return zipFile;
   }
 
   static MavenLocation mavenLocation(Version scannerVersion) {
+    return mavenLocation(scannerVersion, false);
+  }
+
+  static MavenLocation mavenLocation(Version scannerVersion, boolean useDotNetCore) {
     String groupId = "org.sonarsource.scanner.msbuild";
     String artifactId = "sonar-scanner-msbuild";
-    return MavenLocation.builder()
+    MavenLocation.Builder location = MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
       .setVersion(scannerVersion.toString())
-      .withPackaging("zip")
-      .build();
+      .withPackaging("zip");
+    if (scannerVersion.isGreaterThanOrEquals(ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_VERSION)) {
+      location.setClassifier(useDotNetCore ? "netcoreapp2.0" : "net46");
+    }
+    return location.build();
   }
 
   private static void clearCachedSnapshot(@Nullable Version scannerVersion, File toDir) {
@@ -144,12 +151,20 @@ public class ScannerForMSBuildInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(@Nullable Version scannerVersion, File toDir, boolean useOldScript) {
+  private static File locateInstalledScript(@Nullable Version scannerVersion, File toDir, boolean useOldScript, boolean useDotNetCore) {
     String filename;
     if (useOldScript) {
       filename = "MSBuild.SonarQube.Runner.exe";
     } else {
-      filename = "SonarQube.Scanner.MSBuild.exe";
+      if (useDotNetCore || (scannerVersion != null && scannerVersion.isGreaterThanOrEquals(ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_VERSION))) {
+        if (useDotNetCore) {
+          filename = "SonarScanner.MSBuild.dll";
+        } else {
+          filename = "SonarScanner.MSBuild.exe";
+        }
+      } else {
+        filename = "SonarQube.Scanner.MSBuild.exe";
+      }
     }
     File script = new File(toDir, directoryName(scannerVersion) + "/" + filename);
     if (!script.exists()) {
