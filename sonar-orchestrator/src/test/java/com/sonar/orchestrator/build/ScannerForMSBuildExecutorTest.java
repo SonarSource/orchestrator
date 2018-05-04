@@ -100,6 +100,33 @@ public class ScannerForMSBuildExecutorTest {
   }
 
   @Test
+  public void execute_command_with_dot_net_core_provided() {
+    ScannerForMSBuild build = ScannerForMSBuild.create()
+      .setProjectDir(new File("."))
+      .setProjectKey("SAMPLE")
+      .setProjectName("Name")
+      .setTimeoutSeconds(30)
+      .setDotNetCoreExecutable(new File("/usr/share/dotnet/dotnet"))
+      .setScannerVersion("4.1.0.1148");
+
+    ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
+    when(installer.install(eq(Version.create("4.1.0.1148")), eq(null), any(File.class), eq(false), eq(true))).thenReturn(new File("SonarScanner.MSBuild.dll"));
+    CommandExecutor executor = mock(CommandExecutor.class);
+    when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
+
+    new ScannerForMSBuildExecutor().execute(build, Configuration.create(), new HashMap<>(), installer, executor);
+
+    verify(executor).execute(argThat(c -> {
+      String commandLine = c.toCommandLine();
+      return c.getDirectory().equals(new File("."))
+        && commandLine.startsWith("/usr/share/dotnet/dotnet")
+        && commandLine.contains("SonarScanner.MSBuild.dll")
+        && commandLine.contains("/k:SAMPLE")
+        && commandLine.contains("/n:Name");
+    }), any(StreamConsumer.class), eq(30000L));
+  }
+
+  @Test
   public void execute_command_no_param() {
     ScannerForMSBuild build = ScannerForMSBuild.create()
       .setProjectDir(new File("."))

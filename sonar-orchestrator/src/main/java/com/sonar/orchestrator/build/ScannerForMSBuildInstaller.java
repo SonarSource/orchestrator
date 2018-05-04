@@ -25,11 +25,17 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 /**
  * Installs a given version of Scanner for MSBuild. It finds the zip into local maven repository
@@ -93,9 +99,30 @@ public class ScannerForMSBuildInstaller {
       File scannerDir = new File(toDir, directoryName(scannerVersion));
       scannerDir.mkdirs();
       ZipUtils.unzip(zipFile, scannerDir);
+      if (SystemUtils.IS_OS_UNIX &&
+        scannerVersion != null
+        && scannerVersion.isGreaterThan(ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_VERSION)) {
+        // change permissions on binary files from sonar-scanner included in scanner
+        setSonarScannerBinariesAsExecutable(scannerDir);
+      }
     } catch (Exception e) {
       throw new IllegalStateException("Fail to unzip Scanner for MSBuild from " + zipFile + " to " + toDir, e);
     }
+  }
+
+  private static void setSonarScannerBinariesAsExecutable(File scannerDir) {
+    File[] sonarScannerDirs = scannerDir.listFiles(file -> file.isDirectory() && file.getName().startsWith("sonar-scanner-"));
+    checkState(sonarScannerDirs.length > 0, "sonar-scanner folder not found");
+    checkState(sonarScannerDirs.length == 1, "sonar-scanner folder is not unique");
+    File binaries = new File(sonarScannerDirs[0], "bin");
+    for (File binary : binaries.listFiles()) {
+      try {
+        Files.setPosixFilePermissions(binary.toPath(), PosixFilePermissions.fromString("rwxrwxrwx"));
+      } catch (IOException e) {
+        LoggerFactory.getLogger(ScannerForMSBuildInstaller.class).info("Unable to set execute permission to file {}.", binary.getAbsolutePath());
+      }
+    }
+
   }
 
   private File locateZip(Version scannerVersion, boolean useDotNetCore) {
