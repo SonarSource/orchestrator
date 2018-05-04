@@ -122,6 +122,7 @@ public class ArtifactoryImplTest {
   public void download_considers_unauthorized_error_as_artifact_not_found() throws Exception {
     prepareResponseError(401);
     prepareResponseError(401);
+    prepareResponseError(401);
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
@@ -135,6 +136,7 @@ public class ArtifactoryImplTest {
   public void download_considers_forbidden_error_as_artifact_not_found() throws Exception {
     prepareResponseError(403);
     prepareResponseError(403);
+    prepareResponseError(403);
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
@@ -146,6 +148,7 @@ public class ArtifactoryImplTest {
 
   @Test
   public void download_artifact_not_found() throws Exception {
+    prepareResponseError(404);
     prepareResponseError(404);
     prepareResponseError(404);
     Configuration configuration = newConfiguration().build();
