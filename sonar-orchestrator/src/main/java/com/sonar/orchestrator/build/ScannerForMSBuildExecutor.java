@@ -63,7 +63,12 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
     Command command;
     if (build.isUsingDotNetCore()) {
       // Assuming .Net Core executable 'dotnet' is declared in PATH
-      command = Command.create("dotnet " + runnerScriptAbsolutePath);
+      String dotNetCoreExecutablePath = "dotnet";
+      File dotNetCoreExecutable = build.getDotNetCoreExecutable();
+      if (dotNetCoreExecutable != null) {
+        dotNetCoreExecutablePath = dotNetCoreExecutable.getAbsolutePath();
+      }
+      command = Command.create(dotNetCoreExecutablePath).addArgument(runnerScriptAbsolutePath);
     } else {
       command = Command.create(runnerScriptAbsolutePath);
     }

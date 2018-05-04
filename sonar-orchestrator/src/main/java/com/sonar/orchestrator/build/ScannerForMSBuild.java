@@ -41,6 +41,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   public static final String DOT_NET_CORE_INTRODUCTION_VERSION = "4.1.0.1148";
   private Version scannerVersion = null;
   private File projectDir;
+  private File dotNetCoreExecutable = null;
   private boolean debugLogs = false;
   private boolean useOldRunnerScript = false;
   private boolean useDotnetCore = false;
@@ -80,12 +81,23 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return this;
   }
 
+  public ScannerForMSBuild setDotNetCoreExecutable(File dotNetCoreExecutable) {
+    this.dotNetCoreExecutable = dotNetCoreExecutable;
+    // automatically enable usage of .Net Core
+    return setUseDotNetCore(true);
+  }
+
   public boolean isUsingDotNetCore() {
     if (scannerVersion == null) {
       return useDotnetCore;
     }
     // .Net Core only available starting from ScannerForMSBuild 4.1.0.1148
     return useDotnetCore && scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION);
+  }
+
+  @CheckForNull
+  public File getDotNetCoreExecutable() {
+    return dotNetCoreExecutable;
   }
 
   public File getProjectDir() {
