@@ -82,7 +82,7 @@ public class ArtifactoryImpl implements Artifactory {
 
   @Override
   public Optional<File> downloadToDir(MavenLocation location, File toDir) {
-    for (String repository : asList("sonarsource", "sonarsource-qa")) {
+    for (String repository : asList("sonarsource", "sonarsource-qa", "sonarsource-dogfood-builds")) {
       HttpUrl url = HttpUrl.parse(baseUrl).newBuilder()
         .addPathSegment(repository)
         .addEncodedPathSegments(StringUtils.replace(location.getGroupId(), ".", "/"))
