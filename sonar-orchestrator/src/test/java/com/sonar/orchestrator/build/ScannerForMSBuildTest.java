@@ -28,7 +28,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class ScannerForMSBuildTest {
 
@@ -107,12 +106,18 @@ public class ScannerForMSBuildTest {
     assertThat(build.isUsingDotNetCore()).isTrue();
 
     build = ScannerForMSBuild.create();
+    assertThat(build.isUsingDotNetCore()).isFalse();
+    build.setDotNetCoreExecutable(new File("."));
+    assertThat(build.isUsingDotNetCore()).isTrue();
+
+    build = ScannerForMSBuild.create();
     build.setScannerVersion("2.2");
-    try {
-      build.setUseDotNetCore(true);
-      fail("Should have failed");
-    } catch (IllegalStateException e) {
-      assertThat(e.getMessage()).contains("Version of ScannerForMSBuild should be higher than or equals to 4.1.0.1148 to be able to use .Net Core.");
-    }
+    build.setUseDotNetCore(true);
+    build.setProjectDir(new File("."));
+
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Version of ScannerForMSBuild should be higher than or equals to 4.1.0.1148 to be able to use .Net Core.");
+
+    build.check();
   }
 }
