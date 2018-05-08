@@ -71,22 +71,38 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return !scannerVersion.isGreaterThanOrEquals("2.2") || useOldRunnerScript;
   }
 
+  /**
+   * Force usage of .NET Core version of ScannerForMSBuild.
+   * Note that if the path to dotnet executable is not provided, orchestrator will assume it is available in PATH.
+   *
+   * @param useDotnetCore true to use .NET Core version
+   * @return The scanner being built
+   */
   public ScannerForMSBuild setUseDotNetCore(boolean useDotnetCore) {
-    if (useDotnetCore && scannerVersion != null) {
-      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION),
-        "Version of ScannerForMSBuild should be higher than or equals to %s to be able to use .Net Core.",
-        DOT_NET_CORE_INTRODUCTION_VERSION);
-    }
     this.useDotnetCore = useDotnetCore;
     return this;
   }
 
+  /**
+   * Providing a .NET Core executable to be used during analysis, force usage of .NET Core version of the scanner. If
+   * not provided and usage of .NET Core is enabled, orchestrator will assume that the dotnet executable is available in PATH.
+   *
+   * Note that there is no need to call {@link #setUseDotNetCore(boolean)} if manually setting the dotnet executable.
+   *
+   * @param dotNetCoreExecutable the path to the .NET Core executable
+   * @return The scanner being built
+   */
   public ScannerForMSBuild setDotNetCoreExecutable(File dotNetCoreExecutable) {
     this.dotNetCoreExecutable = dotNetCoreExecutable;
-    // automatically enable usage of .Net Core
     return setUseDotNetCore(true);
   }
 
+  /**
+   * In order to use .NET Core, the provided version of SonarScanner for MSBuild should be higher or 
+   * equal to {@link ScannerForMSBuild#DOT_NET_CORE_INTRODUCTION_VERSION}.
+   *
+   * @return true if using .NET Core and provided version of SonarScanner for MSBuild is compatible.
+   */
   public boolean isUsingDotNetCore() {
     if (scannerVersion == null) {
       return useDotnetCore;
@@ -184,6 +200,17 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
 
   void check() {
     checkProjectDir(projectDir);
+    checkDotNetCoreCompatibility(scannerVersion, useDotnetCore);
+  }
+
+  private static void checkDotNetCoreCompatibility(Version scannerVersion, boolean useDotNetCore) {
+    if (useDotNetCore) {
+      checkArgument(scannerVersion != null, "Default version of SonarScanner for MSBuild embedded by Orchestrator does not support .NET Core. "
+        + "Please provide a scanner version >= %s.", DOT_NET_CORE_INTRODUCTION_VERSION);
+      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION),
+        "Version of ScannerForMSBuild should be higher than or equals to %s to be able to use .Net Core.",
+        DOT_NET_CORE_INTRODUCTION_VERSION);
+    }
   }
 
   private static void checkProjectDir(File dir) {
