@@ -19,9 +19,11 @@
  */
 package com.sonar.orchestrator.util;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -57,6 +59,7 @@ public final class ZipUtils {
         while (entries.hasMoreElements()) {
           ZipEntry entry = entries.nextElement();
           File to = new File(toDir, entry.getName());
+          verifyInsideTargetDirectory(entry, to.toPath(), toDir.toPath());
           if (entry.isDirectory()) {
             FileUtils.forceMkdir(to);
           } else {
@@ -65,7 +68,7 @@ public final class ZipUtils {
               FileUtils.forceMkdir(parent);
             }
 
-            try (OutputStream fos = new FileOutputStream(to)) {
+            try (OutputStream fos = new BufferedOutputStream(Files.newOutputStream(to.toPath()))) {
               IOUtils.copy(zipFile.getInputStream(entry), fos);
             }
           }
@@ -76,7 +79,7 @@ public final class ZipUtils {
     }
   }
 
-  static void nativeUnzip(File zip, File toDir) {
+  private static void nativeUnzip(File zip, File toDir) {
     Command command = Command.create("unzip");
     command.addArgument("-o");
     command.addArgument("-q");
@@ -85,6 +88,13 @@ public final class ZipUtils {
     int result = CommandExecutor.create().execute(command, 60L * 60 * 1000);
     if (result != 0) {
       throw new IllegalStateException("Fail to unzip " + zip + " to " + toDir);
+    }
+  }
+
+  private static void verifyInsideTargetDirectory(ZipEntry entry, Path entryPath, Path targetDirPath) {
+    if (!entryPath.normalize().startsWith(targetDirPath.normalize())) {
+      // vulnerability - trying to create a file outside the target directory
+      throw new IllegalStateException("Unzipping an entry outside the target directory is not allowed: " + entry.getName());
     }
   }
 }

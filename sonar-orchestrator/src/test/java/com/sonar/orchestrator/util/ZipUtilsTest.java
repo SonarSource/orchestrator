@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class ZipUtilsTest {
 
@@ -71,5 +72,20 @@ public class ZipUtilsTest {
     ZipUtils.javaUnzip(zip, toDir);
 
     assertThat(toDir.list()).hasSize(3);
+  }
+
+  @Test
+  public void fail_if_unzipping_file_outside_target_directory() throws Exception {
+    File zip = new File(getClass().getResource("ZipUtilsTest/zip-slip.zip").toURI());
+    File toDir = temp.newFolder();
+
+    try {
+      ZipUtils.javaUnzip(zip, toDir);
+      fail();
+    } catch (Exception e) {
+      assertThat(e.getCause()).isInstanceOfAny(IllegalStateException.class);
+      assertThat(e.getCause().getMessage()).isEqualTo(
+        "Unzipping an entry outside the target directory is not allowed: ../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../tmp/evil.txt");
+    }
   }
 }
