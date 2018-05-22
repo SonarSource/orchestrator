@@ -19,55 +19,86 @@
  */
 package com.sonar.orchestrator.config;
 
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
-import javax.annotation.CheckForNull;
+import com.sonar.orchestrator.version.Version;
+import java.util.EnumMap;
+import java.util.Map;
 import okhttp3.HttpUrl;
+import org.apache.commons.lang.StringUtils;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 public class Licenses {
 
-  private final String rootUrl;
-  private String cacheV3;
+  private static final String TOKEN_PROPERTY = "github.token";
+  private static final String TOKEN_ENV_VARIABLE = "GITHUB_TOKEN";
 
-  Licenses(String rootUrl) {
-    checkArgument(!isEmpty(rootUrl), "Blank root URL");
+  private final Configuration configuration;
+  private final String baseUrl;
+  private final Map<Edition, String> licensesPerEdition = new EnumMap<>(Edition.class);
+  private String devLicense = null;
 
-    this.rootUrl = rootUrl;
+  Licenses(Configuration configuration, String baseUrl) {
+    this.configuration = configuration;
+    this.baseUrl = baseUrl;
   }
 
-  public Licenses() {
-    this("https://raw.githubusercontent.com/SonarSource/licenses/");
+  public Licenses(Configuration configuration) {
+    this(configuration, "https://raw.githubusercontent.com/SonarSource/licenses/");
   }
 
-  private static String findGithubToken() {
-    return Configuration.createEnv().getString("github.token", System.getenv("GITHUB_TOKEN"));
+  public String getLicense(Edition edition, Version version) {
+    if (version.isGreaterThanOrEquals(7,2)) {
+      return licensesPerEdition.computeIfAbsent(edition, e -> {
+        String filename;
+        switch (e) {
+          case DEVELOPER:
+            filename = "de.txt";
+            break;
+          case ENTERPRISE:
+            filename = "ee.txt";
+            break;
+          case DATACENTER:
+            filename = "dce.txt";
+            break;
+          default:
+            throw new IllegalStateException("License does not exist for edition " + e);
+        }
+        return download(baseUrl + "master/edition_testing/" + filename);
+      });
+    }
+
+    if (devLicense == null) {
+      devLicense = download(baseUrl + "master/it/dev.txt");
+    }
+    return devLicense;
   }
 
-  private String downloadV3FromGithub() {
-    String url = rootUrl + "master/it/dev.txt";
-    return downloadFromGitHub("v3", url);
-  }
-
-  private static String downloadFromGitHub(String licenseKey, String url) {
+  private String download(String url) {
     HttpResponse response = HttpClientFactory.create().newCall(HttpUrl.parse(url))
-      .setHeader("Authorization", "token " + findGithubToken())
+      .setHeader("Authorization", "token " + loadGithubToken())
       .executeUnsafely();
     if (response.isSuccessful()) {
-      return defaultIfNull(response.getBodyAsString(), "");
+      return cleanUpLicense(response.getBodyAsString());
     }
-    throw new IllegalStateException(format("Fail to download development license [%s]. URL [%s] returned code [%d]", licenseKey, url, response.getCode()));
+    throw new IllegalStateException(format("Fail to download license. URL [%s] returned code [%d]", url, response.getCode()));
   }
 
-  @CheckForNull
-  public String getV3() {
-    if (cacheV3 == null) {
-      cacheV3 = downloadV3FromGithub();
+  private static String cleanUpLicense(String body) {
+    String s = defaultIfNull(body, "");
+    if (s.contains("-")) {
+      s = StringUtils.substringAfterLast(s, "-");
     }
-    return cacheV3;
+    return StringUtils.trim(s);
+  }
+
+  private String loadGithubToken() {
+    String token = configuration.getString(TOKEN_PROPERTY, configuration.getString(TOKEN_ENV_VARIABLE));
+    requireNonNull(token, () -> format("Please provide your GitHub token with the property %s or the env variable %s", TOKEN_PROPERTY, TOKEN_ENV_VARIABLE));
+    return token;
   }
 }

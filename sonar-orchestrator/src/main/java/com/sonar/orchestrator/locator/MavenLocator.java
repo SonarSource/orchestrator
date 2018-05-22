@@ -47,7 +47,7 @@ public class MavenLocator implements Locator<MavenLocation> {
   @Override
   public File locate(MavenLocation location) {
     // resolve the version alias if needed (requires to be online)
-    MavenLocation resolvedLocation = resolveVersion(location);
+    MavenLocation resolvedLocation = resolveLocation(location);
     return locateResolvedVersion(resolvedLocation);
   }
 
@@ -82,10 +82,10 @@ public class MavenLocator implements Locator<MavenLocation> {
     return found ? cachedFile : null;
   }
 
-  private MavenLocation resolveVersion(MavenLocation location) {
-    Optional<String> version = artifactory.resolveVersion(location);
+  private MavenLocation resolveLocation(MavenLocation location) {
+    Optional<String> version = resolveVersion(location);
     if (!version.isPresent()) {
-      throw new IllegalStateException("Version can be resolved: " + location);
+      throw new IllegalStateException("Version can not be resolved: " + location);
     }
     if (version.get().equals(location.getVersion())) {
       return location;
@@ -97,6 +97,10 @@ public class MavenLocator implements Locator<MavenLocation> {
       .withPackaging(location.getPackaging())
       .setVersion(version.get())
       .build();
+  }
+
+  public Optional<String> resolveVersion(MavenLocation location) {
+    return artifactory.resolveVersion(location);
   }
 
   @CheckForNull

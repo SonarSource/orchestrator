@@ -20,10 +20,13 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -31,6 +34,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -53,37 +57,43 @@ public class ServerInstaller {
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
   private static final String ALL_IPS_HOST = "0.0.0.0";
 
-  private final ServerZipFinder zipFinder;
+  private final PackagingResolver packagingResolver;
   private final Configuration configuration;
+  private final Locators locators;
   private final DatabaseClient databaseClient;
 
-  public ServerInstaller(ServerZipFinder zipFinder, Configuration configuration, DatabaseClient databaseClient) {
-    this.zipFinder = zipFinder;
+  public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, Locators locators, DatabaseClient databaseClient) {
+    this.packagingResolver = packagingResolver;
     this.configuration = configuration;
+    this.locators = locators;
     this.databaseClient = databaseClient;
   }
 
   public Server install(SonarDistribution distrib) {
-    File homeDir = locateAndUnzip(distrib);
-    copyPlugins(distrib, homeDir);
+    Packaging packaging = packagingResolver.resolve(distrib);
+
+    File homeDir = unzip(packaging);
+    if (distrib.removeDistributedPlugins()) {
+      removeBundledPlugins(homeDir);
+    }
+    copyPlugins(packaging, distrib.getPluginLocations(), homeDir);
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
     String host = properties.getProperty(WEB_HOST_PROPERTY);
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
     String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(configuration.locators(), homeDir, distrib, HttpUrl.parse(url));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url));
   }
 
-  private File locateAndUnzip(SonarDistribution distrib) {
-    File zip = zipFinder.find(distrib);
+  private File unzip(Packaging packaging) {
     File toDir = new File(configuration.fileSystem().workspace(), String.valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {
       throw new IllegalStateException("Fail to delete directory " + toDir, e);
     }
-    ZipUtils.unzip(zip, toDir);
+    ZipUtils.unzip(packaging.getZip(), toDir);
     File[] roots = toDir.listFiles((FileFilter) FileFilterUtils.directoryFileFilter());
     if (roots == null || roots.length != 1) {
       throw new IllegalStateException("ZIP is badly structured. Missing root directory in " + toDir);
@@ -103,27 +113,52 @@ public class ServerInstaller {
     }
   }
 
-  private void copyPlugins(SonarDistribution distribution, File sonarHome) {
-    File downloadDir = new File(sonarHome, "extensions/downloads");
+  private static void removeBundledPlugins(File homeDir) {
+    LOG.info("Remove bundled plugins");
+    cleanDirectory(new File(homeDir, "lib/bundled-plugins"));
+    // plugins are bundled in extensions/plugins since version 7.2
+    cleanDirectory(new File(homeDir, "extensions/plugins"));
+  }
+
+  private static void cleanDirectory(File dir) {
+    try {
+      if (dir.exists()) {
+        FileUtils.cleanDirectory(dir);
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to clean directory: " + dir, e);
+    }
+  }
+
+  private void copyPlugins(Packaging packaging, List<Location> plugins, File homeDir) {
+    File downloadDir = new File(homeDir, "extensions/downloads");
     try {
       FileUtils.forceMkdir(downloadDir);
-      if (distribution.removeDistributedPlugins()) {
-        LOG.info("Remove distribution plugins");
-        File dirToClean = new File(sonarHome, "lib/bundled-plugins");
-        if (dirToClean.exists()) {
-          FileUtils.cleanDirectory(dirToClean);
-        }
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Fail to clean the download directory: " + downloadDir, e);
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to create directory: " + downloadDir, e);
     }
-    for (Location plugin : distribution.getPluginLocations()) {
-      File pluginFile = configuration.locators().copyToDirectory(plugin, downloadDir);
-      if (pluginFile == null || !pluginFile.exists()) {
-        throw new IllegalStateException("Can not find the plugin " + plugin);
-      }
-      LOG.info("Installed plugin: {}", pluginFile.getName());
+
+    for (Location plugin : plugins) {
+      installPluginIntoDir(plugin, downloadDir);
     }
+
+    if (packaging.getEdition() != Edition.COMMUNITY && !packaging.getVersion().isGreaterThanOrEquals(7, 2)) {
+      boolean hasLicensePlugin = plugins.stream()
+        .filter(p -> p instanceof MavenLocation)
+        .map(p -> (MavenLocation) p)
+        .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId().equals("sonar-dev-license-plugin"));
+      if (!hasLicensePlugin) {
+        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", "LATEST_RELEASE[3.3]"), downloadDir);
+      }
+    }
+  }
+
+  private void installPluginIntoDir(Location plugin, File downloadDir) {
+    File pluginFile = locators.copyToDirectory(plugin, downloadDir);
+    if (pluginFile == null || !pluginFile.exists()) {
+      throw new IllegalStateException("Can not find the plugin " + plugin);
+    }
+    LOG.info("Installed plugin: {}", pluginFile.getName());
   }
 
   private Properties configureProperties(SonarDistribution distribution) {

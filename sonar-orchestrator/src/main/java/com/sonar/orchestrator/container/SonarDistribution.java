@@ -33,23 +33,24 @@ import static java.util.Objects.requireNonNull;
 public final class SonarDistribution {
 
   private String version;
+  private Edition edition = Edition.COMMUNITY;
   private List<Location> pluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
   private boolean activateLicense;
   private boolean removeDistributedPlugins = true;
-  private File zipFile;
+  private Location zip;
 
   public SonarDistribution() {
     // A distribution without a version yet
   }
 
-  public Optional<File> getZipFile() {
-    return Optional.ofNullable(zipFile);
+  public Optional<Location> getZipLocation() {
+    return Optional.ofNullable(zip);
   }
 
-  public SonarDistribution setZipFile(@Nullable File zip) {
-    this.zipFile = zip;
+  public SonarDistribution setZipLocation(@Nullable Location zip) {
+    this.zip = zip;
     return this;
   }
 
@@ -116,6 +117,15 @@ public final class SonarDistribution {
   public SonarDistribution activateLicense() {
     activateLicense = true;
     return this;
+  }
+
+  public SonarDistribution setEdition(Edition edition) {
+    this.edition = edition;
+    return this;
+  }
+
+  public Edition getEdition() {
+    return edition;
   }
 
   public boolean isActivateLicense() {

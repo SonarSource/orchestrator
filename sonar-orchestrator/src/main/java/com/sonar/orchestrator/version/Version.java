@@ -27,22 +27,31 @@ public class Version implements Comparable<Version> {
   private final String asString;
   private final long asNumber;
   private final String qualifier;
+  private final int major;
+  private final int minor;
 
   Version(String s) {
     String[] fields = StringUtils.substringBefore(s, "-").split("\\.");
     long l = 0;
     // max representation: 9999.9999.9999.999999
     if (fields.length > 0) {
-      l += 1_0000_0000_000000L * Integer.parseInt(fields[0]);
+      this.major = Integer.parseInt(fields[0]);
+      l += 1_0000_0000_000000L * this.major;
       if (fields.length > 1) {
-        l += 1_0000_000000L * Integer.parseInt(fields[1]);
+        this.minor = Integer.parseInt(fields[1]);
+        l += 1_0000_000000L * this.minor;
         if (fields.length > 2) {
           l += 1_000000L * Integer.parseInt(fields[2]);
           if (fields.length > 3) {
             l += Integer.parseInt(fields[3]);
           }
         }
+      } else {
+        this.minor = 0;
       }
+    } else {
+      this.major = 0;
+      this.minor = 0;
     }
     this.asNumber = l;
     this.asString = s;
@@ -84,20 +93,32 @@ public class Version implements Comparable<Version> {
     return asString;
   }
 
-  public boolean isGreaterThan(String other) {
-    return isGreaterThan(new Version(other));
+  /**
+   * Compares only the two first parts of versions. The following parts, including
+   * qualifier like RC or SNAPSHOT, are ignored.
+   */
+  public boolean isGreaterThan(int major, int minor) {
+    if (this.major > major) {
+      return true;
+    }
+    if (this.major == major) {
+      return this.minor > minor;
+    }
+    return false;
   }
 
-  public boolean isGreaterThan(Version other) {
-    return this.compareTo(other) > 0;
-  }
-
-  public boolean isGreaterThanOrEquals(String other) {
-    return isGreaterThanOrEquals(new Version(other));
-  }
-
-  public boolean isGreaterThanOrEquals(Version other) {
-    return this.compareTo(other) >= 0;
+  /**
+   * Compares only the two first parts of versions. The following parts, including
+   * qualifier like RC or SNAPSHOT, are ignored.
+   */
+  public boolean isGreaterThanOrEquals(int major, int minor) {
+    if (this.major > major) {
+      return true;
+    }
+    if (this.major == major) {
+      return this.minor >= minor;
+    }
+    return false;
   }
 
   public boolean isRelease() {

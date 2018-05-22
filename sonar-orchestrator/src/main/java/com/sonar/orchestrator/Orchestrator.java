@@ -30,15 +30,16 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
+import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.server.PackagingResolver;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
 import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
-import com.sonar.orchestrator.server.ServerZipFinder;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
@@ -48,7 +49,6 @@ import org.sonar.wsclient.SonarClient;
 
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -74,7 +74,7 @@ public class Orchestrator extends SingleStartExternalResource {
   Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
     this.config = requireNonNull(config);
     this.distribution = requireNonNull(distribution);
-    this.licenses = new Licenses();
+    this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
   }
 
@@ -108,14 +108,15 @@ public class Orchestrator extends SingleStartExternalResource {
     database.start();
 
     FileSystem fs = config.fileSystem();
-    ServerZipFinder zipFinder = new ServerZipFinder(config.locators());
-    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, config, database.getClient());
+    PackagingResolver packagingResolver = new PackagingResolver(config.locators());
+    ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
     server = serverInstaller.install(distribution);
 
     process = new ServerProcessImpl(new ServerCommandLineFactory(fs), server, startupLogWatcher);
     process.start();
 
     for (Location backup : distribution.getProfileBackups()) {
+
       server.restoreProfile(backup);
     }
 
@@ -128,13 +129,12 @@ public class Orchestrator extends SingleStartExternalResource {
 
   /**
    * Set a test license that work for all commercial products
+   *
    * @since 3.15
    */
   public void activateLicense() {
-    String license = licenses.getV3();
-    if (!isEmpty(license)) {
-      setLicense(license);
-    }
+    String license = licenses.getLicense(server.getEdition(), server.version());
+    configureLicense(license);
   }
 
   /**
@@ -144,15 +144,25 @@ public class Orchestrator extends SingleStartExternalResource {
    * @since 3.15
    */
   public void clearLicense() {
-    setLicense(null);
+    configureLicense(null);
   }
 
-  private void setLicense(@Nullable String license) {
-    server.newHttpCall("api/license/update_dev")
-      .setMethod(HttpMethod.POST)
-      .setAdminCredentials()
-      .setParam("license", license)
-      .execute();
+  private void configureLicense(@Nullable String license) {
+    if (server.version().isGreaterThanOrEquals(7, 2)) {
+      HttpCall httpCall = server.newHttpCall(license == null ? "api/editions/unset_license" : "api/editions/set_license")
+        .setMethod(HttpMethod.POST)
+        .setAdminCredentials();
+      if (license != null) {
+        httpCall.setParam("license", license);
+      }
+      httpCall.execute();
+    } else {
+      server.newHttpCall("api/license/update_dev")
+        .setMethod(HttpMethod.POST)
+        .setAdminCredentials()
+        .setParam("license", license)
+        .execute();
+    }
   }
 
   /**

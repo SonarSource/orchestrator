@@ -19,10 +19,11 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.test.MockHttpServerInterceptor;
-import com.sonar.orchestrator.util.NetworkUtils;
-import java.net.InetAddress;
-import org.junit.Before;
+import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.version.Version;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,46 +32,99 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicensesTest {
 
-  @Rule
-  public MockHttpServerInterceptor httpServer = new MockHttpServerInterceptor();
+  private static final String TOKEN_VALUE = "the_user_token";
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public MockWebServer github = new MockWebServer();
 
-  private Licenses underTest;
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
-  @Before
-  public void setUp() {
-    underTest = new Licenses("http://localhost:" + httpServer.getPort() + "/");
+  @Test
+  public void download_dev_license_before_7_2() throws Exception {
+    Licenses underTest = newLicenses(true);
+    github.enqueue(new MockResponse().setBody("dev1234"));
+
+    Version version = Version.create("6.7.0.10000");
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
+    verifyRequested("/master/it/dev.txt");
+
+    // kept in cache
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
+    assertThat(github.getRequestCount()).isEqualTo(1);
+
+    // same license for another editions
+    assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("dev1234");
+    assertThat(underTest.getLicense(Edition.DATACENTER, version)).isEqualTo("dev1234");
+    assertThat(github.getRequestCount()).isEqualTo(1);
   }
 
   @Test
-  public void downloadLicenseV3() {
-    httpServer.setMockResponseData("abcd1234");
+  public void download_edition_license_since_7_2() throws Exception {
+    Licenses underTest = newLicenses(true);
+    github.enqueue(new MockResponse().setBody("de1234"));
+    github.enqueue(new MockResponse().setBody("ee1234"));
 
-    Licenses licenses = new Licenses("http://localhost:" + httpServer.getPort() + "/");
-    assertThat(licenses.getV3()).isEqualTo("abcd1234");
+    Version version = Version.create("7.2.0.10000");
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
+    verifyRequested("/master/edition_testing/de.txt");
 
-    // use cache
-    assertThat(licenses.getV3()).isEqualTo("abcd1234");
+    // kept in cache
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
+    assertThat(github.getRequestCount()).isEqualTo(1);
+
+    // request another edition
+    assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("ee1234");
+    verifyRequested("/master/edition_testing/ee.txt");
   }
 
   @Test
-  public void failIfUnknownPluginOrInvalidLicense() {
-    httpServer.setMockResponseStatus(404);
+  public void download_edition_license_and_remove_header_if_present() {
+    Licenses underTest = newLicenses(true);
+    github.enqueue(new MockResponse().setBody("-----\nheader\n----\nabcde\n\r\n"));
 
-    thrown.expect(IllegalStateException.class);
-    underTest.getV3();
+    Version version = Version.create("7.2.0.10000");
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("abcde");
   }
 
   @Test
-  public void failIfConnectionFailure() {
-    int freePort = NetworkUtils.getNextAvailablePort(InetAddress.getLoopbackAddress());
+  public void fail_in_license_not_found() {
+    github.enqueue(new MockResponse().setResponseCode(404));
 
-    thrown.expect(IllegalStateException.class);
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + github.getPort() + "/master/it/dev.txt] returned code [404]");
 
-    Licenses licenses = new Licenses("http://localhost:" + freePort + "/");
-    licenses.getV3();
+    newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
   }
 
+  @Test
+  public void fail_if_connection_failure() throws Exception {
+    github.shutdown();
+
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Can not call http://localhost:" + github.getPort() + "/master/it/dev.txt due to network failure");
+
+    newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
+  }
+
+  @Test
+  public void fail_if_github_token_is_not_defined() {
+    expectedException.expect(RuntimeException.class);
+    expectedException.expectMessage("Please provide your GitHub token with the property github.token or the env variable GITHUB_TOKEN");
+
+    newLicenses(false).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
+  }
+
+  private Licenses newLicenses(boolean withGithubToken) {
+    Configuration configuration = Configuration.builder()
+      .setProperty("github.token", withGithubToken ? TOKEN_VALUE : null)
+      .build();
+    return new Licenses(configuration, "http://localhost:" + github.getPort() + "/");
+  }
+
+  private void verifyRequested(String path) throws Exception {
+    RecordedRequest recordedRequest = github.takeRequest();
+    assertThat(recordedRequest.getHeader("Authorization")).isEqualTo("token " + TOKEN_VALUE);
+    assertThat(recordedRequest.getRequestUrl().encodedPath()).isEqualTo(path);
+  }
 }

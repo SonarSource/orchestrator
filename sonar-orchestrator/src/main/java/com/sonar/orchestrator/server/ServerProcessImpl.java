@@ -42,7 +42,6 @@ import static java.util.Objects.requireNonNull;
 
 public class ServerProcessImpl implements ServerProcess {
 
-  private static final String MIN_SQ_SUPPORTED_VERSION = "6.2";
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerProcessImpl.class);
   private static final long START_RETRY_TIMEOUT_MS = 100L;
   private static final long START_TIMEOUT_MS = 600_000L;
@@ -82,8 +81,8 @@ public class ServerProcessImpl implements ServerProcess {
   @Override
   public void start() {
     checkState(processResultHandler == null, "Server is already started");
-    checkState(server.version().isGreaterThanOrEquals(MIN_SQ_SUPPORTED_VERSION),
-      "Minimum supported version of SonarQube is %s. Got %s.", MIN_SQ_SUPPORTED_VERSION, server.version());
+    checkState(server.version().isGreaterThanOrEquals(6, 2),
+      "Minimum supported version of SonarQube is 6.2. Got %s.", server.version());
 
     LOGGER.info("Start server {} from {}", server.version(), server.getHome().getAbsolutePath());
     CommandLine command = serverCommandLineFactory.create(server);

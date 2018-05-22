@@ -35,6 +35,8 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION;
+import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 /**
@@ -101,7 +103,7 @@ public class ScannerForMSBuildInstaller {
       ZipUtils.unzip(zipFile, scannerDir);
       if (SystemUtils.IS_OS_UNIX &&
         scannerVersion != null
-        && scannerVersion.isGreaterThan(ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_VERSION)) {
+        && scannerVersion.isGreaterThan(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION)) {
         // change permissions on binary files from sonar-scanner included in scanner
         setSonarScannerBinariesAsExecutable(scannerDir);
       }
@@ -155,7 +157,7 @@ public class ScannerForMSBuildInstaller {
       .setArtifactId(artifactId)
       .setVersion(scannerVersion.toString())
       .withPackaging("zip");
-    if (scannerVersion.isGreaterThanOrEquals(ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_VERSION)) {
+    if (scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION)) {
       location.setClassifier(useDotNetCore ? "netcoreapp2.0" : "net46");
     }
     return location.build();
@@ -183,7 +185,7 @@ public class ScannerForMSBuildInstaller {
     if (useOldScript) {
       filename = "MSBuild.SonarQube.Runner.exe";
     } else {
-      if (useDotNetCore || (scannerVersion != null && scannerVersion.isGreaterThanOrEquals(ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_VERSION))) {
+      if (useDotNetCore || (scannerVersion != null && scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION))) {
         if (useDotNetCore) {
           filename = "SonarScanner.MSBuild.dll";
         } else {

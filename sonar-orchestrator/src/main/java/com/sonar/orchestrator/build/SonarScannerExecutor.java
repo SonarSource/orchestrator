@@ -64,7 +64,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
       command.setEnvironmentVariable(env.getKey(), env.getValue());
     }
     if (!isEmpty(build.getTask())) {
-      if (build.runnerVersion().isGreaterThanOrEquals("2.1")) {
+      if (build.runnerVersion().isGreaterThanOrEquals(2, 1)) {
         command.addArgument(build.getTask());
       } else {
         adjustedProperties.put("sonar.task", build.getTask());
@@ -72,7 +72,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
     }
     if (build.isDebugLogs()) {
       command.addArgument("-X");
-    } else if (build.isShowErrors() && build.runnerVersion().isGreaterThanOrEquals("2.1")) {
+    } else if (build.isShowErrors() && build.runnerVersion().isGreaterThanOrEquals(2, 1)) {
       command.addArgument("-e");
     }
 

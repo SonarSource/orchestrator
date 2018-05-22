@@ -202,7 +202,7 @@ public class SonarScanner extends SonarRunner {
 
   @Override
   public boolean isUseOldSonarRunnerScript() {
-    return !scannerVersion().isGreaterThanOrEquals("2.6") || useOldSonarRunnerScript;
+    return !scannerVersion().isGreaterThanOrEquals(2, 6) || useOldSonarRunnerScript;
   }
 
   /**

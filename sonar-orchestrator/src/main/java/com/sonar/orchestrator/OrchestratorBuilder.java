@@ -20,8 +20,11 @@
 package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.io.File;
@@ -57,7 +60,15 @@ public class OrchestratorBuilder {
   public OrchestratorBuilder setZipFile(File zip) {
     checkArgument(zip.exists(), "SonarQube ZIP file does not exist: %s", zip.getAbsolutePath());
     checkArgument(zip.isFile(), "SonarQube ZIP is not a file: %s", zip.getAbsolutePath());
-    this.distribution.setZipFile(zip);
+    return setZipLocation(FileLocation.of(zip));
+  }
+
+  /**
+   * Set the path to SonarQube zip by its location, for instance {@link FileLocation} or {@link MavenLocation}
+   * @since 3.19
+   */
+  public OrchestratorBuilder setZipLocation(Location zip) {
+    this.distribution.setZipLocation(requireNonNull(zip));
     return this;
   }
 
@@ -146,6 +157,18 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  /**
+   * SonarSource commercial plugins must be enabled through a non-community edition.
+   * By default community edition is installed. Method is ignored on SonarQube
+   * versions less than 7.2.
+   *
+   * @since 3.19
+   */
+  public OrchestratorBuilder setEdition(Edition edition) {
+    distribution.setEdition(edition);
+    return this;
+  }
+
   private static void checkNotEmpty(String key) {
     checkArgument(!isEmpty(key), "Empty property key");
   }
@@ -156,8 +179,8 @@ public class OrchestratorBuilder {
   }
 
   /**
-   * Installs a development license that unlocks the SonarSource commercial plugins
-   * built for SonarQube 6.7 LTS.
+   * Installs a development license that unlocks the SonarSource commercial plugins.
+   * Can be called only by SonarSource projects.
    *
    * @since 3.15
    */
@@ -167,7 +190,7 @@ public class OrchestratorBuilder {
   }
 
   public Orchestrator build() {
-    checkState(distribution.getZipFile().isPresent() ^ distribution.getVersion().isPresent(),
+    checkState(distribution.getZipLocation().isPresent() ^ distribution.getVersion().isPresent(),
       "One, and only one, of methods setSonarVersion(String) or setZipFile(File) must be called");
     Configuration.Builder configBuilder = Configuration.builder();
     Configuration finalConfig = configBuilder
