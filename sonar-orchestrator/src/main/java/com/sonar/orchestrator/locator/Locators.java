@@ -44,6 +44,10 @@ public class Locators {
     this.urlLocator = urlLocator;
   }
 
+  public MavenLocator maven() {
+    return mavenLocator;
+  }
+
   public File locate(Location location) {
     File file;
     if (location instanceof FileLocation) {

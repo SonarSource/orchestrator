@@ -52,18 +52,20 @@ public class ServerInstaller {
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
 
-  private final ServerZipFinder zipFinder;
+  private final PackagingResolver packagingResolver;
   private final Configuration configuration;
   private final DatabaseClient databaseClient;
 
-  public ServerInstaller(ServerZipFinder zipFinder, Configuration configuration, DatabaseClient databaseClient) {
-    this.zipFinder = zipFinder;
+  public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, DatabaseClient databaseClient) {
+    this.packagingResolver = packagingResolver;
     this.configuration = configuration;
     this.databaseClient = databaseClient;
   }
 
   public Server install(SonarDistribution distrib) {
-    File homeDir = locateAndUnzip(distrib);
+    Packaging packaging = packagingResolver.resolve(distrib);
+
+    File homeDir = unzip(packaging);
     copyPlugins(distrib, homeDir);
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
@@ -72,15 +74,14 @@ public class ServerInstaller {
     return new Server(configuration.locators(), homeDir, distrib, HttpUrl.parse(url));
   }
 
-  private File locateAndUnzip(SonarDistribution distrib) {
-    File zip = zipFinder.find(distrib);
+  private File unzip(Packaging packaging) {
     File toDir = new File(configuration.fileSystem().workspace(), String.valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {
       throw new IllegalStateException("Fail to delete directory " + toDir, e);
     }
-    ZipUtils.unzip(zip, toDir);
+    ZipUtils.unzip(packaging.getZip(), toDir);
     File[] roots = toDir.listFiles((FileFilter) FileFilterUtils.directoryFileFilter());
     if (roots == null || roots.length != 1) {
       throw new IllegalStateException("ZIP is badly structured. Missing root directory in " + toDir);

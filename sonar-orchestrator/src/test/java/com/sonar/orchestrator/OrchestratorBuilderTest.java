@@ -28,8 +28,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.sonar.orchestrator.container.SonarDistribution.Edition.DATACENTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderTest {
@@ -57,6 +59,21 @@ public class OrchestratorBuilderTest {
       assertThat(pluginVersions.get("python")).isNotEmpty();
       assertThat(pluginVersions.get("java")).isNotEmpty();
       assertThat(pluginVersions.get("php")).startsWith("2.13");
+    } finally {
+      orchestrator.stop();
+    }
+  }
+
+  @Test
+  @Ignore
+  // We need a first deployment to test this feature
+  public void should_download_commercial_editions() {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion("DEV")
+      .setEdition(DATACENTER)
+      .build();
+    try {
+      orchestrator.start();
     } finally {
       orchestrator.stop();
     }

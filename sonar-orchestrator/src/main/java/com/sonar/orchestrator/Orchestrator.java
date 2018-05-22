@@ -34,11 +34,11 @@ import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.server.PackagingResolver;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
 import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
-import com.sonar.orchestrator.server.ServerZipFinder;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
@@ -108,8 +108,8 @@ public class Orchestrator extends SingleStartExternalResource {
     database.start();
 
     FileSystem fs = config.fileSystem();
-    ServerZipFinder zipFinder = new ServerZipFinder(config.locators());
-    ServerInstaller serverInstaller = new ServerInstaller(zipFinder, config, database.getClient());
+    PackagingResolver packagingResolver = new PackagingResolver(config.locators());
+    ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, database.getClient());
     server = serverInstaller.install(distribution);
 
     process = new ServerProcessImpl(new ServerCommandLineFactory(fs), server, startupLogWatcher);

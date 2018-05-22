@@ -21,6 +21,7 @@ package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.container.SonarDistribution.Edition;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
@@ -146,6 +147,18 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  /**
+   * SonarSource commercial plugins must be enabled through a non-community edition.
+   * By default community edition is installed. Method is ignored on SonarQube
+   * versions less than 7.2.
+   *
+   * @since 3.19
+   */
+  public OrchestratorBuilder setEdition(Edition edition) {
+    distribution.setEdition(edition);
+    return this;
+  }
+
   private static void checkNotEmpty(String key) {
     checkArgument(!isEmpty(key), "Empty property key");
   }
@@ -156,8 +169,8 @@ public class OrchestratorBuilder {
   }
 
   /**
-   * Installs a development license that unlocks the SonarSource commercial plugins
-   * built for SonarQube 6.7 LTS.
+   * Installs a development license that unlocks the SonarSource commercial plugins.
+   * Can be called only by SonarSource projects.
    *
    * @since 3.15
    */
