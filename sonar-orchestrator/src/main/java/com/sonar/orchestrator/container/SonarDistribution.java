@@ -32,7 +32,12 @@ import static java.util.Objects.requireNonNull;
 
 public final class SonarDistribution {
 
+  public enum EDITION {
+    OSS, DEVELOPER, ENTERPRISE, DATACENTER
+  }
+
   private String version;
+  private EDITION edition = EDITION.OSS;
   private List<Location> pluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
@@ -116,6 +121,15 @@ public final class SonarDistribution {
   public SonarDistribution activateLicense() {
     activateLicense = true;
     return this;
+  }
+
+  public SonarDistribution setEdition(EDITION edition) {
+    this.edition = edition;
+    return this;
+  }
+
+  public EDITION getEdition() {
+    return edition;
   }
 
   public boolean isActivateLicense() {

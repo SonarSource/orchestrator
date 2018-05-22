@@ -21,6 +21,7 @@ package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.container.SonarDistribution.EDITION;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
@@ -143,6 +144,11 @@ public class OrchestratorBuilder {
   public OrchestratorBuilder setServerProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     distribution.setServerProperty(key, value);
+    return this;
+  }
+
+  public OrchestratorBuilder setEdition(EDITION edition) {
+    distribution.setEdition(edition);
     return this;
   }
 
