@@ -23,6 +23,9 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import java.util.Properties;
 import org.junit.Test;
 
+import static com.sonar.orchestrator.container.SonarDistribution.Edition.DATACENTER;
+import static com.sonar.orchestrator.container.SonarDistribution.Edition.ENTERPRISE;
+import static com.sonar.orchestrator.container.SonarDistribution.Edition.COMMUNITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SonarDistributionTest {
@@ -73,5 +76,23 @@ public class SonarDistributionTest {
 
     distribution.removeServerProperty("foo");
     assertThat(distribution.getServerProperties().get("foo")).isNull();
+  }
+
+  @Test
+  public void shouldSetEdition() {
+    SonarDistribution distribution = new SonarDistribution();
+    assertThat(distribution.getEdition()).isEqualTo(COMMUNITY); // Default Edition
+
+    distribution.setEdition(ENTERPRISE);
+    assertThat(distribution.getEdition()).isEqualTo(ENTERPRISE);
+
+    distribution.setEdition(DATACENTER);
+    assertThat(distribution.getEdition()).isEqualTo(DATACENTER);
+
+    distribution.setEdition(ENTERPRISE);
+    assertThat(distribution.getEdition()).isEqualTo(ENTERPRISE);
+
+    distribution.setEdition(COMMUNITY);
+    assertThat(distribution.getEdition()).isEqualTo(COMMUNITY);
   }
 }
