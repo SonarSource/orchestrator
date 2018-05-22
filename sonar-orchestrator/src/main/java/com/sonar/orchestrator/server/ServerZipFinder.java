@@ -45,9 +45,33 @@ public class ServerZipFinder {
       return localZip.get();
     }
     String version = distrib.getVersion().orElseThrow(() -> new IllegalStateException("Missing SonarQube version"));
+
+    String groupId;
+    String artifactId;
+    switch (distrib.getEdition()) {
+      case COMMUNITY:
+        artifactId = "sonar-application";
+        groupId = "org.sonarsource.sonarqube";
+        break;
+      case DEVELOPER:
+        artifactId = "sonarqube-developer";
+        groupId = "com.sonarsource.sonarqube";
+        break;
+      case ENTERPRISE:
+        artifactId = "sonarqube-enterprise";
+        groupId = "com.sonarsource.sonarqube";
+        break;
+      case DATACENTER:
+        artifactId = "sonarqube-datacenter";
+        groupId = "com.sonarsource.sonarqube";
+        break;
+      default:
+        throw new IllegalStateException("Unknown SonarQube edition : " + distrib.getEdition());
+    }
+
     File zip = locators.locate(MavenLocation.builder()
-      .setGroupId("org.sonarsource.sonarqube")
-      .setArtifactId("sonar-application")
+      .setGroupId(groupId)
+      .setArtifactId(artifactId)
       .setVersion(version)
       .withPackaging("zip")
       .build());

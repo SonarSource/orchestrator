@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.container.SonarDistribution.EDITION;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -33,6 +34,7 @@ import org.mockito.ArgumentCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -59,20 +61,40 @@ public class ServerZipFinderTest {
 
   @Test
   public void use_maven_zip() throws Exception {
-    SonarDistribution distribution = new SonarDistribution().setVersion(A_VERSION);
     File zip = temp.newFile();
-    when(locators.locate(any())).thenReturn(zip);
 
-    File result = underTest.find(distribution);
+    for (EDITION edition : EDITION.values()) {
+      reset(locators);
+      when(locators.locate(any())).thenReturn(zip);
+      SonarDistribution distribution = new SonarDistribution().setVersion(A_VERSION).setEdition(edition);
+      File result = underTest.find(distribution);
 
-    assertThat(result.getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
-    ArgumentCaptor<Location> captor = ArgumentCaptor.forClass(Location.class);
-    verify(locators).locate(captor.capture());
-    MavenLocation calledLocation = (MavenLocation) captor.getValue();
-    assertThat(calledLocation.getGroupId()).isEqualTo("org.sonarsource.sonarqube");
-    assertThat(calledLocation.getArtifactId()).isEqualTo("sonar-application");
-    assertThat(calledLocation.getVersion()).isEqualTo(A_VERSION);
-    assertThat(calledLocation.getPackaging()).isEqualTo("zip");
+      assertThat(result.getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
+      ArgumentCaptor<Location> captor = ArgumentCaptor.forClass(Location.class);
+      verify(locators).locate(captor.capture());
+      MavenLocation calledLocation = (MavenLocation) captor.getValue();
+      assertThat(calledLocation.getVersion()).isEqualTo(A_VERSION);
+      assertThat(calledLocation.getPackaging()).isEqualTo("zip");
+      switch (edition) {
+        case COMMUNITY:
+          assertThat(calledLocation.getGroupId()).isEqualTo("org.sonarsource.sonarqube");
+          assertThat(calledLocation.getArtifactId()).isEqualTo("sonar-application");
+          break;
+        case DEVELOPER:
+          assertThat(calledLocation.getGroupId()).isEqualTo("com.sonarsource.sonarqube");
+          assertThat(calledLocation.getArtifactId()).isEqualTo("sonarqube-developer");
+          break;
+        case ENTERPRISE:
+          assertThat(calledLocation.getGroupId()).isEqualTo("com.sonarsource.sonarqube");
+          assertThat(calledLocation.getArtifactId()).isEqualTo("sonarqube-enterprise");
+          break;
+        case DATACENTER:
+          assertThat(calledLocation.getGroupId()).isEqualTo("com.sonarsource.sonarqube");
+          assertThat(calledLocation.getArtifactId()).isEqualTo("sonarqube-datacenter");
+          break;
+
+      }
+    }
   }
 
   @Test
