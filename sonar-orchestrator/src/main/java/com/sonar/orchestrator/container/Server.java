@@ -22,7 +22,6 @@ package com.sonar.orchestrator.container;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpMethod;
-import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
@@ -32,7 +31,6 @@ import java.io.InputStream;
 import java.util.Map;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.sonar.wsclient.Host;
@@ -40,9 +38,7 @@ import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.SonarClient;
 import org.sonar.wsclient.connectors.HttpClient4Connector;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang.StringUtils.substringAfter;
 
 public class Server {
   public static final String ADMIN_LOGIN = "admin";
@@ -50,22 +46,28 @@ public class Server {
 
   private final Locators locators;
   private final File home;
-  private final SonarDistribution distribution;
+  private final Edition edition;
+  private final Version version;
   private HttpUrl url;
   private Sonar wsClient;
   private Sonar adminWsClient;
   private SonarClient sonarClient;
   private SonarClient adminSonarClient;
 
-  public Server(Locators locators, File home, SonarDistribution distribution, HttpUrl url) {
+  public Server(Locators locators, File home, Edition edition, Version version, HttpUrl url) {
     this.locators = locators;
     this.home = home;
-    this.distribution = distribution;
+    this.edition = edition;
+    this.version = version;
     this.url = url;
   }
 
   public File getHome() {
     return home;
+  }
+
+  public Edition getEdition() {
+    return edition;
   }
 
   /**
@@ -76,20 +78,11 @@ public class Server {
     return StringUtils.stripEnd(url.toString(), "/");
   }
 
-  public SonarDistribution getDistribution() {
-    return distribution;
-  }
-
   /**
    * Effective version of SonarQube, for example "6.3.0.1234" but not alias like "DEV".
-   * This method does not need the server to be up (Orchestrator to be started). It
-   * introspects the installation file system.
    */
   public Version version() {
-    File libsDir = new File(home, "lib");
-    checkState(libsDir.exists(), "Installation incomplete, missing directory %s", libsDir);
-    File appJar = FileLocation.byWildcardFilename(libsDir, "sonar-application-*.jar").getFile();
-    return Version.create(substringAfter(FilenameUtils.getBaseName(appJar.getName()), "sonar-application-"));
+    return version;
   }
 
   /**

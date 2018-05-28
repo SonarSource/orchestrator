@@ -83,7 +83,7 @@ public class ServerInstaller {
     String host = properties.getProperty(WEB_HOST_PROPERTY);
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
     String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(configuration.locators(), homeDir, distrib, HttpUrl.parse(url));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url));
   }
 
   private File unzip(Packaging packaging) {

@@ -116,6 +116,7 @@ public class Orchestrator extends SingleStartExternalResource {
     process.start();
 
     for (Location backup : distribution.getProfileBackups()) {
+
       server.restoreProfile(backup);
     }
 

@@ -19,7 +19,9 @@
  */
 package com.sonar.orchestrator.build;
 
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
+import com.sonar.orchestrator.version.Version;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Credentials;
 import okhttp3.mockwebserver.MockResponse;
@@ -45,7 +47,7 @@ public class SynchronousAnalyzerTest {
     webServer.enqueue(new MockResponse().setBody("false"));
     webServer.enqueue(new MockResponse().setBody("true"));
 
-    Server server = new Server(null, null, null, webServer.url(""));
+    Server server = new Server(null, null, Edition.COMMUNITY, Version.create("7.3.0.1000"), webServer.url(""));
     new SynchronousAnalyzer(server, 1L, 2).waitForDone();
 
     // fast enough to finish before junit timeout
