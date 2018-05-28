@@ -21,7 +21,6 @@ package com.sonar.orchestrator.config;
 
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
-import javax.annotation.CheckForNull;
 import okhttp3.HttpUrl;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
@@ -32,7 +31,7 @@ import static java.lang.String.format;
 public class Licenses {
 
   private final String rootUrl;
-  private String cacheV3;
+  private String devLicense;
 
   Licenses(String rootUrl) {
     checkArgument(!isEmpty(rootUrl), "Blank root URL");
@@ -44,30 +43,24 @@ public class Licenses {
     this("https://raw.githubusercontent.com/SonarSource/licenses/");
   }
 
+  public String getLicense() {
+    if (devLicense == null) {
+      devLicense = download(rootUrl + "master/it/dev.txt");
+    }
+    return devLicense;
+  }
+
   private static String findGithubToken() {
     return Configuration.createEnv().getString("github.token", System.getenv("GITHUB_TOKEN"));
   }
 
-  private String downloadV3FromGithub() {
-    String url = rootUrl + "master/it/dev.txt";
-    return downloadFromGitHub("v3", url);
-  }
-
-  private static String downloadFromGitHub(String licenseKey, String url) {
+  private static String download(String url) {
     HttpResponse response = HttpClientFactory.create().newCall(HttpUrl.parse(url))
       .setHeader("Authorization", "token " + findGithubToken())
       .executeUnsafely();
     if (response.isSuccessful()) {
       return defaultIfNull(response.getBodyAsString(), "");
     }
-    throw new IllegalStateException(format("Fail to download development license [%s]. URL [%s] returned code [%d]", licenseKey, url, response.getCode()));
-  }
-
-  @CheckForNull
-  public String getV3() {
-    if (cacheV3 == null) {
-      cacheV3 = downloadV3FromGithub();
-    }
-    return cacheV3;
+    throw new IllegalStateException(format("Fail to download development license. URL [%s] returned code [%d]", url, response.getCode()));
   }
 }

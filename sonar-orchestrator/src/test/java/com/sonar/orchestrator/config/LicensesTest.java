@@ -45,14 +45,14 @@ public class LicensesTest {
   }
 
   @Test
-  public void downloadLicenseV3() {
+  public void download_dev_license() {
     httpServer.setMockResponseData("abcd1234");
 
     Licenses licenses = new Licenses("http://localhost:" + httpServer.getPort() + "/");
-    assertThat(licenses.getV3()).isEqualTo("abcd1234");
+    assertThat(licenses.getLicense()).isEqualTo("abcd1234");
 
     // use cache
-    assertThat(licenses.getV3()).isEqualTo("abcd1234");
+    assertThat(licenses.getLicense()).isEqualTo("abcd1234");
   }
 
   @Test
@@ -60,7 +60,7 @@ public class LicensesTest {
     httpServer.setMockResponseStatus(404);
 
     thrown.expect(IllegalStateException.class);
-    underTest.getV3();
+    underTest.getLicense();
   }
 
   @Test
@@ -70,7 +70,7 @@ public class LicensesTest {
     thrown.expect(IllegalStateException.class);
 
     Licenses licenses = new Licenses("http://localhost:" + freePort + "/");
-    licenses.getV3();
+    licenses.getLicense();
   }
 
 }
