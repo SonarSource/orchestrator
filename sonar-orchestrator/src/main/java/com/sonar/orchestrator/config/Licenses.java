@@ -29,9 +29,12 @@ import okhttp3.HttpUrl;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 public class Licenses {
 
+  private static final String TOKEN_PROPERTY = "github.token";
+  private static final String TOKEN_ENV_VARIABLE = "GITHUB_TOKEN";
   private final Configuration configuration;
   private final String baseUrl;
   private final Map<Edition, String> licensesPerEdition = new EnumMap<>(Edition.class);
@@ -84,6 +87,8 @@ public class Licenses {
   }
 
   private String loadGithubToken() {
-    return configuration.getString("github.token", System.getenv("GITHUB_TOKEN"));
+    String token = configuration.getString(TOKEN_PROPERTY, configuration.getString(TOKEN_ENV_VARIABLE));
+    requireNonNull(token, () -> format("Please provide your GitHub token with the property %s or the env variable %s", TOKEN_PROPERTY, TOKEN_ENV_VARIABLE));
+    return token;
   }
 }
