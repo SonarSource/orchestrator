@@ -35,7 +35,7 @@ public class LicensesTest {
   private static final String TOKEN_VALUE = "the_user_token";
 
   @Rule
-  public MockWebServer webServer = new MockWebServer();
+  public MockWebServer github = new MockWebServer();
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -43,7 +43,7 @@ public class LicensesTest {
   @Test
   public void download_dev_license_before_7_2() throws Exception {
     Licenses underTest = newLicenses(true);
-    webServer.enqueue(new MockResponse().setBody("dev1234"));
+    github.enqueue(new MockResponse().setBody("dev1234"));
 
     Version version = Version.create("6.7.0.10000");
     assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
@@ -51,19 +51,19 @@ public class LicensesTest {
 
     // kept in cache
     assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
-    assertThat(webServer.getRequestCount()).isEqualTo(1);
+    assertThat(github.getRequestCount()).isEqualTo(1);
 
     // same license for another editions
     assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("dev1234");
     assertThat(underTest.getLicense(Edition.DATACENTER, version)).isEqualTo("dev1234");
-    assertThat(webServer.getRequestCount()).isEqualTo(1);
+    assertThat(github.getRequestCount()).isEqualTo(1);
   }
 
   @Test
   public void download_edition_license_since_7_2() throws Exception {
     Licenses underTest = newLicenses(true);
-    webServer.enqueue(new MockResponse().setBody("de1234"));
-    webServer.enqueue(new MockResponse().setBody("ee1234"));
+    github.enqueue(new MockResponse().setBody("de1234"));
+    github.enqueue(new MockResponse().setBody("ee1234"));
 
     Version version = Version.create("7.2.0.10000");
     assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
@@ -71,7 +71,7 @@ public class LicensesTest {
 
     // kept in cache
     assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
-    assertThat(webServer.getRequestCount()).isEqualTo(1);
+    assertThat(github.getRequestCount()).isEqualTo(1);
 
     // request another edition
     assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("ee1234");
@@ -80,20 +80,20 @@ public class LicensesTest {
 
   @Test
   public void fail_in_license_not_found() {
-    webServer.enqueue(new MockResponse().setResponseCode(404));
+    github.enqueue(new MockResponse().setResponseCode(404));
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + webServer.getPort() + "/master/it/dev.txt] returned code [404]");
+    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + github.getPort() + "/master/it/dev.txt] returned code [404]");
 
     newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
   }
 
   @Test
   public void fail_if_connection_failure() throws Exception {
-    webServer.shutdown();
+    github.shutdown();
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Can not call http://localhost:" + webServer.getPort() + "/master/it/dev.txt due to network failure");
+    expectedException.expectMessage("Can not call http://localhost:" + github.getPort() + "/master/it/dev.txt due to network failure");
 
     newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
   }
@@ -110,11 +110,11 @@ public class LicensesTest {
     Configuration configuration = Configuration.builder()
       .setProperty("github.token", withGithubToken ? TOKEN_VALUE : null)
       .build();
-    return new Licenses(configuration, "http://localhost:" + webServer.getPort() + "/");
+    return new Licenses(configuration, "http://localhost:" + github.getPort() + "/");
   }
 
   private void verifyRequested(String path) throws Exception {
-    RecordedRequest recordedRequest = webServer.takeRequest();
+    RecordedRequest recordedRequest = github.takeRequest();
     assertThat(recordedRequest.getHeader("Authorization")).isEqualTo("token " + TOKEN_VALUE);
     assertThat(recordedRequest.getRequestUrl().encodedPath()).isEqualTo(path);
   }
