@@ -73,7 +73,7 @@ public class Orchestrator extends SingleStartExternalResource {
   Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
     this.config = requireNonNull(config);
     this.distribution = requireNonNull(distribution);
-    this.licenses = new Licenses();
+    this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
   }
 
@@ -131,8 +131,8 @@ public class Orchestrator extends SingleStartExternalResource {
    * @since 3.15
    */
   public void activateLicense() {
-    String license = licenses.getLicense();
-    setLicense(license);
+    String license = licenses.getLicense(server.getEdition(), server.version());
+    updateLicense(license);
   }
 
   /**
@@ -142,10 +142,10 @@ public class Orchestrator extends SingleStartExternalResource {
    * @since 3.15
    */
   public void clearLicense() {
-    setLicense(null);
+    updateLicense(null);
   }
 
-  private void setLicense(@Nullable String license) {
+  private void updateLicense(@Nullable String license) {
     server.newHttpCall("api/license/update_dev")
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()

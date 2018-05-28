@@ -19,48 +19,71 @@
  */
 package com.sonar.orchestrator.config;
 
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
+import com.sonar.orchestrator.version.Version;
+import java.util.EnumMap;
+import java.util.Map;
 import okhttp3.HttpUrl;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
 
 public class Licenses {
 
-  private final String rootUrl;
-  private String devLicense;
+  private final Configuration configuration;
+  private final String baseUrl;
+  private final Map<Edition, String> licensesPerEdition = new EnumMap<>(Edition.class);
+  private String devLicense = null;
 
-  Licenses(String rootUrl) {
-    checkArgument(!isEmpty(rootUrl), "Blank root URL");
-
-    this.rootUrl = rootUrl;
+  Licenses(Configuration configuration, String baseUrl) {
+    this.configuration = configuration;
+    this.baseUrl = baseUrl;
   }
 
-  public Licenses() {
-    this("https://raw.githubusercontent.com/SonarSource/licenses/");
+  public Licenses(Configuration configuration) {
+    this(configuration, "https://raw.githubusercontent.com/SonarSource/licenses/");
   }
 
-  public String getLicense() {
+  public String getLicense(Edition edition, Version version) {
+    if (version.isGreaterThanOrEquals("7.2")) {
+      return licensesPerEdition.computeIfAbsent(edition, e -> {
+        String filename;
+        switch (e) {
+          case DEVELOPER:
+            filename = "de.txt";
+            break;
+          case ENTERPRISE:
+            filename = "ee.txt";
+            break;
+          case DATACENTER:
+            filename = "dce.txt";
+            break;
+          default:
+            throw new IllegalStateException("License does not exist for edition " + e);
+        }
+        return download(baseUrl + "master/edition_testing/" + filename);
+      });
+    }
+
     if (devLicense == null) {
-      devLicense = download(rootUrl + "master/it/dev.txt");
+      devLicense = download(baseUrl + "master/it/dev.txt");
     }
     return devLicense;
   }
 
-  private static String findGithubToken() {
-    return Configuration.createEnv().getString("github.token", System.getenv("GITHUB_TOKEN"));
-  }
-
-  private static String download(String url) {
+  private String download(String url) {
     HttpResponse response = HttpClientFactory.create().newCall(HttpUrl.parse(url))
-      .setHeader("Authorization", "token " + findGithubToken())
+      .setHeader("Authorization", "token " + loadGithubToken())
       .executeUnsafely();
     if (response.isSuccessful()) {
       return defaultIfNull(response.getBodyAsString(), "");
     }
-    throw new IllegalStateException(format("Fail to download development license. URL [%s] returned code [%d]", url, response.getCode()));
+    throw new IllegalStateException(format("Fail to download license. URL [%s] returned code [%d]", url, response.getCode()));
+  }
+
+  private String loadGithubToken() {
+    return configuration.getString("github.token", System.getenv("GITHUB_TOKEN"));
   }
 }
