@@ -128,11 +128,12 @@ public class Orchestrator extends SingleStartExternalResource {
 
   /**
    * Set a test license that work for all commercial products
+   *
    * @since 3.15
    */
   public void activateLicense() {
     String license = licenses.getLicense(server.getEdition(), server.version());
-    updateLicense(license);
+    configureLicense(license);
   }
 
   /**
@@ -142,11 +143,12 @@ public class Orchestrator extends SingleStartExternalResource {
    * @since 3.15
    */
   public void clearLicense() {
-    updateLicense(null);
+    configureLicense(null);
   }
 
-  private void updateLicense(@Nullable String license) {
-    server.newHttpCall("api/license/update_dev")
+  private void configureLicense(@Nullable String license) {
+    String path = server.version().isGreaterThanOrEquals("7.2") ? "api/editions/apply_license" : "api/license/update_dev";
+    server.newHttpCall(path)
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
       .setParam("license", license)
