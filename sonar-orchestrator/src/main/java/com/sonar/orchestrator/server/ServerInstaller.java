@@ -20,10 +20,13 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -56,11 +59,13 @@ public class ServerInstaller {
 
   private final PackagingResolver packagingResolver;
   private final Configuration configuration;
+  private final Locators locators;
   private final DatabaseClient databaseClient;
 
-  public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, DatabaseClient databaseClient) {
+  public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, Locators locators, DatabaseClient databaseClient) {
     this.packagingResolver = packagingResolver;
     this.configuration = configuration;
+    this.locators = locators;
     this.databaseClient = databaseClient;
   }
 
@@ -71,7 +76,7 @@ public class ServerInstaller {
     if (distrib.removeDistributedPlugins()) {
       removeBundledPlugins(homeDir);
     }
-    copyPlugins(distrib.getPluginLocations(), homeDir);
+    copyPlugins(packaging, distrib.getPluginLocations(), homeDir);
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
@@ -120,7 +125,7 @@ public class ServerInstaller {
     }
   }
 
-  private void copyPlugins(List<Location> plugins, File homeDir) {
+  private void copyPlugins(Packaging packaging, List<Location> plugins, File homeDir) {
     File downloadDir = new File(homeDir, "extensions/downloads");
     try {
       FileUtils.forceMkdir(downloadDir);
@@ -131,10 +136,20 @@ public class ServerInstaller {
     for (Location plugin : plugins) {
       installPluginIntoDir(plugin, downloadDir);
     }
+
+    if (packaging.getEdition() != Edition.COMMUNITY && !packaging.getVersion().isGreaterThanOrEquals("7.2")) {
+      boolean hasLicensePlugin = plugins.stream()
+        .filter(p -> p instanceof MavenLocation)
+        .map(p -> (MavenLocation)p)
+        .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId().equals("sonar-dev-license-plugin"));
+      if (!hasLicensePlugin) {
+        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", "LATEST_RELEASE[3.3]"), downloadDir);
+      }
+    }
   }
 
   private void installPluginIntoDir(Location plugin, File downloadDir) {
-    File pluginFile = configuration.locators().copyToDirectory(plugin, downloadDir);
+    File pluginFile = locators.copyToDirectory(plugin, downloadDir);
     if (pluginFile == null || !pluginFile.exists()) {
       throw new IllegalStateException("Can not find the plugin " + plugin);
     }

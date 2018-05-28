@@ -25,12 +25,15 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Locators;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -38,15 +41,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ServerInstallerTest {
 
-  private static final File ZIP_4_5_6 = FileUtils.toFile(ServerInstallerTest.class.getResource("ServerInstallerTest/sonarqube-4.5.6-lite.zip"));
+  private static final File SQ_ZIP = FileUtils.toFile(ServerInstallerTest.class.getResource("ServerInstallerTest/sonarqube-4.5.6-lite.zip"));
   private static final String VERSION_4_5_6 = "4.5.6";
 
   @Rule
@@ -55,6 +61,7 @@ public class ServerInstallerTest {
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
+  private Locators locators = mock(Locators.class, Mockito.RETURNS_DEEP_STUBS);
   private PackagingResolver packagingResolver = mock(PackagingResolver.class);
   private DatabaseClient dbClient = mock(DatabaseClient.class);
   private File installsDir;
@@ -73,7 +80,7 @@ public class ServerInstallerTest {
 
   @Test
   public void test_install() throws Exception {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
 
     Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
     assertThat(server.getDistribution().getVersion().get()).isEqualTo(VERSION_4_5_6);
@@ -85,7 +92,7 @@ public class ServerInstallerTest {
 
   @Test
   public void use_random_web_port_on_loopback_address_if_not_defined() throws Exception {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
 
     Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
 
@@ -99,7 +106,7 @@ public class ServerInstallerTest {
   // ORCH-422
   @Test
   public void show_0_0_0_0_as_localhost() throws Exception {
-    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
 
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     distribution
@@ -112,7 +119,7 @@ public class ServerInstallerTest {
 
   @Test
   public void web_server_is_configured_through_sonar_properties() throws Exception {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     distribution
       .setServerProperty("sonar.web.port", "9999")
@@ -126,7 +133,7 @@ public class ServerInstallerTest {
 
   @Test
   public void web_port_can_be_set_through_special_property_in_orchestrator_properties_file() throws Exception {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     Configuration.Builder configBuilder = Configuration.builder()
       .setProperty("orchestrator.container.port", "9999");
@@ -140,7 +147,7 @@ public class ServerInstallerTest {
 
   @Test
   public void special_orchestrator_property_for_web_port_is_not_used_if_port_defined_explicitly() throws Exception {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6)
       .setServerProperty("sonar.web.port", "10000");
 
@@ -154,7 +161,7 @@ public class ServerInstallerTest {
 
   @Test
   public void installation_directories_do_not_overlap() throws Exception {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
 
     Server server1 = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6).setServerProperty("test.id", "1"));
     Server server2 = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6).setServerProperty("test.id", "2"));
@@ -167,7 +174,7 @@ public class ServerInstallerTest {
 
   @Test
   public void copy_jdbc_driver_if_defined() {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     when(dbClient.getDriverFile()).thenReturn(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-oracle-driver.jar")));
     when(dbClient.getDialect()).thenReturn("oracle");
 
@@ -180,7 +187,7 @@ public class ServerInstallerTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Fail to copy JDBC driver");
 
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     File invalidDriver = temp.newFile();
     invalidDriver.delete();
     when(dbClient.getDriverFile()).thenReturn(invalidDriver);
@@ -190,14 +197,28 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void copy_plugins() {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
-    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
-    distrib.addPluginLocation(FileLocation.of(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-plugin.jar"))));
+  public void copy_plugins() throws IOException {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
+    distribution.addPluginLocation(MavenLocation.of("fake", "sonar-foo-plugin", "1.0"));
+    distribution.addPluginLocation(MavenLocation.of("fake", "sonar-bar-plugin", "1.0"));
+    File jar1 = temp.newFile();
+    File jar2 = temp.newFile();
+    prepareCopyOfPlugin("sonar-foo-plugin", jar1);
+    prepareCopyOfPlugin("sonar-bar-plugin", jar2);
 
-    Server server = newInstaller().install(distrib);
+    Server server = newInstaller().install(distribution);
 
-    assertThat(new File(server.getHome(), "extensions/downloads/fake-plugin.jar")).exists().isFile();
+    Collection<File> installedFiles = FileUtils.listFiles(new File(server.getHome(), "extensions/downloads"), null, false);
+    assertThat(installedFiles).extracting(File::getName).containsExactlyInAnyOrder(jar1.getName(), jar2.getName());
+  }
+
+  private void prepareCopyOfPlugin(String artifactId, File pluginJar) {
+    doAnswer(invocationOnMock -> {
+      File toDir = invocationOnMock.getArgument(1);
+      FileUtils.copyFileToDirectory(pluginJar, toDir);
+      return new File(toDir, pluginJar.getName());
+    }).when(locators).copyToDirectory(argThat(l -> ((MavenLocation) l).getArtifactId().equals(artifactId)), any());
   }
 
   @Test
@@ -205,7 +226,7 @@ public class ServerInstallerTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Can not find the plugin");
 
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
     File invalidPlugin = temp.newFile("plugin.jar");
     invalidPlugin.delete();
@@ -216,7 +237,7 @@ public class ServerInstallerTest {
 
   @Test
   public void remove_bundled_plugins_by_default() {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
 
     Server server = newInstaller().install(distrib);
@@ -226,12 +247,37 @@ public class ServerInstallerTest {
 
   @Test
   public void do_not_remove_bundled_plugins() {
-    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6).setRemoveDistributedPlugins(false);
 
     Server server = newInstaller().install(distrib);
 
     assertThat(bundledPlugin(server)).isFile().exists();
+  }
+
+  @Test
+  public void install_license_plugin_on_commercial_editions_before_7_2() throws Exception {
+    File licenseJar = temp.newFile("sonar-dev-license-plugin-3.3.0.10000.jar");
+
+    prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_4_5_6), SQ_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
+    prepareCopyOfPlugin("sonar-dev-license-plugin", licenseJar);
+
+    Server server = newInstaller().install(distribution);
+
+    assertThat(new File(server.getHome(), "extensions/downloads/" + licenseJar.getName())).exists().isFile();
+  }
+
+  @Test
+  public void do_not_install_license_plugin_on_commercial_editions_after_7_2() {
+    Version version = Version.create("7.2.0.10000");
+    prepareResolutionOfPackaging(Edition.ENTERPRISE, version, SQ_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setVersion(version.toString());
+
+    Server server = newInstaller().install(distribution);
+
+    File downloadsDir = new File(server.getHome(), "extensions/downloads");
+    assertThat(downloadsDir.listFiles()).isEmpty();
   }
 
   private void prepareResolutionOfPackaging(Edition edition, Version version, File zip) {
@@ -260,6 +306,6 @@ public class ServerInstallerTest {
       .setProperty("orchestrator.workspaceDir", workspaceDir.getAbsolutePath())
       .setProperty("maven.localRepository", mavenLocalDir.getAbsolutePath())
       .build();
-    return new ServerInstaller(packagingResolver, config, dbClient);
+    return new ServerInstaller(packagingResolver, config, locators, dbClient);
   }
 }

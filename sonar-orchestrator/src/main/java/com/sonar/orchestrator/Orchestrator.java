@@ -109,7 +109,7 @@ public class Orchestrator extends SingleStartExternalResource {
 
     FileSystem fs = config.fileSystem();
     PackagingResolver packagingResolver = new PackagingResolver(config.locators());
-    ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, database.getClient());
+    ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
     server = serverInstaller.install(distribution);
 
     process = new ServerProcessImpl(new ServerCommandLineFactory(fs), server, startupLogWatcher);
