@@ -17,34 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.server;
+package com.sonar.orchestrator.container;
 
-import com.sonar.orchestrator.container.Edition;
-import com.sonar.orchestrator.version.Version;
-import java.io.File;
-import javax.annotation.concurrent.Immutable;
-
-@Immutable
-public class Packaging {
-  private final Edition edition;
-  private final Version version;
-  private final File zip;
-
-  public Packaging(Edition edition, Version version, File zip) {
-    this.edition = edition;
-    this.version = version;
-    this.zip = zip;
-  }
-
-  public Edition getEdition() {
-    return edition;
-  }
-
-  public Version getVersion() {
-    return version;
-  }
-
-  public File getZip() {
-    return zip;
-  }
+public enum Edition {
+  COMMUNITY, DEVELOPER, ENTERPRISE, DATACENTER
 }

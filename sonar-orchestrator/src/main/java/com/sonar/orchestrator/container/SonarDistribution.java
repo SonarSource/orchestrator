@@ -32,10 +32,6 @@ import static java.util.Objects.requireNonNull;
 
 public final class SonarDistribution {
 
-  public enum Edition {
-    COMMUNITY, DEVELOPER, ENTERPRISE, DATACENTER
-  }
-
   private String version;
   private Edition edition = Edition.COMMUNITY;
   private List<Location> pluginLocations = new ArrayList<>();

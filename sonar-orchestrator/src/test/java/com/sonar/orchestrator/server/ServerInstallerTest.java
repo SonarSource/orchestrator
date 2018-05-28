@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
@@ -72,7 +73,7 @@ public class ServerInstallerTest {
 
   @Test
   public void test_install() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
 
     Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
     assertThat(server.getDistribution().getVersion().get()).isEqualTo(VERSION_4_5_6);
@@ -84,7 +85,7 @@ public class ServerInstallerTest {
 
   @Test
   public void use_random_web_port_on_loopback_address_if_not_defined() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
 
     Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
 
@@ -111,7 +112,7 @@ public class ServerInstallerTest {
 
   @Test
   public void web_server_is_configured_through_sonar_properties() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     distribution
       .setServerProperty("sonar.web.port", "9999")
@@ -125,7 +126,7 @@ public class ServerInstallerTest {
 
   @Test
   public void web_port_can_be_set_through_special_property_in_orchestrator_properties_file() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     Configuration.Builder configBuilder = Configuration.builder()
       .setProperty("orchestrator.container.port", "9999");
@@ -139,7 +140,7 @@ public class ServerInstallerTest {
 
   @Test
   public void special_orchestrator_property_for_web_port_is_not_used_if_port_defined_explicitly() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6)
       .setServerProperty("sonar.web.port", "10000");
 
@@ -153,7 +154,7 @@ public class ServerInstallerTest {
 
   @Test
   public void installation_directories_do_not_overlap() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
 
     Server server1 = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6).setServerProperty("test.id", "1"));
     Server server2 = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6).setServerProperty("test.id", "2"));
@@ -165,8 +166,8 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void copy_jdbc_driver_if_defined() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+  public void copy_jdbc_driver_if_defined() {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     when(dbClient.getDriverFile()).thenReturn(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-oracle-driver.jar")));
     when(dbClient.getDialect()).thenReturn("oracle");
 
@@ -179,7 +180,7 @@ public class ServerInstallerTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Fail to copy JDBC driver");
 
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     File invalidDriver = temp.newFile();
     invalidDriver.delete();
     when(dbClient.getDriverFile()).thenReturn(invalidDriver);
@@ -189,8 +190,8 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void copy_plugins() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+  public void copy_plugins() {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
     distrib.addPluginLocation(FileLocation.of(FileUtils.toFile(getClass().getResource("ServerInstallerTest/fake-plugin.jar"))));
 
@@ -204,7 +205,7 @@ public class ServerInstallerTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Can not find the plugin");
 
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
     File invalidPlugin = temp.newFile("plugin.jar");
     invalidPlugin.delete();
@@ -214,8 +215,8 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void remove_bundled_plugins_by_default() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+  public void remove_bundled_plugins_by_default() {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6);
 
     Server server = newInstaller().install(distrib);
@@ -224,8 +225,8 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void do_not_remove_bundled_plugins() throws Exception {
-    when(packagingResolver.resolve(any())).thenReturn(new Packaging(SonarDistribution.Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6));
+  public void do_not_remove_bundled_plugins() {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), ZIP_4_5_6);
     SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6).setRemoveDistributedPlugins(false);
 
     Server server = newInstaller().install(distrib);
@@ -233,10 +234,13 @@ public class ServerInstallerTest {
     assertThat(bundledPlugin(server)).isFile().exists();
   }
 
+  private void prepareResolutionOfPackaging(Edition edition, Version version, File zip) {
+    when(packagingResolver.resolve(any())).thenReturn(new Packaging(edition, version, zip));
+  }
+
   private File bundledPlugin(Server server) {
     return new File(server.getHome(), "lib/bundled-plugins/sonar-java-plugin-2.0.jar");
   }
-
 
   private static Properties openPropertiesFile(Server server) throws IOException {
     try (InputStream input = FileUtils.openInputStream(new File(server.getHome(), "conf/sonar.properties"))) {

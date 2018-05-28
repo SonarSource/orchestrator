@@ -31,7 +31,7 @@ import java.util.Map;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.sonar.orchestrator.container.SonarDistribution.Edition.DATACENTER;
+import static com.sonar.orchestrator.container.Edition.DATACENTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderTest {
