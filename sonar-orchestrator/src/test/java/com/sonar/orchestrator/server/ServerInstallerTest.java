@@ -83,7 +83,7 @@ public class ServerInstallerTest {
     prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
 
     Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
-    assertThat(server.getDistribution().getVersion().get()).isEqualTo(VERSION_4_5_6);
+    assertThat(server.version()).isEqualTo(Version.create(VERSION_4_5_6));
     // installed in a unique location. Home directory is the name defined in zip structure
     assertThat(server.getHome().getParentFile().getParentFile()).isEqualTo(workspaceDir);
     Properties props = openPropertiesFile(server);

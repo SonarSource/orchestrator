@@ -33,16 +33,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import static org.apache.commons.io.FileUtils.deleteDirectory;
-import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ServerTest {
-
-  private static final HttpUrl A_URL = HttpUrl.parse("http://localhost:9000");
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -52,7 +48,7 @@ public class ServerTest {
   public MockWebServer server = new MockWebServer();
 
   @Test
-  public void getUrl_does_not_return_trailing_slash() throws Exception {
+  public void getUrl_does_not_return_trailing_slash() {
     Server underTest = newServerForUrl("http://localhost:9999/sonarqube");
     assertThat(underTest.getUrl()).isEqualTo("http://localhost:9999/sonarqube");
 
@@ -64,41 +60,6 @@ public class ServerTest {
   }
 
   @Test
-  public void guess_version_from_installed_files() throws Exception {
-    File home = temp.newFolder();
-    FileUtils.touch(new File(home, "lib/sonar-application-6.3.0.1234.jar"));
-
-    Server underTest = new Server(mock(Locators.class), home, new SonarDistribution(), A_URL);
-
-    assertThat(underTest.version()).isEqualTo(Version.create("6.3.0.1234"));
-  }
-
-  @Test
-  public void version_throws_ISE_if_installation_dir_does_not_exist() throws Exception {
-    File home = temp.newFolder();
-    deleteDirectory(home);
-    Server underTest = new Server(mock(Locators.class), home, new SonarDistribution(), A_URL);
-
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Installation incomplete, missing directory " + home.getAbsolutePath());
-
-    underTest.version();
-  }
-
-  @Test
-  public void version_throws_ISE_if_app_jar_is_missing() throws Exception {
-    // libs dir exists, but does not contain the expected jar
-    File home = temp.newFolder();
-    forceMkdir(new File(home, "lib"));
-    Server underTest = new Server(mock(Locators.class), home, new SonarDistribution(), A_URL);
-
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("No files match");
-
-    underTest.version();
-  }
-
-  @Test
   public void restoreProfile_sends_POST_request() throws Exception {
     File backup = temp.newFile();
     FileUtils.write(backup, "<backup/>");
@@ -107,7 +68,7 @@ public class ServerTest {
     FileUtils.touch(new File(home, "lib/sonar-application-6.3.0.1234.jar"));
     Locators locators = mock(Locators.class);
     when(locators.openInputStream(any())).thenReturn(FileUtils.openInputStream(backup));
-    Server underTest = new Server(locators, home, new SonarDistribution(),
+    Server underTest = new Server(locators, home, Edition.COMMUNITY, Version.create("6.3.0.1234"),
       HttpUrl.parse(this.server.url("").toString()));
 
     underTest.restoreProfile(FileLocation.of(backup));
@@ -136,7 +97,7 @@ public class ServerTest {
   }
 
   private Server newServerForUrl(String url) {
-    return new Server(mock(Locators.class), mock(File.class), new SonarDistribution(), HttpUrl.parse(url));
+    return new Server(mock(Locators.class), mock(File.class), Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse(url));
   }
 
 }

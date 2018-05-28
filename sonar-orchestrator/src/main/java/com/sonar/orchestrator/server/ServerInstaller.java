@@ -80,7 +80,7 @@ public class ServerInstaller {
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
     String url = format("http://%s:%s%s", properties.getProperty(WEB_HOST_PROPERTY), properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(locators, homeDir, distrib, HttpUrl.parse(url));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url));
   }
 
   private File unzip(Packaging packaging) {

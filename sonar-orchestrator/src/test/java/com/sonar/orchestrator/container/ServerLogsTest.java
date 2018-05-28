@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.locator.Locators;
+import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import okhttp3.HttpUrl;
 import org.junit.Before;
@@ -41,7 +42,7 @@ public class ServerLogsTest {
   @Before
   public void setUp() throws Exception {
     home = temporaryFolder.newFolder();
-    server = new Server(locators, home, new SonarDistribution(), HttpUrl.parse("http://localhost"));
+    server = new Server(locators, home, Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse("http://localhost"));
   }
 
   @Test
