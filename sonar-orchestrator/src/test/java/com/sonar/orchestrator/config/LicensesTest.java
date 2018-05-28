@@ -19,9 +19,12 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.test.MockHttpServerInterceptor;
-import com.sonar.orchestrator.util.NetworkUtils;
-import java.net.InetAddress;
+import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.version.Version;
+import java.io.IOException;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,45 +35,82 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LicensesTest {
 
   @Rule
-  public MockHttpServerInterceptor httpServer = new MockHttpServerInterceptor();
+  public MockWebServer webServer = new MockWebServer();
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException expectedException = ExpectedException.none();
 
   private Licenses underTest;
 
   @Before
   public void setUp() {
-    underTest = new Licenses("http://localhost:" + httpServer.getPort() + "/");
+    Configuration configuration = Configuration.builder()
+      .setProperty("github.token", "the_user_token")
+      .build();
+    underTest = new Licenses(configuration, "http://localhost:" + webServer.getPort() + "/");
   }
 
   @Test
-  public void download_dev_license() {
-    httpServer.setMockResponseData("abcd1234");
+  public void download_dev_license_before_7_2() throws Exception {
+    webServer.enqueue(new MockResponse().setBody("dev1234"));
 
-    Licenses licenses = new Licenses("http://localhost:" + httpServer.getPort() + "/");
-    assertThat(licenses.getLicense()).isEqualTo("abcd1234");
+    Version version = Version.create("6.7.0.10000");
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
+    verifyRequested("/master/it/dev.txt");
 
-    // use cache
-    assertThat(licenses.getLicense()).isEqualTo("abcd1234");
+    // kept in cache
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
+    assertThat(webServer.getRequestCount()).isEqualTo(1);
+
+    // same license for another editions
+    assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("dev1234");
+    assertThat(underTest.getLicense(Edition.DATACENTER, version)).isEqualTo("dev1234");
+    assertThat(webServer.getRequestCount()).isEqualTo(1);
   }
 
   @Test
-  public void failIfUnknownPluginOrInvalidLicense() {
-    httpServer.setMockResponseStatus(404);
+  public void download_edition_license_since_7_2() throws Exception {
+    webServer.enqueue(new MockResponse().setBody("de1234"));
+    webServer.enqueue(new MockResponse().setBody("ee1234"));
 
-    thrown.expect(IllegalStateException.class);
-    underTest.getLicense();
+    Version version = Version.create("7.2.0.10000");
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
+    verifyRequested("/master/edition_testing/de.txt");
+
+    // kept in cache
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
+    assertThat(webServer.getRequestCount()).isEqualTo(1);
+
+    // request another edition
+    assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("ee1234");
+    verifyRequested("/master/edition_testing/ee.txt");
+  }
+
+  private void verifyRequested(String path) throws InterruptedException {
+    RecordedRequest recordedRequest = webServer.takeRequest();
+    assertThat(recordedRequest.getHeader("Authorization")).isEqualTo("token the_user_token");
+    assertThat(recordedRequest.getRequestUrl().encodedPath()).isEqualTo(path);
+  }
+
+
+  @Test
+  public void fail_in_license_not_found() {
+    webServer.enqueue(new MockResponse().setResponseCode(404));
+
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + webServer.getPort() + "/master/it/dev.txt] returned code [404]");
+
+    underTest.getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
   }
 
   @Test
-  public void failIfConnectionFailure() {
-    int freePort = NetworkUtils.getNextAvailablePort(InetAddress.getLoopbackAddress());
+  public void fail_if_connection_failure() throws IOException {
+    webServer.shutdown();
 
-    thrown.expect(IllegalStateException.class);
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Can not call http://localhost:" + webServer.getPort() + "/master/it/dev.txt due to network failure");
 
-    Licenses licenses = new Licenses("http://localhost:" + freePort + "/");
-    licenses.getLicense();
+    underTest.getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
   }
 
 }
