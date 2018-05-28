@@ -48,7 +48,6 @@ import org.sonar.wsclient.SonarClient;
 
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -132,10 +131,8 @@ public class Orchestrator extends SingleStartExternalResource {
    * @since 3.15
    */
   public void activateLicense() {
-    String license = licenses.getV3();
-    if (!isEmpty(license)) {
-      setLicense(license);
-    }
+    String license = licenses.getLicense();
+    setLicense(license);
   }
 
   /**
