@@ -23,9 +23,9 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import java.util.Properties;
 import org.junit.Test;
 
-import static com.sonar.orchestrator.container.SonarDistribution.Edition.DATACENTER;
-import static com.sonar.orchestrator.container.SonarDistribution.Edition.ENTERPRISE;
-import static com.sonar.orchestrator.container.SonarDistribution.Edition.COMMUNITY;
+import static com.sonar.orchestrator.container.Edition.DATACENTER;
+import static com.sonar.orchestrator.container.Edition.ENTERPRISE;
+import static com.sonar.orchestrator.container.Edition.COMMUNITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SonarDistributionTest {

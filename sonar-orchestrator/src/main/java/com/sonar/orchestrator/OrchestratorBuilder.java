@@ -21,7 +21,7 @@ package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
-import com.sonar.orchestrator.container.SonarDistribution.Edition;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;

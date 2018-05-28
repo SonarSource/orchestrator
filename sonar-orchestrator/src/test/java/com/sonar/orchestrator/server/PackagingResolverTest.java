@@ -20,7 +20,7 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.container.SonarDistribution;
-import com.sonar.orchestrator.container.SonarDistribution.Edition;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
@@ -76,11 +76,19 @@ public class PackagingResolverTest {
   }
 
   @Test
-  public void resolve_editions() throws Exception {
-    testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application");
-    testResolutionOfEdition(Edition.DEVELOPER, "com.sonarsource.sonarqube", "sonarqube-developer");
-    testResolutionOfEdition(Edition.ENTERPRISE, "com.sonarsource.sonarqube", "sonarqube-enterprise");
-    testResolutionOfEdition(Edition.DATACENTER, "com.sonarsource.sonarqube", "sonarqube-datacenter");
+  public void resolve_editions_before_7_2() throws Exception {
+    testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000");
+    testResolutionOfEdition(Edition.DEVELOPER, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000");
+    testResolutionOfEdition(Edition.DATACENTER, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000");
+  }
+
+  @Test
+  public void resolve_editions_after_7_2() throws Exception {
+    testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "7.2.0.1000");
+    testResolutionOfEdition(Edition.DEVELOPER, "com.sonarsource.sonarqube", "sonarqube-developer", "7.2.0.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE, "com.sonarsource.sonarqube", "sonarqube-enterprise", "7.2.0.1000");
+    testResolutionOfEdition(Edition.DATACENTER, "com.sonarsource.sonarqube", "sonarqube-datacenter", "7.2.0.1000");
   }
 
   @Test
@@ -91,6 +99,14 @@ public class PackagingResolverTest {
     expectedException.expectMessage("SonarQube 6.8 not found");
 
     underTest.resolve(new SonarDistribution().setVersion("6.8"));
+  }
+
+  @Test
+  public void fail_if_requested_version_is_missing() {
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Missing SonarQube version");
+
+    underTest.resolve(new SonarDistribution());
   }
 
   private void testLocalZip(File zip, String expectedVersion) throws IOException {
@@ -104,16 +120,16 @@ public class PackagingResolverTest {
     verifyZeroInteractions(locators);
   }
 
-  private void testResolutionOfEdition(Edition edition, String editionGroupId, String editionArtifactId) throws IOException {
-    String versionOrAlias = "DEV";
+  private void testResolutionOfEdition(Edition edition, String editionGroupId, String editionArtifactId, String version) throws IOException {
+    String versionOrAlias = "LATEST_RELEASE";
     SonarDistribution distribution = new SonarDistribution().setVersion(versionOrAlias).setEdition(edition);
     // developer edition does not exist before 7.2, so the public group id must be used to resolve version alias
-    prepareResolutionOfVersion("org.sonarsource.sonarqube", "sonar-application", versionOrAlias, Optional.of("7.3.0.10000"));
-    File zip = prepareResolutionOfZip(editionGroupId, editionArtifactId, "7.3.0.10000");
+    prepareResolutionOfVersion("org.sonarsource.sonarqube", "sonar-application", versionOrAlias, Optional.of(version));
+    File zip = prepareResolutionOfZip(editionGroupId, editionArtifactId, version);
 
     Packaging packaging = underTest.resolve(distribution);
 
-    assertThat(packaging.getVersion().toString()).isEqualTo("7.3.0.10000");
+    assertThat(packaging.getVersion().toString()).isEqualTo(version);
     assertThat(packaging.getEdition()).isEqualTo(edition);
     assertThat(packaging.getZip().getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
   }

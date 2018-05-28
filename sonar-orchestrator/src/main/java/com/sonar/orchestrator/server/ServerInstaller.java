@@ -31,6 +31,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -66,7 +67,10 @@ public class ServerInstaller {
     Packaging packaging = packagingResolver.resolve(distrib);
 
     File homeDir = unzip(packaging);
-    copyPlugins(distrib, homeDir);
+    if (distrib.removeDistributedPlugins()) {
+      removeBundledPlugins(homeDir);
+    }
+    copyPlugins(distrib.getPluginLocations(), homeDir);
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
@@ -101,27 +105,37 @@ public class ServerInstaller {
     }
   }
 
-  private void copyPlugins(SonarDistribution distribution, File sonarHome) {
-    File downloadDir = new File(sonarHome, "extensions/downloads");
+  private static void removeBundledPlugins(File homeDir) {
+    File dirToClean = new File(homeDir, "lib/bundled-plugins");
+    try {
+      if (dirToClean.exists()) {
+        LOG.info("Remove bundled plugins");
+        FileUtils.cleanDirectory(dirToClean);
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to clean directory: " + dirToClean, e);
+    }
+  }
+
+  private void copyPlugins(List<Location> plugins, File homeDir) {
+    File downloadDir = new File(homeDir, "extensions/downloads");
     try {
       FileUtils.forceMkdir(downloadDir);
-      if (distribution.removeDistributedPlugins()) {
-        LOG.info("Remove distribution plugins");
-        File dirToClean = new File(sonarHome, "lib/bundled-plugins");
-        if (dirToClean.exists()) {
-          FileUtils.cleanDirectory(dirToClean);
-        }
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Fail to clean the download directory: " + downloadDir, e);
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to create directory: " + downloadDir, e);
     }
-    for (Location plugin : distribution.getPluginLocations()) {
-      File pluginFile = configuration.locators().copyToDirectory(plugin, downloadDir);
-      if (pluginFile == null || !pluginFile.exists()) {
-        throw new IllegalStateException("Can not find the plugin " + plugin);
-      }
-      LOG.info("Installed plugin: {}", pluginFile.getName());
+
+    for (Location plugin : plugins) {
+      installPluginIntoDir(plugin, downloadDir);
     }
+  }
+
+  private void installPluginIntoDir(Location plugin, File downloadDir) {
+    File pluginFile = configuration.locators().copyToDirectory(plugin, downloadDir);
+    if (pluginFile == null || !pluginFile.exists()) {
+      throw new IllegalStateException("Can not find the plugin " + plugin);
+    }
+    LOG.info("Installed plugin: {}", pluginFile.getName());
   }
 
   private Properties configureProperties(SonarDistribution distribution) {

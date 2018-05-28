@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.server;
 
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -49,25 +50,26 @@ public class PackagingResolver {
 
     String groupId;
     String artifactId;
-    switch (distribution.getEdition()) {
-      case COMMUNITY:
-        groupId = PUBLIC_GROUP_ID;
-        artifactId = "sonar-application";
-        break;
-      case DEVELOPER:
-        groupId = PRIVATE_GROUP_ID;
-        artifactId = "sonarqube-developer";
-        break;
-      case ENTERPRISE:
-        groupId = PRIVATE_GROUP_ID;
-        artifactId = "sonarqube-enterprise";
-        break;
-      case DATACENTER:
-        groupId = PRIVATE_GROUP_ID;
-        artifactId = "sonarqube-datacenter";
-        break;
-      default:
-        throw new IllegalStateException("Unknown SonarQube edition : " + distribution.getEdition());
+    if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals("7.2")) {
+      groupId = PUBLIC_GROUP_ID;
+      artifactId = "sonar-application";
+    } else {
+      switch (distribution.getEdition()) {
+        case DEVELOPER:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-developer";
+          break;
+        case ENTERPRISE:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-enterprise";
+          break;
+        case DATACENTER:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-datacenter";
+          break;
+        default:
+          throw new IllegalStateException("Unknown SonarQube edition : " + distribution.getEdition());
+      }
     }
 
     File zip = locators.locate(newMavenLocationOfZip(groupId, artifactId, version.toString()));
@@ -76,7 +78,6 @@ public class PackagingResolver {
     }
     return new Packaging(distribution.getEdition(), version, zip);
   }
-
 
   private Version resolveVersion(SonarDistribution distribution) {
     Optional<File> zip = distribution.getZipFile();
