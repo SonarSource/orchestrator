@@ -111,14 +111,19 @@ public class ServerInstaller {
   }
 
   private static void removeBundledPlugins(File homeDir) {
-    File dirToClean = new File(homeDir, "lib/bundled-plugins");
+    LOG.info("Remove bundled plugins");
+    cleanDirectory(new File(homeDir, "lib/bundled-plugins"));
+    // plugins are bundled in extensions/plugins since version 7.2
+    cleanDirectory(new File(homeDir, "extensions/plugins"));
+  }
+
+  private static void cleanDirectory(File dir) {
     try {
-      if (dirToClean.exists()) {
-        LOG.info("Remove bundled plugins");
-        FileUtils.cleanDirectory(dirToClean);
+      if (dir.exists()) {
+        FileUtils.cleanDirectory(dir);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Fail to clean directory: " + dirToClean, e);
+      throw new IllegalStateException("Fail to clean directory: " + dir, e);
     }
   }
 
