@@ -52,6 +52,9 @@ public class PackagingResolverTest {
   public void use_local_zip() throws Exception {
     testLocalZip(temp.newFile("sonarqube-6.7.2.zip"), "6.7.2");
     testLocalZip(temp.newFile("sonar-application-6.7.2.zip"), "6.7.2");
+    testLocalZip(temp.newFile("sonarqube-developer-6.7.2.zip"), "6.7.2");
+    testLocalZip(temp.newFile("sonarqube-enterprise-6.7.2.zip"), "6.7.2");
+    testLocalZip(temp.newFile("sonarqube-datacenter-6.7.2.zip"), "6.7.2");
   }
 
   @Test
