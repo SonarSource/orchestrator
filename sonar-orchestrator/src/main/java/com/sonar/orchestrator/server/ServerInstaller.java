@@ -51,6 +51,7 @@ public class ServerInstaller {
   private static final String WEB_HOST_PROPERTY = "sonar.web.host";
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
+  private static final String ALL_IPS_HOST = "0.0.0.0";
 
   private final ServerZipFinder zipFinder;
   private final Configuration configuration;
@@ -68,7 +69,9 @@ public class ServerInstaller {
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
-    String url = format("http://%s:%s%s", properties.getProperty(WEB_HOST_PROPERTY), properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
+    String host = properties.getProperty(WEB_HOST_PROPERTY);
+    // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
+    String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
     return new Server(configuration.locators(), homeDir, distrib, HttpUrl.parse(url));
   }
 
