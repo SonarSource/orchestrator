@@ -34,6 +34,9 @@ public class PackagingResolver {
 
   private static final String PRIVATE_GROUP_ID = "com.sonarsource.sonarqube";
   private static final String PUBLIC_GROUP_ID = "org.sonarsource.sonarqube";
+  private static final String[] ZIP_PREFIXES = new String[] {
+    "sonar-application-", "sonarqube-developer-", "sonarqube-enterprise-", "sonarqube-datacenter-", "sonarqube-"
+  };
 
   private final Locators locators;
 
@@ -104,11 +107,10 @@ public class PackagingResolver {
   }
 
   private static Version guessVersionFromZipName(File zip) {
-    if (zip.getName().startsWith("sonarqube-")) {
-      return Version.create(StringUtils.substringBetween(zip.getName(), "sonarqube-", ".zip"));
-    }
-    if (zip.getName().startsWith("sonar-application-")) {
-      return Version.create(StringUtils.substringBetween(zip.getName(), "sonar-application-", ".zip"));
+    for (String editionPrefix : ZIP_PREFIXES) {
+      if (zip.getName().startsWith(editionPrefix)) {
+        return Version.create(StringUtils.substringBetween(zip.getName(), editionPrefix, ".zip"));
+      }
     }
     throw new IllegalStateException("Fail to guess version from filename: " + zip.getName());
   }
