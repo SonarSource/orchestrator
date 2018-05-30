@@ -94,6 +94,20 @@ public class ServerInstallerTest {
     assertThat(serverUrl.getPath()).isEqualTo("");
   }
 
+  // ORCH-422
+  @Test
+  public void show_0_0_0_0_as_localhost() throws Exception {
+    when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
+
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
+    distribution
+      .setServerProperty("sonar.web.host", "0.0.0.0");
+    Server server = newInstaller().install(distribution);
+
+    URL serverUrl = new URL(server.getUrl());
+    assertThat(InetAddress.getByName(serverUrl.getHost()).isLoopbackAddress()).isTrue();
+  }
+
   @Test
   public void web_server_is_configured_through_sonar_properties() throws Exception {
     when(zipFinder.find(any(SonarDistribution.class))).thenReturn(ZIP_4_5_6);
