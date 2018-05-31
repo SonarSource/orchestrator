@@ -26,7 +26,8 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Optional;
-import org.apache.commons.lang.StringUtils;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
@@ -34,6 +35,7 @@ public class PackagingResolver {
 
   private static final String PRIVATE_GROUP_ID = "com.sonarsource.sonarqube";
   private static final String PUBLIC_GROUP_ID = "org.sonarsource.sonarqube";
+  private static final Pattern ZIP_VERSION_PATTERN = Pattern.compile("^.*-(\\d++.*)\\.zip$");
 
   private final Locators locators;
 
@@ -104,13 +106,12 @@ public class PackagingResolver {
   }
 
   private static Version guessVersionFromZipName(File zip) {
-    if (zip.getName().startsWith("sonarqube-")) {
-      return Version.create(StringUtils.substringBetween(zip.getName(), "sonarqube-", ".zip"));
+    Matcher matcher = ZIP_VERSION_PATTERN.matcher(zip.getName());
+
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException("Fail to extract version from filename: " + zip.getName());
     }
-    if (zip.getName().startsWith("sonar-application-")) {
-      return Version.create(StringUtils.substringBetween(zip.getName(), "sonar-application-", ".zip"));
-    }
-    throw new IllegalStateException("Fail to guess version from filename: " + zip.getName());
+    return Version.create(matcher.group(1));
   }
 
   private static MavenLocation newMavenLocationOfZip(String groupId, String artifactId, String version) {

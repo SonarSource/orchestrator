@@ -19,8 +19,8 @@
  */
 package com.sonar.orchestrator.server;
 
-import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
@@ -50,16 +50,30 @@ public class PackagingResolverTest {
 
   @Test
   public void use_local_zip() throws Exception {
-    testLocalZip(temp.newFile("sonarqube-6.7.2.zip"), "6.7.2");
-    testLocalZip(temp.newFile("sonar-application-6.7.2.zip"), "6.7.2");
+    verifyLocalZip(temp.newFile("sonarqube-6.7.2.zip"), "6.7.2");
+    verifyLocalZip(temp.newFile("sonar-application-6.7.2.zip"), "6.7.2");
+    verifyLocalZip(temp.newFile("sonar-application-6.7.2.1.zip"), "6.7.2.1");
+    verifyLocalZip(temp.newFile("sonar-application-6.7-SNAPSHOT.zip"), "6.7-SNAPSHOT");
+
+    verifyLocalZip(temp.newFile("sonarqube-developer-7.3.zip"), "7.3");
+    verifyLocalZip(temp.newFile("sonarqube-developer-7.3.1.zip"), "7.3.1");
+    verifyLocalZip(temp.newFile("sonarqube-developer-7.3-SNAPSHOT.zip"), "7.3-SNAPSHOT");
+
+    verifyLocalZip(temp.newFile("sonarqube-enterprise-7.3.zip"), "7.3");
+    verifyLocalZip(temp.newFile("sonarqube-enterprise-7.3.1.zip"), "7.3.1");
+    verifyLocalZip(temp.newFile("sonarqube-enterprise-7.3-SNAPSHOT.zip"), "7.3-SNAPSHOT");
+
+    verifyLocalZip(temp.newFile("sonarqube-datacenter-7.3.zip"), "7.3");
+    verifyLocalZip(temp.newFile("sonarqube-datacenter-7.3.1.zip"), "7.3.1");
+    verifyLocalZip(temp.newFile("sonarqube-datacenter-7.3-SNAPSHOT.zip"), "7.3-SNAPSHOT");
   }
 
   @Test
   public void fail_if_version_cant_be_guessed_from_local_zip() throws Exception {
     SonarDistribution distribution = new SonarDistribution().setZipFile(temp.newFile("sonar.zip"));
 
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Fail to guess version from filename: sonar.zip");
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Fail to extract version from filename: sonar.zip");
 
     underTest.resolve(distribution);
   }
@@ -109,11 +123,12 @@ public class PackagingResolverTest {
     underTest.resolve(new SonarDistribution());
   }
 
-  private void testLocalZip(File zip, String expectedVersion) throws IOException {
+  private void verifyLocalZip(File zip, String expectedVersion) throws IOException {
     SonarDistribution distribution = new SonarDistribution().setZipFile(zip);
 
     Packaging packaging = underTest.resolve(distribution);
 
+    // edition is COMMUNITY by default in SonarDistribution
     assertThat(packaging.getEdition()).isEqualTo(Edition.COMMUNITY);
     assertThat(packaging.getVersion().toString()).isEqualTo(expectedVersion);
     assertThat(packaging.getZip().getCanonicalPath()).isEqualTo(zip.getCanonicalPath());
