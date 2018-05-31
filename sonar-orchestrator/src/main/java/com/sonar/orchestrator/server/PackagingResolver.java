@@ -52,7 +52,7 @@ public class PackagingResolver {
 
     String groupId;
     String artifactId;
-    if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals("7.2")) {
+    if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals(7, 2)) {
       groupId = PUBLIC_GROUP_ID;
       artifactId = "sonar-application";
     } else {

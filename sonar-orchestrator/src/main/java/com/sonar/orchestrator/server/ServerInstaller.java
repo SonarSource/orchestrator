@@ -142,10 +142,10 @@ public class ServerInstaller {
       installPluginIntoDir(plugin, downloadDir);
     }
 
-    if (packaging.getEdition() != Edition.COMMUNITY && !packaging.getVersion().isGreaterThanOrEquals("7.2")) {
+    if (packaging.getEdition() != Edition.COMMUNITY && !packaging.getVersion().isGreaterThanOrEquals(7, 2)) {
       boolean hasLicensePlugin = plugins.stream()
         .filter(p -> p instanceof MavenLocation)
-        .map(p -> (MavenLocation)p)
+        .map(p -> (MavenLocation) p)
         .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId().equals("sonar-dev-license-plugin"));
       if (!hasLicensePlugin) {
         installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", "LATEST_RELEASE[3.3]"), downloadDir);

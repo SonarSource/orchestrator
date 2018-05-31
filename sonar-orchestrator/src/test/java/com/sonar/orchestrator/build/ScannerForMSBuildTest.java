@@ -116,7 +116,7 @@ public class ScannerForMSBuildTest {
     build.setProjectDir(new File("."));
 
     thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Version of ScannerForMSBuild should be higher than or equals to 4.1.0.1148 to be able to use .Net Core.");
+    thrown.expectMessage("Version of ScannerForMSBuild should be greater than or equals to 4.1 to be able to use .Net Core.");
 
     build.check();
   }

@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class VersionTest {
 
   @Test
-  public void testEquals() {
+  public void test_equals() {
     assertThat(Version.create("1.1").equals(Version.create("1.1"))).isTrue();
     assertThat(Version.create("1.1").equals(Version.create("1.1.0"))).isTrue();
     assertThat(Version.create("1.2-M7_2016-03-30").equals(Version.create("1.2-M7_2016-03-30"))).isTrue();
@@ -39,39 +39,102 @@ public class VersionTest {
   }
 
   @Test
-  public void testIsGreaterThanOrEquals() {
-    assertThat(Version.create("1.1").isGreaterThanOrEquals("1.1")).isTrue();
-    assertThat(Version.create("1.1.2").isGreaterThanOrEquals("1.1.0")).isTrue();
-    assertThat(Version.create("1.2.3.1010").isGreaterThanOrEquals("1.2.3.1000")).isTrue();
-    assertThat(Version.create("1.2.3.1010").isGreaterThanOrEquals("1.2.3.1010")).isTrue();
-    assertThat(Version.create("1.2.3.1010").isGreaterThanOrEquals("1.2.3.1020")).isFalse();
-    assertThat(Version.create("1.0").isGreaterThanOrEquals("1.1.0")).isFalse();
-    assertThat(Version.create("6.7").isGreaterThanOrEquals("6.7-RC2")).isTrue();
-    assertThat(Version.create("1.0-SNAPSHOT").isGreaterThanOrEquals("1.0")).isFalse();
-    assertThat(Version.create("6.7-RC2").isGreaterThanOrEquals("6.7")).isFalse();
-    assertThat(Version.create("6.7-RC2").isGreaterThanOrEquals("6.7-RC1")).isTrue();
-    assertThat(Version.create("6.7-RC2").isGreaterThanOrEquals("6.7-RC2")).isTrue();
-    assertThat(Version.create("1.2").isGreaterThanOrEquals("1.2-M7_2016-03-30")).isTrue();
-    assertThat(Version.create("1.1").isGreaterThanOrEquals("1.2-M7_2016-03-30")).isFalse();
-    assertThat(Version.create("9999.9999.9999.999999").isGreaterThanOrEquals("9999.9999.9999.999999")).isTrue();
-    assertThat(Version.create("9999.9999.9999.999999").isGreaterThanOrEquals("9999.9999.9999.999998")).isTrue();
+  public void test_compareTo() {
+    assertThat(Version.create("1.1").compareTo(Version.create("1.1"))).isEqualTo(0);
+    assertThat(Version.create("1.1.2").compareTo(Version.create("1.1.0"))).isGreaterThan(0);
+    assertThat(Version.create("1.2.3.1010").compareTo(Version.create("1.2.3.1000"))).isGreaterThan(0);
+    assertThat(Version.create("1.2.3.1010").compareTo(Version.create("1.2.3.1010"))).isEqualTo(0);
+    assertThat(Version.create("1.2.3.1010").compareTo(Version.create("1.2.3.1020"))).isLessThan(0);
+    assertThat(Version.create("1.0").compareTo(Version.create("1.1.0"))).isLessThan(0);
+    assertThat(Version.create("6.7").compareTo(Version.create("6.7-RC2"))).isGreaterThan(0);
+    assertThat(Version.create("1.0-SNAPSHOT").compareTo(Version.create("1.0"))).isLessThan(0);
+    assertThat(Version.create("6.7-RC2").compareTo(Version.create("6.7"))).isLessThan(0);
+    assertThat(Version.create("6.7-RC2").compareTo(Version.create("6.7-RC1"))).isGreaterThan(0);
+    assertThat(Version.create("6.7-RC2").compareTo(Version.create("6.7-RC2"))).isEqualTo(0);
+    assertThat(Version.create("1.2").compareTo(Version.create("1.2-M7_2016-03-30"))).isGreaterThan(0);
+    assertThat(Version.create("1.1").compareTo(Version.create("1.2-M7_2016-03-30"))).isLessThan(0);
+    assertThat(Version.create("9999.9999.9999.999999").compareTo(Version.create("9999.9999.9999.999999"))).isEqualTo(0);
+    assertThat(Version.create("9999.9999.9999.999999").compareTo(Version.create("9999.9999.9999.999998"))).isGreaterThan(0);
   }
 
   @Test
-  public void testIsGreaterThan() {
-    assertThat(Version.create("1.1").isGreaterThan("1.1")).isFalse();
-    assertThat(Version.create("1.1.2").isGreaterThan("1.1.0")).isTrue();
-    assertThat(Version.create("1.0").isGreaterThan("1.1.0")).isFalse();
+  public void test_isGreaterThan() {
+    assertThat(Version.create("7.3").isGreaterThan(7, 3)).isFalse();
+    assertThat(Version.create("7.3.0").isGreaterThan(7, 3)).isFalse();
+    assertThat(Version.create("7.3.1").isGreaterThan(7, 3)).isFalse();
+    assertThat(Version.create("7.3.0.1000").isGreaterThan(7, 3)).isFalse();
+    assertThat(Version.create("7.3.1.1000").isGreaterThan(7, 3)).isFalse();
+    assertThat(Version.create("7.3-RC1").isGreaterThan(7, 3)).isFalse();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThan(7, 3)).isFalse();
+
+    assertThat(Version.create("7.3").isGreaterThan(8, 2)).isFalse();
+    assertThat(Version.create("7.3.0").isGreaterThan(8, 2)).isFalse();
+    assertThat(Version.create("7.3.1").isGreaterThan(8, 2)).isFalse();
+    assertThat(Version.create("7.3.0.1000").isGreaterThan(8, 2)).isFalse();
+    assertThat(Version.create("7.3.1.1000").isGreaterThan(8, 2)).isFalse();
+    assertThat(Version.create("7.3-RC1").isGreaterThan(8, 2)).isFalse();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThan(8, 2)).isFalse();
+
+    assertThat(Version.create("7.3").isGreaterThan(7, 2)).isTrue();
+    assertThat(Version.create("7.3.0").isGreaterThan(7, 2)).isTrue();
+    assertThat(Version.create("7.3.1").isGreaterThan(7, 2)).isTrue();
+    assertThat(Version.create("7.3.0.1000").isGreaterThan(7, 2)).isTrue();
+    assertThat(Version.create("7.3.1.1000").isGreaterThan(7, 2)).isTrue();
+    assertThat(Version.create("7.3-RC1").isGreaterThan(7, 2)).isTrue();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThan(7, 2)).isTrue();
+
+    assertThat(Version.create("7.3").isGreaterThan(6, 4)).isTrue();
+    assertThat(Version.create("7.3.0").isGreaterThan(6, 4)).isTrue();
+    assertThat(Version.create("7.3.1").isGreaterThan(6, 4)).isTrue();
+    assertThat(Version.create("7.3.0.1000").isGreaterThan(6, 4)).isTrue();
+    assertThat(Version.create("7.3.1.1000").isGreaterThan(6, 4)).isTrue();
+    assertThat(Version.create("7.3-RC1").isGreaterThan(6, 4)).isTrue();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThan(6, 4)).isTrue();
   }
 
   @Test
-  public void testIsRelease() {
+  public void test_isGreaterThanOrEquals() {
+    assertThat(Version.create("7.3").isGreaterThanOrEquals(7, 3)).isTrue();
+    assertThat(Version.create("7.3.0").isGreaterThanOrEquals(7, 3)).isTrue();
+    assertThat(Version.create("7.3.1").isGreaterThanOrEquals(7, 3)).isTrue();
+    assertThat(Version.create("7.3.0.1000").isGreaterThanOrEquals(7, 3)).isTrue();
+    assertThat(Version.create("7.3.1.1000").isGreaterThanOrEquals(7, 3)).isTrue();
+    assertThat(Version.create("7.3-RC1").isGreaterThanOrEquals(7, 3)).isTrue();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThanOrEquals(7, 3)).isTrue();
+
+    assertThat(Version.create("7.3").isGreaterThanOrEquals(8, 2)).isFalse();
+    assertThat(Version.create("7.3.0").isGreaterThanOrEquals(8, 2)).isFalse();
+    assertThat(Version.create("7.3.1").isGreaterThanOrEquals(8, 2)).isFalse();
+    assertThat(Version.create("7.3.0.1000").isGreaterThanOrEquals(8, 2)).isFalse();
+    assertThat(Version.create("7.3.1.1000").isGreaterThanOrEquals(8, 2)).isFalse();
+    assertThat(Version.create("7.3-RC1").isGreaterThanOrEquals(8, 2)).isFalse();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThanOrEquals(8, 2)).isFalse();
+
+    assertThat(Version.create("7.3").isGreaterThanOrEquals(7, 2)).isTrue();
+    assertThat(Version.create("7.3.0").isGreaterThanOrEquals(7, 2)).isTrue();
+    assertThat(Version.create("7.3.1").isGreaterThanOrEquals(7, 2)).isTrue();
+    assertThat(Version.create("7.3.0.1000").isGreaterThanOrEquals(7, 2)).isTrue();
+    assertThat(Version.create("7.3.1.1000").isGreaterThanOrEquals(7, 2)).isTrue();
+    assertThat(Version.create("7.3-RC1").isGreaterThanOrEquals(7, 2)).isTrue();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThanOrEquals(7, 2)).isTrue();
+
+    assertThat(Version.create("7.3").isGreaterThanOrEquals(6, 4)).isTrue();
+    assertThat(Version.create("7.3.0").isGreaterThanOrEquals(6, 4)).isTrue();
+    assertThat(Version.create("7.3.1").isGreaterThanOrEquals(6, 4)).isTrue();
+    assertThat(Version.create("7.3.0.1000").isGreaterThanOrEquals(6, 4)).isTrue();
+    assertThat(Version.create("7.3.1.1000").isGreaterThanOrEquals(6, 4)).isTrue();
+    assertThat(Version.create("7.3-RC1").isGreaterThanOrEquals(6, 4)).isTrue();
+    assertThat(Version.create("7.3-SNAPSHOT").isGreaterThanOrEquals(6, 4)).isTrue();
+  }
+
+  @Test
+  public void test_isRelease() {
     assertThat(Version.create("1.1").isRelease()).isTrue();
     assertThat(Version.create("1.1.2-SNAPSHOT").isRelease()).isFalse();
   }
 
   @Test
-  public void testIsSnapshot() {
+  public void test_isSnapshot() {
     assertThat(Version.create("1.1").isSnapshot()).isFalse();
     assertThat(Version.create("1.1.2-SNAPSHOT").isSnapshot()).isTrue();
   }

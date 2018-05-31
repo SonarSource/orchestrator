@@ -105,10 +105,10 @@ public class SonarScannerInstaller {
   static MavenLocation mavenLocation(Version scannerVersion, @Nullable String classifier) {
     String groupId;
     String artifactId;
-    if (scannerVersion.isGreaterThanOrEquals("2.5")) {
+    if (scannerVersion.isGreaterThanOrEquals(2, 5)) {
       groupId = "org.sonarsource.scanner.cli";
       artifactId = "sonar-scanner-cli";
-    } else if (scannerVersion.isGreaterThan("2.0")) {
+    } else if (scannerVersion.isGreaterThan(2, 0)) {
       groupId = "org.codehaus.sonar.runner";
       artifactId = "sonar-runner-dist";
     } else {
@@ -175,7 +175,7 @@ public class SonarScannerInstaller {
   }
 
   private static String basename(Version runnerVersion) {
-    if (runnerVersion.isGreaterThanOrEquals("2.5")) {
+    if (runnerVersion.isGreaterThanOrEquals(2, 5)) {
       return "sonar-scanner";
     }
     return "sonar-runner";

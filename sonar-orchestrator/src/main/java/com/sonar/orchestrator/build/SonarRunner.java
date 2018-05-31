@@ -72,7 +72,7 @@ public class SonarRunner extends Build<SonarRunner> {
   }
 
   public boolean isUseOldSonarRunnerScript() {
-    return !runnerVersion().isGreaterThanOrEquals("2.6");
+    return !runnerVersion().isGreaterThanOrEquals(2, 6);
   }
 
   @CheckForNull

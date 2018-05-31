@@ -50,7 +50,7 @@ public class Licenses {
   }
 
   public String getLicense(Edition edition, Version version) {
-    if (version.isGreaterThanOrEquals("7.2")) {
+    if (version.isGreaterThanOrEquals(7,2)) {
       return licensesPerEdition.computeIfAbsent(edition, e -> {
         String filename;
         switch (e) {

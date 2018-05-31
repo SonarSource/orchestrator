@@ -38,7 +38,11 @@ import static java.util.Objects.requireNonNull;
  * @since 3.13
  */
 public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
-  public static final String DOT_NET_CORE_INTRODUCTION_VERSION = "4.1.0.1148";
+  // 4.1.0.1148
+  static final int DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION = 4;
+  static final int DOT_NET_CORE_INTRODUCTION_MINOR_VERSION = 1;
+  public static final String DOT_NET_CORE_INTRODUCTION_VERSION = DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION + "." + DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
+
   private Version scannerVersion = null;
   private File projectDir;
   private File dotNetCoreExecutable = null;
@@ -68,7 +72,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
       return useOldRunnerScript;
     }
 
-    return !scannerVersion.isGreaterThanOrEquals("2.2") || useOldRunnerScript;
+    return !scannerVersion.isGreaterThanOrEquals(2, 2) || useOldRunnerScript;
   }
 
   /**
@@ -108,7 +112,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
       return useDotnetCore;
     }
     // .Net Core only available starting from ScannerForMSBuild 4.1.0.1148
-    return useDotnetCore && scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION);
+    return useDotnetCore && scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION);
   }
 
   @CheckForNull
@@ -207,8 +211,8 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     if (useDotNetCore) {
       checkArgument(scannerVersion != null, "Default version of SonarScanner for MSBuild embedded by Orchestrator does not support .NET Core. "
         + "Please provide a scanner version >= %s.", DOT_NET_CORE_INTRODUCTION_VERSION);
-      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_VERSION),
-        "Version of ScannerForMSBuild should be higher than or equals to %s to be able to use .Net Core.",
+      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION),
+        "Version of ScannerForMSBuild should be greater than or equals to %s to be able to use .Net Core.",
         DOT_NET_CORE_INTRODUCTION_VERSION);
     }
   }
