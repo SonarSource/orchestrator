@@ -26,6 +26,7 @@ import com.sonar.orchestrator.version.Version;
 import java.util.EnumMap;
 import java.util.Map;
 import okhttp3.HttpUrl;
+import org.apache.commons.lang.StringUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static java.lang.String.format;
@@ -81,9 +82,17 @@ public class Licenses {
       .setHeader("Authorization", "token " + loadGithubToken())
       .executeUnsafely();
     if (response.isSuccessful()) {
-      return defaultIfNull(response.getBodyAsString(), "");
+      return cleanUpLicense(response.getBodyAsString());
     }
     throw new IllegalStateException(format("Fail to download license. URL [%s] returned code [%d]", url, response.getCode()));
+  }
+
+  private static String cleanUpLicense(String body) {
+    String s = defaultIfNull(body, "");
+    if (s.contains("-")) {
+      s = StringUtils.substringAfterLast(s, "-");
+    }
+    return StringUtils.trim(s);
   }
 
   private String loadGithubToken() {

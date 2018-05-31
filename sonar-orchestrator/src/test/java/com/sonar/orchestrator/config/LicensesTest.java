@@ -79,6 +79,15 @@ public class LicensesTest {
   }
 
   @Test
+  public void download_edition_license_and_remove_header_if_present() {
+    Licenses underTest = newLicenses(true);
+    github.enqueue(new MockResponse().setBody("-----\nheader\n----\nabcde\n\r\n"));
+
+    Version version = Version.create("7.2.0.10000");
+    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("abcde");
+  }
+
+  @Test
   public void fail_in_license_not_found() {
     github.enqueue(new MockResponse().setResponseCode(404));
 
