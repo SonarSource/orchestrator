@@ -147,7 +147,7 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   private void configureLicense(@Nullable String license) {
-    String path = server.version().isGreaterThanOrEquals("7.2") ? "api/editions/apply_license" : "api/license/update_dev";
+    String path = server.version().isGreaterThanOrEquals("7.2") ? "api/editions/set_license" : "api/license/update_dev";
     server.newHttpCall(path)
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
