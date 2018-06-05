@@ -20,9 +20,11 @@
 package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.container.SonarDistribution;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.io.File;
@@ -58,7 +60,15 @@ public class OrchestratorBuilder {
   public OrchestratorBuilder setZipFile(File zip) {
     checkArgument(zip.exists(), "SonarQube ZIP file does not exist: %s", zip.getAbsolutePath());
     checkArgument(zip.isFile(), "SonarQube ZIP is not a file: %s", zip.getAbsolutePath());
-    this.distribution.setZipFile(zip);
+    return setZipLocation(FileLocation.of(zip));
+  }
+
+  /**
+   * Set the path to SonarQube zip by its location, for instance {@link FileLocation} or {@link MavenLocation}
+   * @since 3.19
+   */
+  public OrchestratorBuilder setZipLocation(Location zip) {
+    this.distribution.setZipLocation(requireNonNull(zip));
     return this;
   }
 
@@ -180,7 +190,7 @@ public class OrchestratorBuilder {
   }
 
   public Orchestrator build() {
-    checkState(distribution.getZipFile().isPresent() ^ distribution.getVersion().isPresent(),
+    checkState(distribution.getZipLocation().isPresent() ^ distribution.getVersion().isPresent(),
       "One, and only one, of methods setSonarVersion(String) or setZipFile(File) must be called");
     Configuration.Builder configBuilder = Configuration.builder();
     Configuration finalConfig = configBuilder

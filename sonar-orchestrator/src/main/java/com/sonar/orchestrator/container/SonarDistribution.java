@@ -39,18 +39,18 @@ public final class SonarDistribution {
   private Properties serverProperties = new Properties();
   private boolean activateLicense;
   private boolean removeDistributedPlugins = true;
-  private File zipFile;
+  private Location zip;
 
   public SonarDistribution() {
     // A distribution without a version yet
   }
 
-  public Optional<File> getZipFile() {
-    return Optional.ofNullable(zipFile);
+  public Optional<Location> getZipLocation() {
+    return Optional.ofNullable(zip);
   }
 
-  public SonarDistribution setZipFile(@Nullable File zip) {
-    this.zipFile = zip;
+  public SonarDistribution setZipLocation(@Nullable Location zip) {
+    this.zip = zip;
     return this;
   }
 
