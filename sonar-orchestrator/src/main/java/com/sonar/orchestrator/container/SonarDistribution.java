@@ -38,7 +38,7 @@ public final class SonarDistribution {
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
   private boolean activateLicense;
-  private boolean removeDistributedPlugins = true;
+  private boolean keepBundledPlugins = false;
   private Location zip;
 
   public SonarDistribution() {
@@ -132,12 +132,12 @@ public final class SonarDistribution {
     return activateLicense;
   }
 
-  public boolean removeDistributedPlugins() {
-    return removeDistributedPlugins;
+  public boolean isKeepBundledPlugins() {
+    return keepBundledPlugins;
   }
 
-  public SonarDistribution setRemoveDistributedPlugins(boolean remove) {
-    this.removeDistributedPlugins = remove;
+  public SonarDistribution setKeepBundledPlugins(boolean b) {
+    this.keepBundledPlugins = b;
     return this;
   }
 }

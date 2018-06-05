@@ -246,9 +246,9 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void do_not_remove_bundled_plugins() {
+  public void keep_bundled_plugins() {
     prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
-    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6).setRemoveDistributedPlugins(false);
+    SonarDistribution distrib = new SonarDistribution().setVersion(VERSION_4_5_6).setKeepBundledPlugins(true);
 
     Server server = newInstaller().install(distrib);
 

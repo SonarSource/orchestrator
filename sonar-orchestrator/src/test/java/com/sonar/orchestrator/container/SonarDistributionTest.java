@@ -35,7 +35,7 @@ public class SonarDistributionTest {
     assertThat(distribution.getVersion().get()).isEqualTo("2.7");
     assertThat(distribution.getPluginLocations().size()).isEqualTo(0);
     assertThat(distribution.getProfileBackups().size()).isEqualTo(0);
-    assertThat(distribution.removeDistributedPlugins()).isTrue();
+    assertThat(distribution.isKeepBundledPlugins()).isFalse();
   }
 
   @Test
@@ -51,12 +51,12 @@ public class SonarDistributionTest {
   }
 
   @Test
-  public void shouldRemoveDeprecatedPlugins() {
+  public void test_keep_bundled_plugins() {
     SonarDistribution distribution = new SonarDistribution();
-    distribution.setRemoveDistributedPlugins(false);
-    assertThat(distribution.removeDistributedPlugins()).isFalse();
-    distribution.setRemoveDistributedPlugins(true);
-    assertThat(distribution.removeDistributedPlugins()).isTrue();
+    distribution.setKeepBundledPlugins(false);
+    assertThat(distribution.isKeepBundledPlugins()).isFalse();
+    distribution.setKeepBundledPlugins(true);
+    assertThat(distribution.isKeepBundledPlugins()).isTrue();
   }
 
   @Test
