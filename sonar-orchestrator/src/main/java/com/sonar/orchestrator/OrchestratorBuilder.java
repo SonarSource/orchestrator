@@ -189,6 +189,11 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  public OrchestratorBuilder keepBundledPlugins() {
+    distribution.setKeepBundledPlugins(true);
+    return this;
+  }
+
   public Orchestrator build() {
     checkState(distribution.getZipLocation().isPresent() ^ distribution.getVersion().isPresent(),
       "One, and only one, of methods setSonarVersion(String) or setZipFile(File) must be called");

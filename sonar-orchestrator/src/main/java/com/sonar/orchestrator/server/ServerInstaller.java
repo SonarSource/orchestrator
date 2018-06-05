@@ -73,7 +73,7 @@ public class ServerInstaller {
     Packaging packaging = packagingResolver.resolve(distrib);
 
     File homeDir = unzip(packaging);
-    if (distrib.removeDistributedPlugins()) {
+    if (!distrib.isKeepBundledPlugins()) {
       removeBundledPlugins(homeDir);
     }
     copyPlugins(packaging, distrib.getPluginLocations(), homeDir);
