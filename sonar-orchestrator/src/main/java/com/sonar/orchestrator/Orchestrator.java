@@ -30,6 +30,7 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
+import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -147,12 +148,21 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   private void configureLicense(@Nullable String license) {
-    String path = server.version().isGreaterThanOrEquals(7, 2) ? "api/editions/set_license" : "api/license/update_dev";
-    server.newHttpCall(path)
-      .setMethod(HttpMethod.POST)
-      .setAdminCredentials()
-      .setParam("license", license)
-      .execute();
+    if (server.version().isGreaterThanOrEquals(7, 2)) {
+      HttpCall httpCall = server.newHttpCall(license == null ? "api/editions/unset_license" : "api/editions/set_license")
+        .setMethod(HttpMethod.POST)
+        .setAdminCredentials();
+      if (license != null) {
+        httpCall.setParam("license", license);
+      }
+      httpCall.execute();
+    } else {
+      server.newHttpCall("api/license/update_dev")
+        .setMethod(HttpMethod.POST)
+        .setAdminCredentials()
+        .setParam("license", license)
+        .execute();
+    }
   }
 
   /**

@@ -36,6 +36,7 @@ public class Licenses {
 
   private static final String TOKEN_PROPERTY = "github.token";
   private static final String TOKEN_ENV_VARIABLE = "GITHUB_TOKEN";
+
   private final Configuration configuration;
   private final String baseUrl;
   private final Map<Edition, String> licensesPerEdition = new EnumMap<>(Edition.class);
