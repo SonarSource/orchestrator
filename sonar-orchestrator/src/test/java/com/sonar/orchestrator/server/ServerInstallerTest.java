@@ -86,6 +86,7 @@ public class ServerInstallerTest {
     assertThat(server.version()).isEqualTo(Version.create(VERSION_4_5_6));
     // installed in a unique location. Home directory is the name defined in zip structure
     assertThat(server.getHome().getParentFile().getParentFile()).isEqualTo(workspaceDir);
+    assertThat(server.getEdition()).isEqualTo(Edition.COMMUNITY);
     Properties props = openPropertiesFile(server);
     assertThat(props.getProperty("sonar.jdbc.url")).isEqualTo("jdbc:h2:mem");
   }
