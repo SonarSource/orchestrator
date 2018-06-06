@@ -89,34 +89,45 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   /**
-   * Make ready SonarQube infrastructure according to the settings and options.
-   * A call to this method is usually made just after the instanciation of Orchestrator
+   * Install SonarQube without starting it.
+   * For advanced usage only! It allows to tweak file system before startup.
+   *
+   * @since 3.19
+   */
+  public Server install() {
+    if (server == null) {
+      database = new DefaultDatabase(config);
+      database.start();
+
+      PackagingResolver packagingResolver = new PackagingResolver(config.locators());
+      ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
+      server = serverInstaller.install(distribution);
+    }
+    return server;
+  }
+
+  /**
+   * Install ans start SonarQube.
    *
    * Steps are:
-   * 1/ connects the db
-   * 2/ downloads an install SonarQube server on next available port
-   * 3/ starts SonarQube server on next available port
-   * 4/ sets profile
-   * 5/ download and install plugins
-    */
+   * 1/ connect to db
+   * 2/ download an install SonarQube server
+   * 3/ download and install plugins
+   * 4/ start SonarQube server
+   * 5/ restore Quality profiles, if any
+   */
   public void start() {
     if (started.getAndSet(true)) {
       throw new IllegalStateException("Orchestrator is already started");
     }
 
-    database = new DefaultDatabase(config);
-    database.start();
+    install();
 
     FileSystem fs = config.fileSystem();
-    PackagingResolver packagingResolver = new PackagingResolver(config.locators());
-    ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
-    server = serverInstaller.install(distribution);
-
     process = new ServerProcessImpl(new ServerCommandLineFactory(fs), server, startupLogWatcher);
     process.start();
 
     for (Location backup : distribution.getProfileBackups()) {
-
       server.restoreProfile(backup);
     }
 
