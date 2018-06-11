@@ -23,6 +23,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -76,13 +78,17 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
-  public void install_by_location() {
+  public void install_with_bundled_plugins() {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-      .setZipLocation(MavenLocation.builder().setGroupId("org.sonarsource.sonarqube").setArtifactId("sonar-application").setVersion(LTS_ALIAS).withPackaging("zip").build())
+      .setSonarVersion(LTS_ALIAS)
+      .keepBundledPlugins()
       .build();
     orchestrator.install();
 
     assertThat(orchestrator.getServer().version().toString()).startsWith("6.7.");
+    assertThat(orchestrator.getServer().getEdition()).isEqualTo(Edition.COMMUNITY);
+    File pluginsDir = new File(orchestrator.getServer().getHome(), "lib/bundled-plugins");
+    assertThat(FileUtils.listFiles(pluginsDir, new String[]{"jar"}, false)).isNotEmpty();
   }
 
   @Test
