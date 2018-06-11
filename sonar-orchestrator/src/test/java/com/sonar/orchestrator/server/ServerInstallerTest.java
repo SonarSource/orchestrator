@@ -270,6 +270,22 @@ public class ServerInstallerTest {
   }
 
   @Test
+  public void do_not_override_license_plugin_to_commercial_editions_before_7_2_if_already_installed() throws Exception {
+    File licenseJar = temp.newFile("sonar-license-plugin-3.2.jar");
+
+    prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_4_5_6), SQ_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
+    // requesting to install explicitly version 3.2
+    distribution.addPluginLocation(MavenLocation.of("com.sonarsource.license", "sonar-license-plugin", "3.2"));
+    prepareCopyOfPlugin("sonar-license-plugin", licenseJar);
+
+    Server server = newInstaller().install(distribution);
+
+    File pluginsDir = new File(server.getHome(), "extensions/downloads/");
+    assertThat(new File(pluginsDir, licenseJar.getName())).exists().isFile();
+  }
+
+  @Test
   public void do_not_install_license_plugin_on_commercial_editions_after_7_2() {
     Version version = Version.create("7.2.0.10000");
     prepareResolutionOfPackaging(Edition.ENTERPRISE, version, SQ_ZIP);

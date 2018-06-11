@@ -39,7 +39,14 @@ public class VersionTest {
   }
 
   @Test
+  public void test_hashCode() {
+    assertThat(Version.create("1.1").hashCode()).isEqualTo(Version.create("1.1").hashCode());
+    assertThat(Version.create("1.2.3.4").hashCode()).isEqualTo(Version.create("1.2.3.4").hashCode());
+  }
+
+  @Test
   public void test_compareTo() {
+    assertThat(Version.create("1").compareTo(Version.create("1"))).isEqualTo(0);
     assertThat(Version.create("1.1").compareTo(Version.create("1.1"))).isEqualTo(0);
     assertThat(Version.create("1.1.2").compareTo(Version.create("1.1.0"))).isGreaterThan(0);
     assertThat(Version.create("1.2.3.1010").compareTo(Version.create("1.2.3.1000"))).isGreaterThan(0);
@@ -59,6 +66,7 @@ public class VersionTest {
 
   @Test
   public void test_isGreaterThan() {
+    assertThat(Version.create("7").isGreaterThan(7, 0)).isFalse();
     assertThat(Version.create("7.3").isGreaterThan(7, 3)).isFalse();
     assertThat(Version.create("7.3.0").isGreaterThan(7, 3)).isFalse();
     assertThat(Version.create("7.3.1").isGreaterThan(7, 3)).isFalse();
@@ -94,6 +102,7 @@ public class VersionTest {
 
   @Test
   public void test_isGreaterThanOrEquals() {
+    assertThat(Version.create("7").isGreaterThanOrEquals(7, 0)).isTrue();
     assertThat(Version.create("7.3").isGreaterThanOrEquals(7, 3)).isTrue();
     assertThat(Version.create("7.3.0").isGreaterThanOrEquals(7, 3)).isTrue();
     assertThat(Version.create("7.3.1").isGreaterThanOrEquals(7, 3)).isTrue();
@@ -102,6 +111,7 @@ public class VersionTest {
     assertThat(Version.create("7.3-RC1").isGreaterThanOrEquals(7, 3)).isTrue();
     assertThat(Version.create("7.3-SNAPSHOT").isGreaterThanOrEquals(7, 3)).isTrue();
 
+    assertThat(Version.create("7").isGreaterThanOrEquals(7, 3)).isFalse();
     assertThat(Version.create("7.3").isGreaterThanOrEquals(8, 2)).isFalse();
     assertThat(Version.create("7.3.0").isGreaterThanOrEquals(8, 2)).isFalse();
     assertThat(Version.create("7.3.1").isGreaterThanOrEquals(8, 2)).isFalse();

@@ -34,23 +34,18 @@ public class Version implements Comparable<Version> {
     String[] fields = StringUtils.substringBefore(s, "-").split("\\.");
     long l = 0;
     // max representation: 9999.9999.9999.999999
-    if (fields.length > 0) {
-      this.major = Integer.parseInt(fields[0]);
-      l += 1_0000_0000_000000L * this.major;
-      if (fields.length > 1) {
-        this.minor = Integer.parseInt(fields[1]);
-        l += 1_0000_000000L * this.minor;
-        if (fields.length > 2) {
-          l += 1_000000L * Integer.parseInt(fields[2]);
-          if (fields.length > 3) {
-            l += Integer.parseInt(fields[3]);
-          }
+    this.major = Integer.parseInt(fields[0]);
+    l += 1_0000_0000_000000L * this.major;
+    if (fields.length > 1) {
+      this.minor = Integer.parseInt(fields[1]);
+      l += 1_0000_000000L * this.minor;
+      if (fields.length > 2) {
+        l += 1_000000L * Integer.parseInt(fields[2]);
+        if (fields.length > 3) {
+          l += Integer.parseInt(fields[3]);
         }
-      } else {
-        this.minor = 0;
       }
     } else {
-      this.major = 0;
       this.minor = 0;
     }
     this.asNumber = l;
