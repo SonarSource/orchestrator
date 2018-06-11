@@ -24,19 +24,32 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.MavenLocation;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderTest {
+
+  private static final String LTS_ALIAS = "LATEST_RELEASE[6.7]";
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
+
   @Test
   public void install_plugins_on_sonarqube_lts() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-      .setSonarVersion("LATEST_RELEASE[6.7]")
+      .setSonarVersion(LTS_ALIAS)
       // fixed version
       .addPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
       // alias DEV
@@ -63,9 +76,45 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
+  public void install_by_location() {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setZipLocation(MavenLocation.builder().setGroupId("org.sonarsource.sonarqube").setArtifactId("sonar-application").setVersion(LTS_ALIAS).withPackaging("zip").build())
+      .build();
+    orchestrator.install();
+
+    assertThat(orchestrator.getServer().version().toString()).startsWith("6.7.");
+  }
+
+  @Test
+  public void fail_if_zip_file_does_not_exist() throws IOException {
+    File zip = temp.newFile();
+    zip.delete();
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("SonarQube ZIP file does not exist: " + zip.getAbsolutePath());
+
+    new OrchestratorBuilder(Configuration.create())
+      .setZipFile(zip)
+      .build();
+  }
+
+  @Test
+  public void fail_if_zip_file_is_a_directory() throws IOException {
+    File dir = temp.newFolder();
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("SonarQube ZIP is not a file: " + dir.getAbsolutePath());
+
+    new OrchestratorBuilder(Configuration.create())
+      .setZipFile(dir)
+      .build();
+  }
+
+
+  @Test
   public void override_web_context() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-      .setSonarVersion("LATEST_RELEASE[6.7]")
+      .setSonarVersion(LTS_ALIAS)
       .setServerProperty("sonar.web.context", "/sonarqube")
       .build();
 
