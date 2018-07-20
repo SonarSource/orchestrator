@@ -67,7 +67,6 @@ public final class DefaultDatabase implements Database {
 
   public void stop() {
     if (started) {
-      deregisterDriver();
       started = false;
     }
   }
@@ -380,23 +379,6 @@ public final class DefaultDatabase implements Database {
 
     } catch (Exception e) {
       throw new IllegalStateException("Fail to load JDBC driver: " + databaseClient.getDriverClassName(), e);
-    }
-  }
-
-  private void deregisterDriver() {
-    Driver driver = null;
-    try {
-      driver = DriverManager.getDriver(databaseClient.getUrl());
-    } catch (SQLException e) {
-      // not found
-    }
-    if (driver != null) {
-      try {
-        LOG.info("Deregistering jdbc driver: {}", driver);
-        DriverManager.deregisterDriver(driver);
-      } catch (SQLException e) {
-        LOG.error("Fail to deregister driver " + driver, e);
-      }
     }
   }
 }
