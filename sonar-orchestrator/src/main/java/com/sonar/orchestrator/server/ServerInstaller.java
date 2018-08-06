@@ -29,6 +29,7 @@ import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.util.ZipUtils;
+import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -142,13 +143,18 @@ public class ServerInstaller {
       installPluginIntoDir(plugin, downloadDir);
     }
 
-    if (packaging.getEdition() != Edition.COMMUNITY && !packaging.getVersion().isGreaterThanOrEquals(7, 2)) {
+    Version sqVersion = packaging.getVersion();
+    if (packaging.getEdition() != Edition.COMMUNITY && !sqVersion.isGreaterThanOrEquals(7, 2)) {
       boolean hasLicensePlugin = plugins.stream()
         .filter(p -> p instanceof MavenLocation)
         .map(p -> (MavenLocation) p)
         .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId().equals("sonar-dev-license-plugin"));
       if (!hasLicensePlugin) {
-        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", "LATEST_RELEASE[3.3]"), downloadDir);
+        String licenseVersion = "LATEST_RELEASE[3.3]";
+        if (sqVersion.getMajor() == 6 && sqVersion.getMinor() == 7 && sqVersion.getPatch() >= 5) {
+          licenseVersion = "LATEST_RELEASE[3]";
+        }
+        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion), downloadDir);
       }
     }
   }

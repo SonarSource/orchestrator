@@ -205,8 +205,8 @@ public class ServerInstallerTest {
     distribution.addPluginLocation(MavenLocation.of("fake", "sonar-bar-plugin", "1.0"));
     File jar1 = temp.newFile();
     File jar2 = temp.newFile();
-    prepareCopyOfPlugin("sonar-foo-plugin", jar1);
-    prepareCopyOfPlugin("sonar-bar-plugin", jar2);
+    prepareCopyOfPlugin("sonar-foo-plugin", "1.0", jar1);
+    prepareCopyOfPlugin("sonar-bar-plugin", "1.0", jar2);
 
     Server server = newInstaller().install(distribution);
 
@@ -214,12 +214,15 @@ public class ServerInstallerTest {
     assertThat(installedFiles).extracting(File::getName).containsExactlyInAnyOrder(jar1.getName(), jar2.getName());
   }
 
-  private void prepareCopyOfPlugin(String artifactId, File pluginJar) {
+  private void prepareCopyOfPlugin(String artifactId, String version, File pluginJar) {
     doAnswer(invocationOnMock -> {
       File toDir = invocationOnMock.getArgument(1);
       FileUtils.copyFileToDirectory(pluginJar, toDir);
       return new File(toDir, pluginJar.getName());
-    }).when(locators).copyToDirectory(argThat(l -> ((MavenLocation) l).getArtifactId().equals(artifactId)), any());
+    }).when(locators).copyToDirectory(argThat(l -> {
+      MavenLocation ml = (MavenLocation) l;
+      return ml.getArtifactId().equals(artifactId) && ml.getVersion().equalsIgnoreCase(version);
+    }), any());
   }
 
   @Test
@@ -257,12 +260,36 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void install_license_plugin_on_commercial_editions_before_7_2() throws Exception {
-    File licenseJar = temp.newFile("sonar-dev-license-plugin-3.3.0.10000.jar");
+  public void install_license_plugin_on_commercial_editions_6_7_4() throws Exception {
+    testInstallationOfDevLicensePluginOnCommercialEdition("6.7.4", "LATEST_RELEASE[3.3]");
+  }
 
-    prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_4_5_6), SQ_ZIP);
-    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
-    prepareCopyOfPlugin("sonar-dev-license-plugin", licenseJar);
+  @Test
+  public void install_license_plugin_on_commercial_editions_6_7_5() throws Exception {
+    testInstallationOfDevLicensePluginOnCommercialEdition("6.7.5", "LATEST_RELEASE[3]");
+  }
+
+  @Test
+  public void install_license_plugin_on_commercial_editions_6_7_6() throws Exception {
+    testInstallationOfDevLicensePluginOnCommercialEdition("6.7.6", "LATEST_RELEASE[3]");
+  }
+
+  @Test
+  public void install_license_plugin_on_commercial_editions_7_0() throws Exception {
+    testInstallationOfDevLicensePluginOnCommercialEdition("7.0", "LATEST_RELEASE[3.3]");
+  }
+
+  @Test
+  public void install_license_plugin_on_commercial_editions_7_1() throws Exception {
+    testInstallationOfDevLicensePluginOnCommercialEdition("7.1", "LATEST_RELEASE[3.3]");
+  }
+
+  private void testInstallationOfDevLicensePluginOnCommercialEdition(String sonarQubeVersion, String expectedLicenseVersion) throws IOException {
+    File licenseJar = temp.newFile("sonar-dev-license-plugin.jar");
+
+    prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(sonarQubeVersion), SQ_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setVersion(sonarQubeVersion);
+    prepareCopyOfPlugin("sonar-dev-license-plugin", expectedLicenseVersion, licenseJar);
 
     Server server = newInstaller().install(distribution);
 
@@ -277,7 +304,7 @@ public class ServerInstallerTest {
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     // requesting to install explicitly version 3.2
     distribution.addPluginLocation(MavenLocation.of("com.sonarsource.license", "sonar-license-plugin", "3.2"));
-    prepareCopyOfPlugin("sonar-license-plugin", licenseJar);
+    prepareCopyOfPlugin("sonar-license-plugin", "3.2", licenseJar);
 
     Server server = newInstaller().install(distribution);
 

@@ -45,6 +45,26 @@ public class VersionTest {
   }
 
   @Test
+  public void test_fields() {
+    testFields("7", 7, 0, 0);
+    testFields("7.0", 7, 0, 0);
+    testFields("7.0.0", 7, 0, 0);
+    testFields("7.0.0.1000", 7, 0, 0);
+    testFields("7.3", 7, 3, 0);
+    testFields("7.3.5", 7, 3, 5);
+    testFields("7.3-SNAPSHOT", 7, 3, 0);
+    testFields("7.3-RC1", 7, 3, 0);
+    testFields("7.3.2-SNAPSHOT", 7, 3, 2);
+  }
+
+  private static void testFields(String version, int expectedMajor, int expectedMinor, int expectedPatch) {
+    Version v = Version.create(version);
+    assertThat(v.getMajor()).isEqualTo(expectedMajor);
+    assertThat(v.getMinor()).isEqualTo(expectedMinor);
+    assertThat(v.getPatch()).isEqualTo(expectedPatch);
+  }
+
+  @Test
   public void test_compareTo() {
     assertThat(Version.create("1").compareTo(Version.create("1"))).isEqualTo(0);
     assertThat(Version.create("1.1").compareTo(Version.create("1.1"))).isEqualTo(0);
