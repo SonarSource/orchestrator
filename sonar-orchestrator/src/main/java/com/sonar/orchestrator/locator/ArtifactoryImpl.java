@@ -158,6 +158,7 @@ public class ArtifactoryImpl implements Artifactory {
   /**
    * Examples:
    * "LATEST_RELEASE" -> ""
+   * "LATEST_RELEASE[7]" -> "7"
    * "LATEST_RELEASE[7.1]" -> "7.1"
    * "LATEST_RELEASE[7.1.2]" -> "7.1.2"
    */

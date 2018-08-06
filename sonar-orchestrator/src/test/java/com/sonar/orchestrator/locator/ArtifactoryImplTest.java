@@ -259,6 +259,20 @@ public class ArtifactoryImplTest {
   }
 
   @Test
+  public void resolveVersion_resolves_LATEST_RELEASE_alias_of_major_series() throws Exception {
+    prepareVersions("7.1.0.1000", "7.2.1.1500", "7.1.0.1400");
+
+    Configuration configuration = newConfiguration().build();
+    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE[7]");
+
+    Optional<String> version = underTest.resolveVersion(location);
+    assertThat(version).hasValue("7.2.1.1500");
+
+    verifyVersionsRequest(location.getGroupId(), location.getArtifactId(), "7*", "sonarsource-releases");
+  }
+
+  @Test
   public void resolveVersion_resolves_DEV_alias() throws Exception {
     prepareVersions("6.7.0.1000", "7.0.0.1010", "7.1.0.1030", "7.1.0.1020");
 

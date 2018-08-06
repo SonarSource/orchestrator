@@ -29,6 +29,7 @@ public class Version implements Comparable<Version> {
   private final String qualifier;
   private final int major;
   private final int minor;
+  private final int patch;
 
   Version(String s) {
     String[] fields = StringUtils.substringBefore(s, "-").split("\\.");
@@ -40,13 +41,17 @@ public class Version implements Comparable<Version> {
       this.minor = Integer.parseInt(fields[1]);
       l += 1_0000_000000L * this.minor;
       if (fields.length > 2) {
-        l += 1_000000L * Integer.parseInt(fields[2]);
+        this.patch = Integer.parseInt(fields[2]);
+        l += 1_000000L * this.patch;
         if (fields.length > 3) {
           l += Integer.parseInt(fields[3]);
         }
+      } else {
+        this.patch = 0;
       }
     } else {
       this.minor = 0;
+      this.patch = 0;
     }
     this.asNumber = l;
     this.asString = s;
@@ -114,6 +119,18 @@ public class Version implements Comparable<Version> {
       return this.minor >= minor;
     }
     return false;
+  }
+
+  public int getMajor() {
+    return major;
+  }
+
+  public int getMinor() {
+    return minor;
+  }
+
+  public int getPatch() {
+    return patch;
   }
 
   public boolean isRelease() {
