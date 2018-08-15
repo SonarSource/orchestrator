@@ -55,6 +55,7 @@ public class VersionTest {
     testFields("7.3-SNAPSHOT", 7, 3, 0);
     testFields("7.3-RC1", 7, 3, 0);
     testFields("7.3.2-SNAPSHOT", 7, 3, 2);
+    testFields("7.3-alpha1", 7, 3, 0);
   }
 
   private static void testFields(String version, int expectedMajor, int expectedMinor, int expectedPatch) {
@@ -82,6 +83,13 @@ public class VersionTest {
     assertThat(Version.create("1.1").compareTo(Version.create("1.2-M7_2016-03-30"))).isLessThan(0);
     assertThat(Version.create("9999.9999.9999.999999").compareTo(Version.create("9999.9999.9999.999999"))).isEqualTo(0);
     assertThat(Version.create("9999.9999.9999.999999").compareTo(Version.create("9999.9999.9999.999998"))).isGreaterThan(0);
+
+    assertThat(Version.create("7.3-alpha1").compareTo(Version.create("7.3-alpha1"))).isEqualTo(0);
+    assertThat(Version.create("7.3-alpha1").compareTo(Version.create("7.3"))).isLessThan(0);
+    assertThat(Version.create("7.3-alpha1").compareTo(Version.create("7.3-alpha2"))).isLessThan(0);
+    assertThat(Version.create("7.3-alpha1").compareTo(Version.create("7.2"))).isGreaterThan(0);
+    assertThat(Version.create("7.3-alpha1").compareTo(Version.create("7.4"))).isLessThan(0);
+    assertThat(Version.create("7.3-alpha1").compareTo(Version.create("7.4-RC1"))).isLessThan(0);
   }
 
   @Test
