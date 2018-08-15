@@ -83,7 +83,7 @@ public class Version implements Comparable<Version> {
   public int compareTo(Version o) {
     int i = Long.compare(asNumber, o.asNumber);
     if (i == 0) {
-      i = qualifier.compareTo(o.qualifier);
+      i = qualifier.compareToIgnoreCase(o.qualifier);
     }
     return i;
   }
