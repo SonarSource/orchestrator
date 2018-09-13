@@ -28,6 +28,7 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
+import com.sonar.orchestrator.util.OrchestratorUtils;
 import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
@@ -42,6 +43,7 @@ import java.util.stream.Stream;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,9 +185,9 @@ public class ServerInstaller {
     properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
     setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
-    setIpv4IfNoJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
-    setIpv4IfNoJavaOptions(properties, "sonar.search.javaAdditionalOpts");
-    setIpv4IfNoJavaOptions(properties, "sonar.web.javaAdditionalOpts");
+    completeJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
+    completeJavaOptions(properties, "sonar.search.javaAdditionalOpts");
+    completeJavaOptions(properties, "sonar.web.javaAdditionalOpts");
 
     return properties;
   }
@@ -209,11 +211,15 @@ public class ServerInstaller {
     return webPort;
   }
 
-  private static void setIpv4IfNoJavaOptions(Properties properties, String propertyKey) {
-    String javaOpts = properties.getProperty(propertyKey);
-    if (javaOpts == null) {
-      properties.setProperty(propertyKey, "-Djava.net.preferIPv4Stack=true");
+  private static void completeJavaOptions(Properties properties, String propertyKey) {
+    String javaOpts = OrchestratorUtils.defaultIfEmpty(properties.getProperty(propertyKey), "");
+    if (!javaOpts.contains("-Djava.net.preferIPv4Stack")) {
+      javaOpts += " -Djava.net.preferIPv4Stack=true";
     }
+    if (!javaOpts.contains("-Djava.security.egd") && SystemUtils.IS_OS_LINUX) {
+      javaOpts += " -Djava.security.egd=file:/dev/./urandom";
+    }
+    properties.setProperty(propertyKey, javaOpts);
   }
 
   private static void setIfNotPresent(Properties properties, String key, String value) {
