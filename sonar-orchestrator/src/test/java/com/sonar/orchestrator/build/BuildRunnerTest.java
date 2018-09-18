@@ -64,7 +64,8 @@ public class BuildRunnerTest {
       entry("sonar.projectKey", "SAMPLE"),
       entry("sonar.host.url", "http://localhost:9000"),
       entry("language", "java"),
-      entry("sonar.scm.disabled", "true"));
+      entry("sonar.scm.disabled", "true"),
+      entry("sonar.branch.autoconfig.disabled", "true"));
   }
 
   @Test
@@ -87,7 +88,8 @@ public class BuildRunnerTest {
       entry("sonar.projectKey", "SAMPLE"),
       entry("sonar.host.url", "http://localhost:9000"),
       entry("language", "java"),
-      entry("sonar.scm.disabled", "true"));
+      entry("sonar.scm.disabled", "true"),
+      entry("sonar.branch.autoconfig.disabled", "true"));
   }
 
   @Test
