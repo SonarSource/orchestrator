@@ -53,6 +53,7 @@ public class BuildRunner {
         adjustedProperties.put(SONAR_HOST_URL, server.getUrl());
       }
       adjustedProperties.put("sonar.scm.disabled", "true");
+      adjustedProperties.put("sonar.branch.autoconfig.disabled", "true");
     }
     // build properties override predefined properties
     adjustedProperties.putAll(build.getProperties());
