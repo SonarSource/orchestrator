@@ -107,4 +107,11 @@ public class MavenLocationTest {
 
     assertThat(location.toString()).isEqualTo("[foo:bar:1.0:jar]");
   }
+
+  @Test
+  public void test_toString_with_classifier() {
+    MavenLocation location = MavenLocation.create("foo", "bar", "1.0", "amd");
+
+    assertThat(location.toString()).isEqualTo("[foo:bar:1.0:amd:jar]");
+  }
 }
