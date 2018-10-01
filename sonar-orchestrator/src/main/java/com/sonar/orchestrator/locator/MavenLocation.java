@@ -97,12 +97,21 @@ public class MavenLocation implements Location {
 
   @Override
   public String toString() {
-    return String.format("[%s:%s:%s:%s]", groupId, artifactId, version, packaging);
+    if (isEmpty(classifier)) {
+      return String.format("[%s:%s:%s:%s]", groupId, artifactId, version, packaging);
+    } else {
+      return String.format("[%s:%s:%s:%s:%s]", groupId, artifactId, version, classifier, packaging);
+    }
   }
 
   public static MavenLocation create(String groupId, String artifactId, String version) {
     return builder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).build();
   }
+
+  public static MavenLocation create(String groupId, String artifactId, String version, String classifier) {
+    return builder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).setClassifier(classifier).build();
+  }
+
 
   /**
    * @since 2.10.1. Shortcut for {@link #create(String, String, String)}
