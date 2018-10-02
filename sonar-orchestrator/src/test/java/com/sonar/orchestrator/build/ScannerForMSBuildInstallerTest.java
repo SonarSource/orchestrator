@@ -59,7 +59,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("MSBuild.SonarQube.Runner.exe");
-    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION);
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION+"-"+ScannerForMSBuildInstaller.NET_46);
 
     verify(locators, never()).locate(any(MavenLocation.class));
   }
@@ -112,7 +112,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
-    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-4.2.0.1214");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-4.2.0.1214"+"-"+ScannerForMSBuildInstaller.NET_46);
   }
 
   @Test
@@ -124,7 +124,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
-    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-4.2.0.1214");
+    assertThat(script.getParentFile().getName()).isEqualTo("sonar-scanner-msbuild-4.2.0.1214"+"-"+ScannerForMSBuildInstaller.NETCOREAPP_2_0);
   }
 
   @Test
