@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.sonarsource.orchestrator</groupId>
     <artifactId>orchestrator-parent</artifactId>
-    <version>3.22-SNAPSHOT</version>
+    <version>3.23-SNAPSHOT</version>
   </parent>
   <artifactId>echo</artifactId>
   <name>Echo Program</name>
