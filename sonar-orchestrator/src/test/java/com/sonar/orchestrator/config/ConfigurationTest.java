@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Rule;
@@ -113,6 +114,21 @@ public class ConfigurationTest extends PropertyAndEnvTest {
     Properties props = new Properties();
     props.setProperty("foo", "bar");
     props.setProperty("orchestrator.configUrl", url.toString());
+
+    Configuration config = Configuration.create(props);
+    assertThat(config.getString("foo")).isEqualTo("bar");
+    assertThat(config.getString("yes")).isEqualTo("true");
+    assertThat(config.getString("loadedFromFile")).isEqualTo("true");
+  }
+
+  @Test
+  public void loadPropertiesFileFromHomeByDefault() throws IOException {
+    URL url = getClass().getResource("/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
+    File homeDir = temp.newFolder();
+    FileUtils.copyURLToFile(url, new File(homeDir, "orchestrator.properties"));
+    Properties props = new Properties();
+    props.setProperty("foo", "bar");
+    props.setProperty("orchestrator.home", homeDir.toString());
 
     Configuration config = Configuration.create(props);
     assertThat(config.getString("foo")).isEqualTo("bar");
