@@ -23,6 +23,7 @@ import com.sonar.orchestrator.locator.ArtifactoryImpl;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -219,7 +220,11 @@ public class Configuration {
         .findFirst()
         .orElseGet(() -> {
           File file = new File(homeDir, "orchestrator.properties");
-          return file.exists() ? format("file://%s", file.getAbsolutePath()) : null;
+          try {
+            return file.exists() ? file.getAbsoluteFile().toURI().toURL().toString() : null;
+          } catch (MalformedURLException e) {
+            throw new IllegalStateException("Unable to read configuration file", e);
+          }
         });
 
       if (!isEmpty(configUrl)) {
