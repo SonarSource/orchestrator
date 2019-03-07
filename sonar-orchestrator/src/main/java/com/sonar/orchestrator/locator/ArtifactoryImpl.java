@@ -60,7 +60,7 @@ public class ArtifactoryImpl implements Artifactory {
 
   public static ArtifactoryImpl create(Configuration configuration) {
     File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
-    String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.sonarsource.com");
+    String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     return new ArtifactoryImpl(downloadTempDir, baseUrl, apiKey);
   }
