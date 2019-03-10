@@ -13,7 +13,7 @@
   <name>Orchestrator :: OSGI Bundle</name>
   
   <properties>
-    <sonar-ws.version>6.4</sonar-ws.version>
+    <sonar-ws.version>7.1</sonar-ws.version>
   </properties>
 
   <dependencies>
