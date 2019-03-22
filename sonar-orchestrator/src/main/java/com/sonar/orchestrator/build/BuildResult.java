@@ -22,8 +22,11 @@ package com.sonar.orchestrator.build;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class BuildResult {
 
@@ -37,6 +40,12 @@ public class BuildResult {
 
   public String getLogs() {
     return logs.toString();
+  }
+
+  public List<String> getLogsLines(Predicate<String> linePredicate) {
+    return Arrays.stream(logs.toString().split("\r?\n|\r"))
+      .filter(linePredicate)
+      .collect(Collectors.toList());
   }
 
   /**
