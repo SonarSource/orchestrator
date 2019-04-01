@@ -63,10 +63,10 @@ public class SonarScannerInstallerTest {
   @Test
   public void install_embedded_version() throws Exception {
     File toDir = temp.newFolder();
-    File script = installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
+    File script = installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, false);
 
     assertThat(script).isFile().exists();
-    assertThat(script.getName()).contains("sonar-runner");
+    assertThat(script.getName()).contains("sonar-scanner");
     assertThat(script.getParentFile().getName()).isEqualTo("bin");
     assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + SonarRunner.DEFAULT_SCANNER_VERSION);
 
@@ -127,8 +127,8 @@ public class SonarScannerInstallerTest {
   public void do_not_install_twice() throws Exception {
     File toDir = temp.newFolder();
 
-    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
-    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, true);
+    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, false);
+    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, false);
 
     verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), null, toDir);
   }

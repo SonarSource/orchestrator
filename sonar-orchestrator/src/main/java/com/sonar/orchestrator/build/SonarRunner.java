@@ -41,7 +41,7 @@ import static java.util.Objects.requireNonNull;
 @Deprecated
 public class SonarRunner extends Build<SonarRunner> {
 
-  public static final String DEFAULT_SCANNER_VERSION = "2.8";
+  public static final String DEFAULT_SCANNER_VERSION = "3.3.0.1492";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
   public static final String DEFAULT_SOURCE_ENCODING = "UTF-8";
   private static final Map<String, String> ENV_VARIABLES;
