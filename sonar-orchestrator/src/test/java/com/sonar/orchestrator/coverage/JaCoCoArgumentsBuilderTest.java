@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2018 SonarSource SA
+ * Copyright (C) 2011-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,18 +21,17 @@ package com.sonar.orchestrator.coverage;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

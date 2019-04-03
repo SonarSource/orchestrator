@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2018 SonarSource SA
+ * Copyright (C) 2011-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,9 +20,8 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.locator.FileLocation;
-import org.junit.Test;
-
 import java.io.File;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

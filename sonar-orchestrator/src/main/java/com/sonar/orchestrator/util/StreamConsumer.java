@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2018 SonarSource SA
+ * Copyright (C) 2011-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,9 @@
  */
 package com.sonar.orchestrator.util;
 
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.Writer;
+import org.slf4j.LoggerFactory;
 
 public interface StreamConsumer {
 

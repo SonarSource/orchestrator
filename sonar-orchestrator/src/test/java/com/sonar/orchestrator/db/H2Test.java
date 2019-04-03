@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2018 SonarSource SA
+ * Copyright (C) 2011-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,9 @@
  */
 package com.sonar.orchestrator.db;
 
+import java.io.File;
 import java.net.InetAddress;
 import org.junit.Test;
-
-import java.io.File;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;

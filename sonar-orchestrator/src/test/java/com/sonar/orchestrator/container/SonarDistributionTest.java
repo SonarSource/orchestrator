@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2018 SonarSource SA
+ * Copyright (C) 2011-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import java.util.Properties;
 import org.junit.Test;
 
+import static com.sonar.orchestrator.container.Edition.COMMUNITY;
 import static com.sonar.orchestrator.container.Edition.DATACENTER;
 import static com.sonar.orchestrator.container.Edition.ENTERPRISE;
-import static com.sonar.orchestrator.container.Edition.COMMUNITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SonarDistributionTest {
