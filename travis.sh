@@ -8,7 +8,6 @@ function configureTravis {
   source ~/.local/bin/install
 }
 configureTravis
-. installJDK8
 
 cancel_branch_build_with_pr || if [[ $? -eq 1 ]]; then exit 0; fi
 
