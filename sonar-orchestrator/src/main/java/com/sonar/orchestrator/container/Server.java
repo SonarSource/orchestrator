@@ -218,7 +218,7 @@ public class Server {
     newHttpCall("/api/projects/create")
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
-      .setParam("key", projectKey)
+      .setParam("project", projectKey)
       .setParam("name", projectName)
       .execute();
   }
