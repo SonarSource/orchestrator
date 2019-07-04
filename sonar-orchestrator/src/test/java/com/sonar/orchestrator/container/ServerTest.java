@@ -93,7 +93,7 @@ public class ServerTest {
     RecordedRequest receivedRequest = server.takeRequest();
     assertThat(receivedRequest.getMethod()).isEqualTo("POST");
     assertThat(receivedRequest.getPath()).isEqualTo("/api/projects/create");
-    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("key=foo&name=Foo");
+    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("project=foo&name=Foo");
   }
 
   private Server newServerForUrl(String url) {
