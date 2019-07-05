@@ -96,6 +96,19 @@ public class ServerTest {
     assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("project=foo&name=Foo");
   }
 
+  @Test
+  public void associateProjectToQualityProfile_sends_POST_request() throws Exception {
+    server.enqueue(new MockResponse());
+    Server underTest = newServerForUrl(this.server.url("").toString());
+
+    underTest.associateProjectToQualityProfile("foo", "bar", "baz");
+
+    RecordedRequest receivedRequest = server.takeRequest();
+    assertThat(receivedRequest.getMethod()).isEqualTo("POST");
+    assertThat(receivedRequest.getPath()).isEqualTo("/api/qualityprofiles/add_project");
+    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("project=foo&language=bar&qualityProfile=baz");
+  }
+
   private Server newServerForUrl(String url) {
     return new Server(mock(Locators.class), mock(File.class), Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse(url));
   }
