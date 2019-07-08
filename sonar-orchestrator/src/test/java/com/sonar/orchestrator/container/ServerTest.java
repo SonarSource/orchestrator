@@ -93,7 +93,20 @@ public class ServerTest {
     RecordedRequest receivedRequest = server.takeRequest();
     assertThat(receivedRequest.getMethod()).isEqualTo("POST");
     assertThat(receivedRequest.getPath()).isEqualTo("/api/projects/create");
-    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("key=foo&name=Foo");
+    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("project=foo&name=Foo");
+  }
+
+  @Test
+  public void associateProjectToQualityProfile_sends_POST_request() throws Exception {
+    server.enqueue(new MockResponse());
+    Server underTest = newServerForUrl(this.server.url("").toString());
+
+    underTest.associateProjectToQualityProfile("foo", "bar", "baz");
+
+    RecordedRequest receivedRequest = server.takeRequest();
+    assertThat(receivedRequest.getMethod()).isEqualTo("POST");
+    assertThat(receivedRequest.getPath()).isEqualTo("/api/qualityprofiles/add_project");
+    assertThat(receivedRequest.getBody().readUtf8()).isEqualTo("project=foo&language=bar&qualityProfile=baz");
   }
 
   private Server newServerForUrl(String url) {

@@ -218,7 +218,7 @@ public class Server {
     newHttpCall("/api/projects/create")
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
-      .setParam("key", projectKey)
+      .setParam("project", projectKey)
       .setParam("name", projectName)
       .execute();
   }
@@ -260,9 +260,9 @@ public class Server {
     newHttpCall("/api/qualityprofiles/add_project")
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
-      .setParam("projectKey", projectKey)
+      .setParam("project", projectKey)
       .setParam("language", languageKey)
-      .setParam("profileName", profileName)
+      .setParam("qualityProfile", profileName)
       .execute();
   }
 }
