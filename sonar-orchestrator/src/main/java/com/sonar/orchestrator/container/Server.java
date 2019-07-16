@@ -33,10 +33,6 @@ import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.sonar.wsclient.Host;
-import org.sonar.wsclient.Sonar;
-import org.sonar.wsclient.SonarClient;
-import org.sonar.wsclient.connectors.HttpClient4Connector;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -49,10 +45,6 @@ public class Server {
   private final Edition edition;
   private final Version version;
   private HttpUrl url;
-  private Sonar wsClient;
-  private Sonar adminWsClient;
-  private SonarClient sonarClient;
-  private SonarClient adminSonarClient;
 
   public Server(Locators locators, File home, Edition edition, Version version, HttpUrl url) {
     this.locators = locators;
@@ -131,65 +123,6 @@ public class Server {
 
   private File getLogFile(String logFile) {
     return FileUtils.getFile(home, "logs", logFile);
-  }
-
-  /**
-   * @deprecated in 3.15. Instantiate your own client configured with {@link #getUrl()}
-   * or use {@link #newHttpCall(String)}
-   */
-  @Deprecated
-  public Sonar getWsClient() {
-    if (wsClient == null && url != null) {
-      wsClient = new Sonar(new HttpClient4Connector(new Host(getUrl())));
-    }
-    return wsClient;
-  }
-
-  /**
-   * @since 2.10
-   * @deprecated in 3.15. Instantiate your own client configured with {@link #getUrl()}
-   * or use {@link #newHttpCall(String)}
-   */
-  @Deprecated
-  public SonarClient wsClient() {
-    if (sonarClient == null && url != null) {
-      sonarClient = SonarClient.create(getUrl());
-    }
-    return sonarClient;
-  }
-
-  /**
-   * @since 2.10
-   * @deprecated in 3.15. Instantiate your own client configured with {@link #getUrl()}
-   * or use {@link #newHttpCall(String)}
-   */
-  @Deprecated
-  public SonarClient wsClient(String login, String password) {
-    return SonarClient.builder().url(getUrl()).login(login).password(password).build();
-  }
-
-  /**
-   * @deprecated in 3.15. Instantiate your own client configured with {@link #getUrl()}
-   * or use {@link #newHttpCall(String)}
-   */
-  @Deprecated
-  public Sonar getAdminWsClient() {
-    if (adminWsClient == null && url != null) {
-      adminWsClient = new Sonar(new HttpClient4Connector(new Host(getUrl(), ADMIN_LOGIN, ADMIN_PASSWORD)));
-    }
-    return adminWsClient;
-  }
-
-  /**
-   * @deprecated in 3.15. Instantiate your own client configured with {@link #getUrl()}
-   * or use {@link #newHttpCall(String)}
-   */
-  @Deprecated
-  public SonarClient adminWsClient() {
-    if (adminSonarClient == null && url != null) {
-      adminSonarClient = wsClient(ADMIN_LOGIN, ADMIN_PASSWORD);
-    }
-    return adminSonarClient;
   }
 
   /**

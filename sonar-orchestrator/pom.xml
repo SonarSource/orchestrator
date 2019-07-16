@@ -23,11 +23,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.sonar</groupId>
-      <artifactId>sonar-ws-client</artifactId>
-      <version>${sonarWsClient.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
       <version>${okhttp.version}</version>
