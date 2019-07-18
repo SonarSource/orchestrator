@@ -75,13 +75,6 @@ public class Orchestrator extends SingleStartExternalResource {
     this.startupLogWatcher = startupLogWatcher;
   }
 
-  public static OrchestratorBuilder builderEnv() {
-    return new OrchestratorBuilder(Configuration.createEnv());
-  }
-
-  public static OrchestratorBuilder builder(Configuration config) {
-    return new OrchestratorBuilder(config);
-  }
 
   @Override
   protected void beforeAll() {
@@ -293,5 +286,12 @@ public class Orchestrator extends SingleStartExternalResource {
     if (distribution.isActivateLicense()) {
       activateLicense();
     }
+  }
+  public static OrchestratorBuilder builderEnv() {
+    return new OrchestratorBuilder(Configuration.createEnv());
+  }
+
+  public static OrchestratorBuilder builder(Configuration config) {
+    return new OrchestratorBuilder(config);
   }
 }

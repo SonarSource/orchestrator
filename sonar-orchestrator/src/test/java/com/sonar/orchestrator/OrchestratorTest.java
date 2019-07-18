@@ -38,7 +38,7 @@ public class OrchestratorTest {
 
   @Test
   public void test_reset_data() throws SQLException {
-    underTest.getServer().provisionProject("toto", "toto");
+    underTest.getServer().provisionProject("projectKey", "projectName");
     assertThat(countProject()).isEqualTo(1);
 
     underTest.resetData();
