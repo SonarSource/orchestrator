@@ -45,10 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.wsclient.SonarClient;
 
-import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
-import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -77,6 +74,7 @@ public class Orchestrator extends SingleStartExternalResource {
     this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
   }
+
 
   @Override
   protected void beforeAll() {
@@ -278,21 +276,17 @@ public class Orchestrator extends SingleStartExternalResource {
   @Deprecated
   public void resetData() {
     LOG.info("Reset data");
-    // temporary increase timeout - experimental test for SonarSource environment
-    SonarClient client = SonarClient.builder()
-      .url(server.getUrl())
-      .login(ADMIN_LOGIN)
-      .password(ADMIN_PASSWORD)
-      .connectTimeoutMilliseconds(300_000)
-      .readTimeoutMilliseconds(600_000).build();
-    client.post("/api/orchestrator/reset");
+
+    server.newHttpCall("api/orchestrator/reset")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials()
+      .execute();
 
     // api/orchestrator/reset will clear the license, so reinstall it
     if (distribution.isActivateLicense()) {
       activateLicense();
     }
   }
-
   public static OrchestratorBuilder builderEnv() {
     return new OrchestratorBuilder(Configuration.createEnv());
   }
