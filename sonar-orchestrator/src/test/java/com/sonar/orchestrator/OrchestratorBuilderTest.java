@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorBuilderTest {
 
-  private static final String LTS_ALIAS = "LATEST_RELEASE[6.7]";
+  private static final String LTS_ALIAS = "LATEST_RELEASE[7.9]";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -65,7 +65,7 @@ public class OrchestratorBuilderTest {
       orchestrator.start();
 
       verifyWebContext(orchestrator, "");
-      assertThat(orchestrator.getServer().version().toString()).startsWith("6.7.");
+      assertThat(orchestrator.getServer().version().toString()).startsWith("7.9.");
       Map<String, String> pluginVersions = loadInstalledPluginVersions(orchestrator);
       System.out.println(pluginVersions);
       assertThat(pluginVersions.get("xml")).isEqualTo("1.5 (build 1373)");
@@ -85,7 +85,7 @@ public class OrchestratorBuilderTest {
       .build();
     orchestrator.install();
 
-    assertThat(orchestrator.getServer().version().toString()).startsWith("6.7.");
+    assertThat(orchestrator.getServer().version().toString()).startsWith("7.9.");
     assertThat(orchestrator.getServer().getEdition()).isEqualTo(Edition.COMMUNITY);
     File pluginsDir = new File(orchestrator.getServer().getHome(), "lib/bundled-plugins");
     assertThat(FileUtils.listFiles(pluginsDir, new String[]{"jar"}, false)).isNotEmpty();
