@@ -70,6 +70,10 @@ public class SonarScanner extends SonarRunner {
     return (SonarScanner) super.setRunnerVersion(s);
   }
 
+  public SonarScanner setOrganization(String organizationKey) {
+    return setProperty("sonar.organization", organizationKey);
+  }
+
   /**
    * @since 3.11
    */

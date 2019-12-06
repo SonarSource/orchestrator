@@ -152,6 +152,14 @@ public class SonarScannerTest {
   }
 
   @Test
+  public void setOrganization() {
+    SonarScanner underTest = SonarScanner.create()
+      .setOrganization("org123");
+
+    assertThat(underTest.getProperty("sonar.organization")).isEqualTo("org123");
+  }
+
+  @Test
   public void environment_variables() {
     SonarScanner build = SonarScanner.create();
 
