@@ -47,7 +47,7 @@ public class SynchronousAnalyzerTest {
     webServer.enqueue(new MockResponse().setBody("false"));
     webServer.enqueue(new MockResponse().setBody("true"));
 
-    Server server = new Server(null, null, Edition.COMMUNITY, Version.create("7.3.0.1000"), webServer.url(""));
+    Server server = new Server(null, null, Edition.COMMUNITY, Version.create("7.3.0.1000"), webServer.url(""), 9001);
     new SynchronousAnalyzer(server, 1L, 2).waitForDone();
 
     // fast enough to finish before junit timeout

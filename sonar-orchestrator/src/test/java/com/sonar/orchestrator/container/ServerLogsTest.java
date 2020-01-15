@@ -42,7 +42,7 @@ public class ServerLogsTest {
   @Before
   public void setUp() throws Exception {
     home = temporaryFolder.newFolder();
-    server = new Server(locators, home, Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse("http://localhost"));
+    server = new Server(locators, home, Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse("http://localhost"), 9001);
   }
 
   @Test

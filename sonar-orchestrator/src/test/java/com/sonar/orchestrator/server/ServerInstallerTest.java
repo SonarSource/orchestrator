@@ -119,17 +119,29 @@ public class ServerInstallerTest {
   }
 
   @Test
+  public void use_random_search_port_on_loopback_address_if_not_defined() throws Exception {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
+
+    assertThat(server.getSearchPort()).isGreaterThan(1023);
+  }
+
+  @Test
   public void web_server_is_configured_through_sonar_properties() throws Exception {
     prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
     SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_4_5_6);
     distribution
       .setServerProperty("sonar.web.port", "9999")
-      .setServerProperty("sonar.web.context", "/foo");
+      .setServerProperty("sonar.web.context", "/foo")
+      .setServerProperty("sonar.search.port", "6666")
+    ;
     Server server = newInstaller().install(distribution);
 
     URL serverUrl = new URL(server.getUrl());
     assertThat(serverUrl.getPort()).isEqualTo(9999);
     assertThat(serverUrl.getPath()).isEqualTo("/foo");
+    assertThat(server.getSearchPort()).isEqualTo(6666);
   }
 
   @Test
