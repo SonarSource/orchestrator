@@ -44,14 +44,16 @@ public class Server {
   private final File home;
   private final Edition edition;
   private final Version version;
-  private HttpUrl url;
+  private final HttpUrl url;
+  private final int searchPort;
 
-  public Server(Locators locators, File home, Edition edition, Version version, HttpUrl url) {
+  public Server(Locators locators, File home, Edition edition, Version version, HttpUrl url, int searchPort) {
     this.locators = locators;
     this.home = home;
     this.edition = edition;
     this.version = version;
     this.url = url;
+    this.searchPort = searchPort;
   }
 
   public File getHome() {
@@ -123,6 +125,10 @@ public class Server {
 
   private File getLogFile(String logFile) {
     return FileUtils.getFile(home, "logs", logFile);
+  }
+
+  public int getSearchPort() {
+    return searchPort;
   }
 
   /**

@@ -23,6 +23,7 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.util.Random;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -47,6 +48,8 @@ public class ServerTest {
   @Rule
   public MockWebServer server = new MockWebServer();
 
+  int randomPort = 1 + new Random().nextInt(49152);
+
   @Test
   public void getUrl_does_not_return_trailing_slash() {
     Server underTest = newServerForUrl("http://localhost:9999/sonarqube");
@@ -60,6 +63,13 @@ public class ServerTest {
   }
 
   @Test
+  public void getSearchPort_returns_constructor_parameter() {
+    Server server = newServerForUrl(randomPort);
+
+    assertThat(server.getSearchPort()).isEqualTo(randomPort);
+  }
+
+  @Test
   public void restoreProfile_sends_POST_request() throws Exception {
     File backup = temp.newFile();
     FileUtils.write(backup, "<backup/>");
@@ -69,7 +79,7 @@ public class ServerTest {
     Locators locators = mock(Locators.class);
     when(locators.openInputStream(any())).thenReturn(FileUtils.openInputStream(backup));
     Server underTest = new Server(locators, home, Edition.COMMUNITY, Version.create("6.3.0.1234"),
-      HttpUrl.parse(this.server.url("").toString()));
+      HttpUrl.parse(this.server.url("").toString()), randomPort);
 
     underTest.restoreProfile(FileLocation.of(backup));
 
@@ -110,7 +120,15 @@ public class ServerTest {
   }
 
   private Server newServerForUrl(String url) {
-    return new Server(mock(Locators.class), mock(File.class), Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse(url));
+    return newServerForUrl(url, randomPort);
+  }
+
+  private Server newServerForUrl(int searchPort) {
+    return newServerForUrl("", searchPort);
+  }
+
+  private Server newServerForUrl(String url, int searchPort) {
+    return new Server(mock(Locators.class), mock(File.class), Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse(url), searchPort);
   }
 
 }
