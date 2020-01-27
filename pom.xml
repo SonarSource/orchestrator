@@ -9,7 +9,7 @@
   </parent>
   <groupId>org.sonarsource.orchestrator</groupId>
   <artifactId>orchestrator-parent</artifactId>
-  <version>3.28-SNAPSHOT</version>
+  <version>3.29-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Orchestrator :: Parent</name>
   <inceptionYear>2011</inceptionYear>
