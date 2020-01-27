@@ -24,6 +24,7 @@ import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Random;
+import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -70,6 +71,16 @@ public class ServerTest {
   }
 
   @Test
+  public void getClusterNodeName_returns_constructor_parameter() {
+    Server standaloneServer = newServerForClusterNodeName(null);
+    assertThat(standaloneServer.getClusterNodeName()).isEmpty();
+
+    String nodeName = "fooBar";
+    Server clusterServer = newServerForClusterNodeName(nodeName);
+    assertThat(clusterServer.getClusterNodeName()).contains(nodeName);
+  }
+
+  @Test
   public void restoreProfile_sends_POST_request() throws Exception {
     File backup = temp.newFile();
     FileUtils.write(backup, "<backup/>");
@@ -79,7 +90,7 @@ public class ServerTest {
     Locators locators = mock(Locators.class);
     when(locators.openInputStream(any())).thenReturn(FileUtils.openInputStream(backup));
     Server underTest = new Server(locators, home, Edition.COMMUNITY, Version.create("6.3.0.1234"),
-      HttpUrl.parse(this.server.url("").toString()), randomPort);
+      HttpUrl.parse(this.server.url("").toString()), randomPort, null);
 
     underTest.restoreProfile(FileLocation.of(backup));
 
@@ -120,15 +131,19 @@ public class ServerTest {
   }
 
   private Server newServerForUrl(String url) {
-    return newServerForUrl(url, randomPort);
+    return newServerForUrl(url, randomPort, null);
   }
 
   private Server newServerForUrl(int searchPort) {
-    return newServerForUrl("", searchPort);
+    return newServerForUrl("", searchPort, null);
   }
 
-  private Server newServerForUrl(String url, int searchPort) {
-    return new Server(mock(Locators.class), mock(File.class), Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse(url), searchPort);
+  private Server newServerForClusterNodeName(@Nullable String clusterNodeName) {
+    return newServerForUrl("", randomPort, clusterNodeName);
+  }
+
+  private Server newServerForUrl(String url, int searchPort, @Nullable String clusterNodeName) {
+    return new Server(mock(Locators.class), mock(File.class), Edition.COMMUNITY, Version.create("7.3.0.1000"), HttpUrl.parse(url), searchPort, clusterNodeName);
   }
 
 }

@@ -60,6 +60,7 @@ public class ServerInstaller {
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
   private static final String SEARCH_PORT_PROPERTY = "sonar.search.port";
+  private static final String SONAR_CLUSTER_NODE_NAME = "sonar.cluster.node.name";
   private static final String ALL_IPS_HOST = "0.0.0.0";
 
   private final PackagingResolver packagingResolver;
@@ -88,7 +89,9 @@ public class ServerInstaller {
     String host = properties.getProperty(WEB_HOST_PROPERTY);
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
     String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY)));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
+            Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY)),
+            (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
   private File unzip(Packaging packaging) {
