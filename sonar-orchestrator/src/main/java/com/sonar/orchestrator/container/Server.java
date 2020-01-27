@@ -29,6 +29,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -46,14 +49,17 @@ public class Server {
   private final Version version;
   private final HttpUrl url;
   private final int searchPort;
+  @CheckForNull
+  private final String clusterNodeName;
 
-  public Server(Locators locators, File home, Edition edition, Version version, HttpUrl url, int searchPort) {
+  public Server(Locators locators, File home, Edition edition, Version version, HttpUrl url, int searchPort, @Nullable String clusterNodeName) {
     this.locators = locators;
     this.home = home;
     this.edition = edition;
     this.version = version;
     this.url = url;
     this.searchPort = searchPort;
+    this.clusterNodeName = clusterNodeName;
   }
 
   public File getHome() {
@@ -129,6 +135,10 @@ public class Server {
 
   public int getSearchPort() {
     return searchPort;
+  }
+
+  public Optional<String> getClusterNodeName() {
+    return Optional.ofNullable(clusterNodeName);
   }
 
   /**

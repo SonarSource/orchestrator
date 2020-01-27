@@ -32,7 +32,7 @@ public class StartupLogListenerTest {
   @Test
   public void isStarted_returns_true_as_soon_as_startup_log_is_displayed() {
     when(watcher.isStarted("Process[web] is up")).thenReturn(true);
-    StartupLogListener underTest = new StartupLogListener(watcher);
+    StartupLogListener underTest = new StartupLogListener(watcher, null);
 
     assertThat(underTest.isStarted()).isFalse();
 

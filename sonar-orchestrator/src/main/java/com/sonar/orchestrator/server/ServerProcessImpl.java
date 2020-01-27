@@ -90,7 +90,7 @@ public class ServerProcessImpl implements ServerProcess {
     executor.setWatchdog(new ExecuteWatchdog(-1L));
     executor.setWorkingDirectory(server.getHome());
 
-    StartupLogListener listener = new StartupLogListener(startupLogWatcher);
+    StartupLogListener listener = new StartupLogListener(startupLogWatcher, server.getClusterNodeName().orElse(null));
     executor.setStreamHandler(new PumpStreamHandler(listener));
     processResultHandler = new DefaultExecuteResultHandler();
     try {
