@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class LicensesTest {
 
@@ -41,41 +42,14 @@ public class LicensesTest {
   public ExpectedException expectedException = ExpectedException.none();
 
   @Test
-  public void download_dev_license_before_7_2() throws Exception {
+  public void getLicense_should_fail_if_version_less_than_7_9() throws Exception {
     Licenses underTest = newLicenses(true);
-    github.enqueue(new MockResponse().setBody("dev1234"));
 
-    Version version = Version.create("6.7.0.10000");
-    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
-    verifyRequested("/master/it/dev.txt");
+    Throwable thrown = catchThrowable(() -> underTest.getLicense(Edition.DEVELOPER, Version.create("7.2.0.10000")));
+    assertThat(thrown).hasMessage("Commercial licenses of SonarQube 7.2.0.10000 are no longer supported").isInstanceOf(IllegalArgumentException.class);
 
-    // kept in cache
-    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("dev1234");
-    assertThat(github.getRequestCount()).isEqualTo(1);
-
-    // same license for another editions
-    assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("dev1234");
-    assertThat(underTest.getLicense(Edition.DATACENTER, version)).isEqualTo("dev1234");
-    assertThat(github.getRequestCount()).isEqualTo(1);
-  }
-
-  @Test
-  public void download_edition_license_since_7_2() throws Exception {
-    Licenses underTest = newLicenses(true);
-    github.enqueue(new MockResponse().setBody("de1234"));
-    github.enqueue(new MockResponse().setBody("ee1234"));
-
-    Version version = Version.create("7.2.0.10000");
-    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
-    verifyRequested("/master/edition_testing/de.txt");
-
-    // kept in cache
-    assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("de1234");
-    assertThat(github.getRequestCount()).isEqualTo(1);
-
-    // request another edition
-    assertThat(underTest.getLicense(Edition.ENTERPRISE, version)).isEqualTo("ee1234");
-    verifyRequested("/master/edition_testing/ee.txt");
+    thrown = catchThrowable(() -> underTest.getLicense(Edition.DEVELOPER, Version.create("6.7")));
+    assertThat(thrown).hasMessage("Commercial licenses of SonarQube 6.7 are no longer supported").isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -83,7 +57,7 @@ public class LicensesTest {
     Licenses underTest = newLicenses(true);
     github.enqueue(new MockResponse().setBody("-----\nheader\n----\nabcde\n\r\n"));
 
-    Version version = Version.create("7.2.0.10000");
+    Version version = Version.create("7.9.0.10000");
     assertThat(underTest.getLicense(Edition.DEVELOPER, version)).isEqualTo("abcde");
   }
 
@@ -92,9 +66,9 @@ public class LicensesTest {
     github.enqueue(new MockResponse().setResponseCode(404));
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + github.getPort() + "/master/it/dev.txt] returned code [404]");
+    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + github.getPort() + "/master/edition_testing/de.txt] returned code [404]");
 
-    newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
+    newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("8.0.0.10000"));
   }
 
   @Test
@@ -102,9 +76,9 @@ public class LicensesTest {
     github.shutdown();
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Can not call http://localhost:" + github.getPort() + "/master/it/dev.txt due to network failure");
+    expectedException.expectMessage("Can not call http://localhost:" + github.getPort() + "/master/edition_testing/de.txt due to network failure");
 
-    newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
+    newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("8.0.0.10000"));
   }
 
   @Test
@@ -112,7 +86,7 @@ public class LicensesTest {
     expectedException.expect(RuntimeException.class);
     expectedException.expectMessage("Please provide your GitHub token with the property github.token or the env variable GITHUB_TOKEN");
 
-    newLicenses(false).getLicense(Edition.DEVELOPER, Version.create("6.7.0.10000"));
+    newLicenses(false).getLicense(Edition.DEVELOPER, Version.create("8.0.0.10000"));
   }
 
   private Licenses newLicenses(boolean withGithubToken) {
