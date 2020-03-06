@@ -40,7 +40,6 @@ public class Licenses {
   private final Configuration configuration;
   private final String baseUrl;
   private final Map<Edition, String> licensesPerEdition = new EnumMap<>(Edition.class);
-  private String devLicense = null;
 
   Licenses(Configuration configuration, String baseUrl) {
     this.configuration = configuration;
@@ -52,30 +51,26 @@ public class Licenses {
   }
 
   public String getLicense(Edition edition, Version version) {
-    if (version.isGreaterThanOrEquals(7,2)) {
-      return licensesPerEdition.computeIfAbsent(edition, e -> {
-        String filename;
-        switch (e) {
-          case DEVELOPER:
-            filename = "de.txt";
-            break;
-          case ENTERPRISE:
-            filename = "ee.txt";
-            break;
-          case DATACENTER:
-            filename = "dce.txt";
-            break;
-          default:
-            throw new IllegalStateException("License does not exist for edition " + e);
-        }
-        return download(baseUrl + "master/edition_testing/" + filename);
-      });
+    if (!version.isGreaterThanOrEquals(7, 9)) {
+      throw new IllegalArgumentException(String.format("Commercial licenses of SonarQube %s are no longer supported", version));
     }
-
-    if (devLicense == null) {
-      devLicense = download(baseUrl + "master/it/dev.txt");
-    }
-    return devLicense;
+    return licensesPerEdition.computeIfAbsent(edition, e -> {
+      String filename;
+      switch (e) {
+        case DEVELOPER:
+          filename = "de.txt";
+          break;
+        case ENTERPRISE:
+          filename = "ee.txt";
+          break;
+        case DATACENTER:
+          filename = "dce.txt";
+          break;
+        default:
+          throw new IllegalStateException("License does not exist for edition " + e);
+      }
+      return download(baseUrl + "master/edition_testing/" + filename);
+    });
   }
 
   private String download(String url) {

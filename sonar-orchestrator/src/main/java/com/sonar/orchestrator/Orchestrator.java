@@ -106,7 +106,7 @@ public class Orchestrator extends SingleStartExternalResource {
 
   /**
    * Install ans start SonarQube.
-   *
+   * <p>
    * Steps are:
    * 1/ connect to db
    * 2/ download an install SonarQube server
@@ -157,21 +157,13 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   private void configureLicense(@Nullable String license) {
-    if (server.version().isGreaterThanOrEquals(7, 2)) {
-      HttpCall httpCall = server.newHttpCall(license == null ? "api/editions/unset_license" : "api/editions/set_license")
-        .setMethod(HttpMethod.POST)
-        .setAdminCredentials();
-      if (license != null) {
-        httpCall.setParam("license", license);
-      }
-      httpCall.execute();
-    } else {
-      server.newHttpCall("api/license/update_dev")
-        .setMethod(HttpMethod.POST)
-        .setAdminCredentials()
-        .setParam("license", license)
-        .execute();
+    HttpCall httpCall = server.newHttpCall(license == null ? "api/editions/unset_license" : "api/editions/set_license")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials();
+    if (license != null) {
+      httpCall.setParam("license", license);
     }
+    httpCall.execute();
   }
 
   /**
@@ -271,6 +263,7 @@ public class Orchestrator extends SingleStartExternalResource {
 
   /**
    * Reset inspection measures and some other data (manual rules, etc.)
+   *
    * @deprecated in 3.16. Tests should use web services to clean-up state.
    */
   @Deprecated
@@ -287,6 +280,7 @@ public class Orchestrator extends SingleStartExternalResource {
       activateLicense();
     }
   }
+
   public static OrchestratorBuilder builderEnv() {
     return new OrchestratorBuilder(Configuration.createEnv());
   }
