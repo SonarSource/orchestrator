@@ -51,7 +51,6 @@
             </Import-Package>
             <_exportcontents>
               com.sonar.orchestrator.*;version="${project.version}",
-              org.sonar.wsclient.*;version="${sonarWsClient.version}",
               org.sonarqube.ws.*;version="${sonar-ws.version}",
               org.sonarqube.ws.client.*;version="${sonar-ws.version}"
             </_exportcontents>
