@@ -56,14 +56,14 @@ public class ScannerForMSBuildExecutorTest {
     props.put("sonar.jdbc.dialect", "h2");
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(eq(Version.create("2.2")), eq(null), any(File.class), eq(false), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
+    when(installer.install(eq(Version.create("2.2")), eq(null), any(File.class), eq(false))).thenReturn(new File("SonarScanner.MSBuild.exe"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
     new ScannerForMSBuildExecutor().execute(build, Configuration.create(), props, installer, executor);
 
     verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
-      && c.toCommandLine().contains("SonarQube.Scanner.MSBuild.exe")
+      && c.toCommandLine().contains("SonarScanner.MSBuild.exe")
       && c.toCommandLine().contains("/d:sonar.verbose=true")
       && c.toCommandLine().contains("/k:SAMPLE")
       && c.toCommandLine().contains("/n:Name")
@@ -83,7 +83,7 @@ public class ScannerForMSBuildExecutorTest {
       .setScannerVersion("4.1.0.1148");
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(eq(Version.create("4.1.0.1148")), eq(null), any(File.class), eq(false), eq(true))).thenReturn(new File("SonarScanner.MSBuild.dll"));
+    when(installer.install(eq(Version.create("4.1.0.1148")), eq(null), any(File.class), eq(true))).thenReturn(new File("SonarScanner.MSBuild.dll"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -110,7 +110,7 @@ public class ScannerForMSBuildExecutorTest {
       .setScannerVersion("4.1.0.1148");
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(eq(Version.create("4.1.0.1148")), eq(null), any(File.class), eq(false), eq(true))).thenReturn(new File("SonarScanner.MSBuild.dll"));
+    when(installer.install(eq(Version.create("4.1.0.1148")), eq(null), any(File.class), eq(true))).thenReturn(new File("SonarScanner.MSBuild.dll"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -134,13 +134,13 @@ public class ScannerForMSBuildExecutorTest {
     Map<String, String> props = new TreeMap<>();
 
     ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
-    when(installer.install(isNull(), isNull(), any(), eq(false), eq(false))).thenReturn(new File("SonarQube.Scanner.MSBuild.exe"));
+    when(installer.install(isNull(), isNull(), any(), eq(false))).thenReturn(new File("SonarScanner.MSBuild.exe"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(), anyLong())).thenReturn(2);
 
     new ScannerForMSBuildExecutor().execute(build, Configuration.create(), props, installer, executor);
 
     verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
-      && c.toCommandLine().contains("SonarQube.Scanner.MSBuild.exe")), any(), eq(30000L));
+      && c.toCommandLine().contains("SonarScanner.MSBuild.exe")), any(), eq(30000L));
   }
 }

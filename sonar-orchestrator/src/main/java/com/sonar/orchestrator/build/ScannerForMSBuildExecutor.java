@@ -43,7 +43,6 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
       build.scannerVersion(),
       build.getLocation(),
       config.fileSystem().workspace(),
-      build.isUseOldRunnerScript(),
       build.isUsingDotNetCore());
     try {
       Command command = createCommand(build, adjustedProperties, runnerScript);
@@ -54,7 +53,7 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
       return result;
 
     } catch (Exception e) {
-      throw new IllegalStateException("Fail to execute SonarQube Scanner", e);
+      throw new IllegalStateException("Fail to execute SonarScanner for MSBuild", e);
     }
   }
 
