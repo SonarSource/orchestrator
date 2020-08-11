@@ -131,12 +131,14 @@ public class ScannerForMSBuildInstaller {
   }
 
   private File locateZip(Version scannerVersion, boolean useDotNetCore) {
+    String zipFileName = String.format("sonar-scanner-msbuild-%s", scannerVersion.toString());
+    zipFileName = useDotNetCore ? String.format("%s-%s", zipFileName, NETCOREAPP_2_0) : String.format("%s-%s", zipFileName, NET_46);
     File zipFile = null;
-    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + scannerVersion.toString() + ".zip");
+    URL zip = ScannerForMSBuildInstaller.class.getResource(String.format("/com/sonar/orchestrator/build/%s%s", zipFileName, ".zip"));
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
-        zipFile = File.createTempFile("sonar-scanner-msbuild-" + scannerVersion, "zip");
+        zipFile = File.createTempFile(zipFileName, "zip");
         FileUtils.copyURLToFile(zip, zipFile);
       } catch (Exception e) {
         throw new IllegalStateException("Fail to unzip " + zip + " to " + zipFile, e);

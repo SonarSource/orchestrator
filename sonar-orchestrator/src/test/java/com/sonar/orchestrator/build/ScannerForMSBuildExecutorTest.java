@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.util.Command;
+import com.sonar.orchestrator.util.CommandException;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import com.sonar.orchestrator.version.Version;
@@ -28,7 +29,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -40,6 +43,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ScannerForMSBuildExecutorTest {
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Test
   public void execute_command() {
@@ -124,6 +130,24 @@ public class ScannerForMSBuildExecutorTest {
         && commandLine.contains("/k:SAMPLE")
         && commandLine.contains("/n:Name");
     }), any(StreamConsumer.class), eq(30000L));
+  }
+
+  @Test
+  public void execute_command_throws_any_exception_should_throw_ISE() {
+    expectedException.expect(IllegalStateException.class);
+    expectedException.expectMessage("Fail to execute SonarScanner for MSBuild");
+
+    ScannerForMSBuild build = ScannerForMSBuild.create()
+      .setProjectDir(new File("."))
+      .setTimeoutSeconds(30);
+    Map<String, String> props = new TreeMap<>();
+
+    ScannerForMSBuildInstaller installer = mock(ScannerForMSBuildInstaller.class);
+    when(installer.install(isNull(), isNull(), any(), eq(false))).thenReturn(new File("SonarScanner.MSBuild.exe"));
+    CommandExecutor executor = mock(CommandExecutor.class);
+    when(executor.execute(any(Command.class), any(), anyLong())).thenThrow(new CommandException(mock(Command.class), new Exception("Error")));
+
+    new ScannerForMSBuildExecutor().execute(build, Configuration.create(), props, installer, executor);
   }
 
   @Test
