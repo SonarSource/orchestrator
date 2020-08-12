@@ -45,7 +45,7 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
  * @since 3.13
  */
 public class ScannerForMSBuildInstaller {
-  public static final String DEFAULT_SCANNER_VERSION = "2.2.0.24";
+  public static final String DEFAULT_SCANNER_VERSION = "4.10.0.19059";
 
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuildInstaller.class);
   public static final String NETCOREAPP_2_0 = "netcoreapp2.0";
@@ -60,17 +60,17 @@ public class ScannerForMSBuildInstaller {
   /**
    * Installs an ephemeral Scanner for MSBuild and returns the path to the exe to execute
    */
-  public File install(@Nullable Version scannerVersion, @Nullable Location location, File toDir, boolean useOldScript, boolean useDotNetCore) {
+  public File install(@Nullable Version scannerVersion, @Nullable Location location, File toDir, boolean useDotNetCore) {
     if (location != null) {
-      return install(location, toDir, useOldScript, useDotNetCore);
+      return installFromLocation(location, toDir, useDotNetCore);
     } else if (scannerVersion != null) {
-      return install(scannerVersion, toDir, useOldScript, useDotNetCore);
+      return install(scannerVersion, toDir, useDotNetCore);
     } else {
-      return install(Version.create(DEFAULT_SCANNER_VERSION), toDir, useOldScript, useDotNetCore);
+      return install(Version.create(DEFAULT_SCANNER_VERSION), toDir, useDotNetCore);
     }
   }
 
-  private File install(Location location, File toDir, boolean useOldScript, boolean useDotNetCore) {
+  private File installFromLocation(Location location, File toDir, boolean useDotNetCore) {
     clearCachedSnapshot(null, toDir, useDotNetCore);
     if (!isInstalled(null, toDir, useDotNetCore)) {
       LOG.info("Installing Scanner for MSBuild from {}", location);
@@ -81,10 +81,10 @@ public class ScannerForMSBuildInstaller {
       }
       doInstall(zipFile, toDir, null, useDotNetCore);
     }
-    return locateInstalledScript(null, toDir, useOldScript, useDotNetCore);
+    return locateInstalledScript(null, toDir, useDotNetCore);
   }
 
-  private File install(Version scannerVersion, File toDir, boolean useOldScript, boolean useDotNetCore) {
+  private File install(Version scannerVersion, File toDir, boolean useDotNetCore) {
     clearCachedSnapshot(scannerVersion, toDir, useDotNetCore);
     if (!isInstalled(scannerVersion, toDir, useDotNetCore)) {
       LOG.info("Installing Scanner for MSBuild {}", scannerVersion);
@@ -96,7 +96,7 @@ public class ScannerForMSBuildInstaller {
 
       doInstall(zipFile, toDir, scannerVersion, useDotNetCore);
     }
-    return locateInstalledScript(scannerVersion, toDir, useOldScript, useDotNetCore);
+    return locateInstalledScript(scannerVersion, toDir, useDotNetCore);
   }
 
   void doInstall(File zipFile, File toDir, @Nullable Version scannerVersion, boolean useDotNetCore) {
@@ -131,12 +131,14 @@ public class ScannerForMSBuildInstaller {
   }
 
   private File locateZip(Version scannerVersion, boolean useDotNetCore) {
+    String zipFileName = String.format("sonar-scanner-msbuild-%s", scannerVersion.toString());
+    zipFileName = useDotNetCore ? String.format("%s-%s", zipFileName, NETCOREAPP_2_0) : String.format("%s-%s", zipFileName, NET_46);
     File zipFile = null;
-    URL zip = ScannerForMSBuildInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-msbuild-" + scannerVersion.toString() + ".zip");
+    URL zip = ScannerForMSBuildInstaller.class.getResource(String.format("/com/sonar/orchestrator/build/%s%s", zipFileName, ".zip"));
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
-        zipFile = File.createTempFile("sonar-scanner-msbuild-" + scannerVersion, "zip");
+        zipFile = File.createTempFile(zipFileName, "zip");
         FileUtils.copyURLToFile(zip, zipFile);
       } catch (Exception e) {
         throw new IllegalStateException("Fail to unzip " + zip + " to " + zipFile, e);
@@ -181,26 +183,16 @@ public class ScannerForMSBuildInstaller {
   private static boolean isInstalled(@Nullable Version scannerVersion, File toDir, boolean useDotNetCore) {
     File scannerDir = new File(toDir, directoryName(scannerVersion, useDotNetCore));
     if (scannerDir.isDirectory() && scannerDir.exists()) {
-      LOG.debug("SonarQube Scanner for MSBuild {} already exists at {}", scannerVersion, scannerDir);
+      LOG.debug("SonarScanner for MSBuild {} already exists at {}", scannerVersion, scannerDir);
       return true;
     }
     return false;
   }
 
-  private static File locateInstalledScript(@Nullable Version scannerVersion, File toDir, boolean useOldScript, boolean useDotNetCore) {
-    String filename;
-    if (useOldScript) {
-      filename = "MSBuild.SonarQube.Runner.exe";
-    } else {
-      if (useDotNetCore || (scannerVersion != null && scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION))) {
-        if (useDotNetCore) {
-          filename = "SonarScanner.MSBuild.dll";
-        } else {
-          filename = "SonarScanner.MSBuild.exe";
-        }
-      } else {
-        filename = "SonarQube.Scanner.MSBuild.exe";
-      }
+  private static File locateInstalledScript(@Nullable Version scannerVersion, File toDir, boolean useDotNetCore) {
+    String filename = "SonarScanner.MSBuild.exe";
+    if (useDotNetCore) {
+      filename = "SonarScanner.MSBuild.dll";
     }
     File script = new File(toDir, directoryName(scannerVersion, useDotNetCore) + File.separator + filename);
     if (!script.exists()) {
@@ -211,7 +203,7 @@ public class ScannerForMSBuildInstaller {
 
   private static String directoryName(@Nullable Version scannerVersion, boolean useDotNetCore) {
     if (scannerVersion != null) {
-      return "sonar-scanner-msbuild-" + scannerVersion.toString()+"-"+getClassifier(useDotNetCore);
+      return "sonar-scanner-msbuild-" + scannerVersion.toString() + "-" + getClassifier(useDotNetCore);
     } else {
       return "sonar-scanner-msbuild";
     }

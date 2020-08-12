@@ -47,7 +47,6 @@ public class ScannerForMSBuildTest {
       .setProjectVersion("1.2.3")
       .setDebugLogs(true)
       .setScannerVersion("2.2")
-      .setUseOldRunnerScript(true)
       .setScannerLocation(scannerLocation);
 
     assertThat(build.getProjectDir()).isEqualTo(new File("."));
@@ -56,7 +55,6 @@ public class ScannerForMSBuildTest {
     assertThat(build.getProjectName()).isEqualTo("Sample");
     assertThat(build.getProjectVersion()).isEqualTo("1.2.3");
     assertThat(build.isDebugLogs()).isTrue();
-    assertThat(build.isUseOldRunnerScript()).isTrue();
     assertThat(build.getLocation()).isEqualTo(scannerLocation);
   }
 
@@ -67,24 +65,6 @@ public class ScannerForMSBuildTest {
 
     assertThat(build.getProjectDir()).isEqualTo(projectDir);
     assertThat(build.getProperty("sonar.foo")).isEqualTo("bar");
-    assertThat(build.isUseOldRunnerScript()).isFalse();
-  }
-
-  @Test
-  public void test_use_old_script() {
-    ScannerForMSBuild build = ScannerForMSBuild.create();
-    assertThat(build.isUseOldRunnerScript()).isFalse();
-
-    build.setScannerVersion("2.2");
-    assertThat(build.isUseOldRunnerScript()).isFalse();
-
-    build.setScannerVersion("2.1");
-    assertThat(build.isUseOldRunnerScript()).isTrue();
-
-    build.setScannerVersion("2.2");
-    build.setUseOldRunnerScript(true);
-    assertThat(build.isUseOldRunnerScript()).isTrue();
-
   }
 
   @Test

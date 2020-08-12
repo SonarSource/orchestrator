@@ -47,7 +47,6 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   private File projectDir;
   private File dotNetCoreExecutable = null;
   private boolean debugLogs = false;
-  private boolean useOldRunnerScript = false;
   private boolean useDotnetCore = false;
   private String projectKey;
   private String projectName;
@@ -60,19 +59,6 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   @CheckForNull
   public Version scannerVersion() {
     return scannerVersion;
-  }
-
-  public ScannerForMSBuild setUseOldRunnerScript(boolean useOldRunnerScript) {
-    this.useOldRunnerScript = useOldRunnerScript;
-    return this;
-  }
-
-  public boolean isUseOldRunnerScript() {
-    if (scannerVersion == null) {
-      return useOldRunnerScript;
-    }
-
-    return !scannerVersion.isGreaterThanOrEquals(2, 2) || useOldRunnerScript;
   }
 
   /**
