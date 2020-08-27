@@ -126,6 +126,8 @@ public class ServerInstaller {
     cleanDirectory(new File(homeDir, "lib/bundled-plugins"));
     // plugins are bundled in extensions/plugins since version 7.2
     cleanDirectory(new File(homeDir, "extensions/plugins"));
+    // SonarSource plugins are bundled in lib/extension since version 8.5
+    cleanDirectory(new File(homeDir, "lib/extensions"));
   }
 
   private static void cleanDirectory(File dir) {
