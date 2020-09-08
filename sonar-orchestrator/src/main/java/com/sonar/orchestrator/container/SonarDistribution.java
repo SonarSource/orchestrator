@@ -35,6 +35,7 @@ public final class SonarDistribution {
   private String version;
   private Edition edition = Edition.COMMUNITY;
   private List<Location> pluginLocations = new ArrayList<>();
+  private List<Location> bundledPluginLocations = new ArrayList<>();
   private List<Location> profileBackups = new ArrayList<>();
   private Properties serverProperties = new Properties();
   private boolean activateLicense;
@@ -64,6 +65,11 @@ public final class SonarDistribution {
     return this;
   }
 
+  public SonarDistribution addBundledPluginLocation(Location plugin) {
+    bundledPluginLocations.add(plugin);
+    return this;
+  }
+
   /**
    * Version of SonarQube as defined by {@link com.sonar.orchestrator.OrchestratorBuilder}.
    * When using local zip (see {@link com.sonar.orchestrator.OrchestratorBuilder#setZipFile(File)},
@@ -76,6 +82,11 @@ public final class SonarDistribution {
   public List<Location> getPluginLocations() {
     return Collections.unmodifiableList(pluginLocations);
   }
+
+  public List<Location> getBundledPluginLocations() {
+    return Collections.unmodifiableList(bundledPluginLocations);
+  }
+
 
   public SonarDistribution restoreProfileAtStartup(Location backup) {
     requireNonNull(backup);

@@ -145,6 +145,15 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  /**
+   * Similar to {@link #addPlugin} but installs the plugin in the directory for bundled plugins.
+   * Only supported by SQ 8.5+
+   */
+  public OrchestratorBuilder addBundledPlugin(Location location) {
+    distribution.addBundledPluginLocation(requireNonNull(location));
+    return this;
+  }
+
   public OrchestratorBuilder setOrchestratorProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     overriddenProperties.put(key, value);
