@@ -82,7 +82,8 @@ public class ServerInstaller {
     if (!distrib.isKeepBundledPlugins()) {
       removeBundledPlugins(homeDir);
     }
-    copyPlugins(packaging, distrib.getPluginLocations(), homeDir);
+    copyBundledPlugins(distrib.getBundledPluginLocations(), homeDir);
+    copyExternalPlugins(packaging, distrib.getPluginLocations(), homeDir);
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
@@ -90,8 +91,8 @@ public class ServerInstaller {
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
     String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
     return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
-            Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY)),
-            (String) properties.get(SONAR_CLUSTER_NODE_NAME));
+      Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY)),
+      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
   private File unzip(Packaging packaging) {
@@ -140,17 +141,10 @@ public class ServerInstaller {
     }
   }
 
-  private void copyPlugins(Packaging packaging, List<Location> plugins, File homeDir) {
-    File downloadDir = new File(homeDir, "extensions/downloads");
-    try {
-      FileUtils.forceMkdir(downloadDir);
-    } catch (IOException e) {
-      throw new IllegalStateException("Fail to create directory: " + downloadDir, e);
-    }
+  private void copyExternalPlugins(Packaging packaging, List<Location> plugins, File homeDir) {
+    File toDir = new File(homeDir, "extensions/downloads");
 
-    for (Location plugin : plugins) {
-      installPluginIntoDir(plugin, downloadDir);
-    }
+    copyPlugins(plugins, toDir);
 
     Version sqVersion = packaging.getVersion();
     if (packaging.getEdition() != Edition.COMMUNITY && !sqVersion.isGreaterThanOrEquals(7, 2)) {
@@ -163,8 +157,25 @@ public class ServerInstaller {
         if (sqVersion.getMajor() == 6 && sqVersion.getMinor() == 7 && sqVersion.getPatch() >= 5) {
           licenseVersion = "LATEST_RELEASE[3]";
         }
-        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion), downloadDir);
+        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion), toDir);
       }
+    }
+  }
+
+  private void copyBundledPlugins(List<Location> plugins, File homeDir) {
+    File toDir = new File(homeDir, "lib/extensions");
+    copyPlugins(plugins, toDir);
+  }
+
+  private void copyPlugins(List<Location> plugins, File toDir) {
+    try {
+      FileUtils.forceMkdir(toDir);
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to create directory: " + toDir, e);
+    }
+
+    for (Location plugin : plugins) {
+      installPluginIntoDir(plugin, toDir);
     }
   }
 

@@ -78,6 +78,19 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
+  public void add_bundled_plugins() {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion(LTS_ALIAS)
+      .addBundledPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
+      .build();
+
+    orchestrator.install();
+    File dir = new File(orchestrator.getServer().getHome(), "lib/extensions");
+    assertThat(dir).exists();
+    assertThat(dir.listFiles()).hasSize(1);
+  }
+
+  @Test
   public void install_with_bundled_plugins() {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
@@ -88,7 +101,7 @@ public class OrchestratorBuilderTest {
     assertThat(orchestrator.getServer().version().toString()).startsWith("7.9.");
     assertThat(orchestrator.getServer().getEdition()).isEqualTo(Edition.COMMUNITY);
     File pluginsDir = new File(orchestrator.getServer().getHome(), "extensions/plugins");
-    assertThat(FileUtils.listFiles(pluginsDir, new String[]{"jar"}, false)).isNotEmpty();
+    assertThat(FileUtils.listFiles(pluginsDir, new String[] {"jar"}, false)).isNotEmpty();
   }
 
   @Test
@@ -115,7 +128,6 @@ public class OrchestratorBuilderTest {
       .setZipFile(dir)
       .build();
   }
-
 
   @Test
   public void override_web_context() throws Exception {
