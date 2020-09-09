@@ -1,11 +1,19 @@
+os: linux
+dist: focal
 language: java
-sudo: false
+
 jdk: openjdk11
+
+# travis was using version 11.0.3 of java which cause failures during SSL connections see: https://bugs.openjdk.java.net/browse/JDK-8214060
+# java latest version is installed manually through apt-get
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install openjdk-11-jdk --reinstall
+  - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+sudo: false
 install: true
 script: ./travis.sh
-
-notifications:
-  email: false
 
 cache:
   directories:
