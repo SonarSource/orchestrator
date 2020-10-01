@@ -261,26 +261,6 @@ public class Orchestrator extends SingleStartExternalResource {
     return results;
   }
 
-  /**
-   * Reset inspection measures and some other data (manual rules, etc.)
-   *
-   * @deprecated in 3.16. Tests should use web services to clean-up state.
-   */
-  @Deprecated
-  public void resetData() {
-    LOG.info("Reset data");
-
-    server.newHttpCall("api/orchestrator/reset")
-      .setMethod(HttpMethod.POST)
-      .setAdminCredentials()
-      .execute();
-
-    // api/orchestrator/reset will clear the license, so reinstall it
-    if (distribution.isActivateLicense()) {
-      activateLicense();
-    }
-  }
-
   public static OrchestratorBuilder builderEnv() {
     return new OrchestratorBuilder(Configuration.createEnv());
   }

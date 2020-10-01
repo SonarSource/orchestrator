@@ -212,7 +212,6 @@ public class OrchestratorBuilder {
       .addMap(overriddenProperties)
       .build();
 
-    this.distribution.addPluginLocation(ResourceLocation.create("/com/sonar/orchestrator/sonar-reset-data-plugin-1.0-SNAPSHOT.jar"));
     return new Orchestrator(finalConfig, distribution, startupLogWatcher);
   }
 }
