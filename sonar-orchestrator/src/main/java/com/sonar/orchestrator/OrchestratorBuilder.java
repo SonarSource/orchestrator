@@ -25,7 +25,6 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.locator.ResourceLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.io.File;
 import java.util.HashMap;

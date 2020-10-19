@@ -43,14 +43,10 @@ import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Orchestrator.class);
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
 
@@ -74,7 +70,6 @@ public class Orchestrator extends SingleStartExternalResource {
     this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
   }
-
 
   @Override
   protected void beforeAll() {
