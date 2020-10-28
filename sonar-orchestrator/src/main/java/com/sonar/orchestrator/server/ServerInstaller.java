@@ -59,7 +59,16 @@ public class ServerInstaller {
   private static final String WEB_HOST_PROPERTY = "sonar.web.host";
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
+
+  private static final String SEARCH_HOST_PROPERTY = "sonar.search.host";
   private static final String SEARCH_PORT_PROPERTY = "sonar.search.port";
+  private static final String CLUSTER_ENABLED_PROPERTY = "sonar.cluster.enabled";
+  private static final String CLUSTER_NODE_TYPE_PROPERTY = "sonar.cluster.node.type";
+  private static final String CLUSTER_NODE_SEARCH_HOST_PROPERTY = "sonar.cluster.node.search.host";
+  private static final String CLUSTER_NODE_SEARCH_PORT_PROPERTY = "sonar.cluster.node.search.port";
+  private static final String CLUSTER_NODE_ES_HOST_PROPERTY = "sonar.cluster.node.es.host";
+  private static final String CLUSTER_NODE_ES_PORT_PROPERTY = "sonar.cluster.node.es.port";
+
   private static final String SONAR_CLUSTER_NODE_NAME = "sonar.cluster.node.name";
   private static final String ALL_IPS_HOST = "0.0.0.0";
 
@@ -85,13 +94,12 @@ public class ServerInstaller {
     copyBundledPlugins(distrib.getBundledPluginLocations(), homeDir);
     copyExternalPlugins(packaging, distrib.getPluginLocations(), homeDir);
     copyJdbcDriver(homeDir);
-    Properties properties = configureProperties(distrib);
+    Properties properties = configureProperties(distrib, packaging);
     writePropertiesFile(properties, homeDir);
     String host = properties.getProperty(WEB_HOST_PROPERTY);
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
     String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
-      Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY)),
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), getSearchPort(properties, packaging),
       (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
@@ -187,7 +195,7 @@ public class ServerInstaller {
     LOG.info("Installed plugin: {}", pluginFile.getName());
   }
 
-  private Properties configureProperties(SonarDistribution distribution) {
+  private Properties configureProperties(SonarDistribution distribution, Packaging packaging) {
     Properties properties = new Properties();
     properties.putAll(distribution.getServerProperties());
 
@@ -198,8 +206,7 @@ public class ServerInstaller {
     properties.putAll(databaseClient.getAdditionalProperties());
     setIfNotPresent(properties, "sonar.log.console", "true");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
-    setIfNotPresent(properties, "sonar.search.host", loopbackHost.getHostAddress());
-    properties.setProperty(SEARCH_PORT_PROPERTY, String.valueOf(loadSearchPort(properties, loopbackHost)));
+    configureSearchProperties(properties, loopbackHost, packaging);
     properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
     setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
@@ -208,6 +215,34 @@ public class ServerInstaller {
     completeJavaOptions(properties, "sonar.web.javaAdditionalOpts");
 
     return properties;
+  }
+
+  /**
+   * A new way of configuring ElasticSearch in cluster mode is required since SonarQube 8.6 (see SONAR-13971 for details). We still
+   * have to support the old configuration so that orchestrator can work with SonarQube DCE versions < 8.6.
+   */
+  private static boolean useNewDCESearchClusterConfiguration(Packaging packaging, Properties properties) {
+    boolean clusterEnabled = Boolean.parseBoolean(properties.getProperty(CLUSTER_ENABLED_PROPERTY));
+    Version sqVersion = packaging.getVersion();
+    return clusterEnabled && sqVersion.isGreaterThanOrEquals(8, 6);
+  }
+
+  private static boolean isSearchNode(Properties properties) {
+    String nodeType = properties.getProperty(CLUSTER_NODE_TYPE_PROPERTY);
+    return "search".equals(nodeType);
+  }
+
+  private static void configureSearchProperties(Properties properties, InetAddress loopbackHost, Packaging packaging) {
+    boolean useNewDCESearchClusterConfiguration = useNewDCESearchClusterConfiguration(packaging, properties);
+    if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
+      setIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
+      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
+      setIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+    } else if (!useNewDCESearchClusterConfiguration) {
+      setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+      properties.setProperty(SEARCH_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+    }
   }
 
   private static InetAddress loadWebHost(Properties serverProperties, InetAddress loopbackAddress) {
@@ -229,8 +264,20 @@ public class ServerInstaller {
     return webPort;
   }
 
-  private static int loadSearchPort(Properties properties, InetAddress webHost) {
-    return Optional.ofNullable(properties.getProperty(SEARCH_PORT_PROPERTY))
+  private static int getSearchPort(Properties properties, Packaging packaging) {
+    if (useNewDCESearchClusterConfiguration(packaging, properties)) {
+      if (isSearchNode(properties)) {
+        return Integer.parseInt(properties.getProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY));
+      } else {
+        return 0;
+      }
+    } else {
+      return Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY));
+    }
+  }
+
+  private static int loadPort(String portProperty, Properties definedProperties, InetAddress webHost) {
+    return Optional.ofNullable(definedProperties.getProperty(portProperty))
       .filter(s -> !isEmpty(s))
       .map(Integer::parseInt)
       .orElseGet(() -> getNextAvailablePort(webHost));
