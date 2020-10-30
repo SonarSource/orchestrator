@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.net.HttpURLConnection.*;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 
@@ -98,7 +99,7 @@ public class ArtifactoryImpl implements Artifactory {
         LOG.info("Found {} at {}", location, url);
         return Optional.of(toFile);
       } catch (HttpException e) {
-        if (e.getCode() != 404 && e.getCode() != 401 && e.getCode() != 403) {
+        if (e.getCode() != HTTP_NOT_FOUND && e.getCode() != HTTP_UNAUTHORIZED && e.getCode() != HTTP_FORBIDDEN) {
           throw new IllegalStateException("Failed to request " + url, e);
         }
       }
