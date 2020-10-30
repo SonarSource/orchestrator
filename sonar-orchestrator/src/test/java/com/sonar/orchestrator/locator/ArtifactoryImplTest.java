@@ -21,6 +21,7 @@ package com.sonar.orchestrator.locator;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import java.io.File;
@@ -31,6 +32,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.DisableOnDebug;
@@ -134,9 +136,9 @@ public class ArtifactoryImplTest {
 
   @Test
   public void download_considers_forbidden_error_as_artifact_not_found() throws Exception {
-    prepareResponseError(403);
-    prepareResponseError(403);
-    prepareResponseError(403);
+    prepareResponseError(403, "not found");
+    prepareResponseError(403, "not found");
+    prepareResponseError(403, "not found");
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
@@ -364,7 +366,19 @@ public class ArtifactoryImplTest {
   }
 
   private void prepareResponseError(int status) {
-    server.enqueue(new MockResponse().setResponseCode(status));
+    prepareResponseError(status, null);
+  }
+
+  private void prepareResponseError(int status, @Nullable String message) {
+    MockResponse response = new MockResponse()
+            .setResponseCode(status);
+    if(message != null) {
+      response.setBody(new JsonObject().add(
+              "errors", new JsonArray().add(
+                      new JsonObject().add("message", message)))
+              .toString());
+    }
+    server.enqueue(response);
   }
 
   private void prepareVersions(String... versions) {

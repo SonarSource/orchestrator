@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
@@ -40,7 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
-import static java.net.HttpURLConnection.*;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 
@@ -101,6 +104,21 @@ public class ArtifactoryImpl implements Artifactory {
       } catch (HttpException e) {
         if (e.getCode() != HTTP_NOT_FOUND && e.getCode() != HTTP_UNAUTHORIZED && e.getCode() != HTTP_FORBIDDEN) {
           throw new IllegalStateException("Failed to request " + url, e);
+        } else {
+          String errorMessage;
+          try {
+            JsonArray errors = Json.parse(e.getBody()).asObject().get("errors").asArray();
+            errorMessage = StreamSupport.stream(errors.spliterator(), false)
+                    .map(item -> item.asObject().get("message").asString())
+                    .collect(Collectors.joining(", "));
+          } catch (Exception ignored) {
+            errorMessage = "--- Failed to parse response body -- ";
+          }
+          LOG.warn("Could not download artifact from repository '{}': {} - {}",
+                  repository,
+                  e.getCode(),
+                  errorMessage
+          );
         }
       }
     }
