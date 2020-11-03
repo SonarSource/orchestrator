@@ -54,6 +54,8 @@ public class ServerInstallerTest {
 
   private static final File SQ_ZIP = FileUtils.toFile(ServerInstallerTest.class.getResource("ServerInstallerTest/sonarqube-4.5.6-lite.zip"));
   private static final String VERSION_4_5_6 = "4.5.6";
+  private static final String VERSION_7_9 = "7.9";
+  private static final String VERSION_8_6 = "8.6";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -61,9 +63,9 @@ public class ServerInstallerTest {
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
-  private Locators locators = mock(Locators.class, Mockito.RETURNS_DEEP_STUBS);
-  private PackagingResolver packagingResolver = mock(PackagingResolver.class);
-  private DatabaseClient dbClient = mock(DatabaseClient.class);
+  private final Locators locators = mock(Locators.class, Mockito.RETURNS_DEEP_STUBS);
+  private final PackagingResolver packagingResolver = mock(PackagingResolver.class);
+  private final DatabaseClient dbClient = mock(DatabaseClient.class);
   private File installsDir;
   private File workspaceDir;
   private File mavenLocalDir;
@@ -119,12 +121,60 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void use_random_search_port_on_loopback_address_if_not_defined() throws Exception {
+  public void use_random_search_port_on_loopback_address_if_not_defined() {
     prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_4_5_6), SQ_ZIP);
 
     Server server = newInstaller().install(new SonarDistribution().setVersion(VERSION_4_5_6));
 
     assertThat(server.getSearchPort()).isGreaterThan(1023);
+  }
+
+  @Test
+  public void use_random_search_port_on_loopback_address_if_not_defined_in_old_SQ_DCE_search_node() {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_7_9), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setVersion(VERSION_7_9)
+      .setServerProperty("sonar.cluster.enabled", "true")
+      .setServerProperty("sonar.cluster.node.type", "search"));
+
+    assertThat(server.getSearchPort()).isGreaterThan(1023);
+  }
+
+  @Test
+  public void use_random_search_port_on_loopback_address_if_not_defined_in_old_SQ_DCE_application_node() {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_7_9), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setVersion(VERSION_7_9)
+      .setServerProperty("sonar.cluster.enabled", "true")
+      .setServerProperty("sonar.cluster.node.type", "application"));
+
+    assertThat(server.getSearchPort()).isGreaterThan(1023);
+  }
+
+  @Test
+  public void use_random_search_port_on_loopback_address_if_not_defined_in_new_SQ_DCE_search_node() {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_6), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setVersion(VERSION_8_6)
+      .setServerProperty("sonar.cluster.enabled", "true")
+      .setServerProperty("sonar.cluster.node.type", "search"));
+
+    assertThat(server.getSearchPort()).isGreaterThan(1023);
+  }
+
+  @Test
+  public void use_port_0_on_loopback_address_if_not_defined_in_new_SQ_DCE_application_node() {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_6), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setVersion(VERSION_8_6)
+      .setServerProperty("sonar.cluster.enabled", "true")
+      .setServerProperty("sonar.cluster.node.type", "application"));
+
+    assertThat(server.getSearchPort()).isZero();
   }
 
   @Test
