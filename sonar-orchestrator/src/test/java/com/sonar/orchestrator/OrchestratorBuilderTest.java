@@ -80,12 +80,25 @@ public class OrchestratorBuilderTest {
   @Test
   public void add_bundled_plugins() {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-      .setSonarVersion(LTS_ALIAS)
+      .setSonarVersion("DEV")
       .addBundledPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
       .build();
 
     orchestrator.install();
     File dir = new File(orchestrator.getServer().getHome(), "lib/extensions");
+    assertThat(dir).exists();
+    assertThat(dir.listFiles()).hasSize(1);
+  }
+
+  @Test
+  public void add_bundled_plugins_as_normal_plugin() {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion(LTS_ALIAS)
+      .addBundledPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
+      .build();
+
+    orchestrator.install();
+    File dir = new File(orchestrator.getServer().getHome(), "extensions/downloads");
     assertThat(dir).exists();
     assertThat(dir.listFiles()).hasSize(1);
   }
