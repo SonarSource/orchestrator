@@ -36,6 +36,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -91,8 +92,16 @@ public class ServerInstaller {
     if (!distrib.isKeepBundledPlugins()) {
       removeBundledPlugins(homeDir);
     }
-    copyBundledPlugins(distrib.getBundledPluginLocations(), homeDir);
-    copyExternalPlugins(packaging, distrib.getPluginLocations(), homeDir);
+
+    if (packaging.getVersion().isGreaterThanOrEquals(8, 5)) {
+      copyBundledPlugins(distrib.getBundledPluginLocations(), homeDir);
+      copyExternalPlugins(packaging, distrib.getPluginLocations(), homeDir);
+    } else {
+      List<Location> plugins = new ArrayList<>();
+      plugins.addAll(distrib.getBundledPluginLocations());
+      plugins.addAll(distrib.getPluginLocations());
+      copyExternalPlugins(packaging, plugins, homeDir);
+    }
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib, packaging);
     writePropertiesFile(properties, homeDir);
