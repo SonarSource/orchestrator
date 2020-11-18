@@ -57,6 +57,7 @@ public class ServerInstaller {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerInstaller.class);
   private static final AtomicInteger sharedDirId = new AtomicInteger(0);
+  private static final String FORCE_AUTHENTICATION_PROPERTY = "sonar.forceAuthentication";
   private static final String WEB_HOST_PROPERTY = "sonar.web.host";
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
@@ -89,6 +90,18 @@ public class ServerInstaller {
     Packaging packaging = packagingResolver.resolve(distrib);
 
     File homeDir = unzip(packaging);
+    preparePlugins(distrib, packaging, homeDir);
+    copyJdbcDriver(homeDir);
+    Properties properties = configureProperties(distrib, packaging);
+    writePropertiesFile(properties, homeDir);
+    String host = properties.getProperty(WEB_HOST_PROPERTY);
+    // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
+    String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), getSearchPort(properties, packaging),
+      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
+  }
+
+  private void preparePlugins(SonarDistribution distrib, Packaging packaging, File homeDir) {
     if (!distrib.isKeepBundledPlugins()) {
       removeBundledPlugins(homeDir);
     }
@@ -102,14 +115,6 @@ public class ServerInstaller {
       plugins.addAll(distrib.getPluginLocations());
       copyExternalPlugins(packaging, plugins, homeDir);
     }
-    copyJdbcDriver(homeDir);
-    Properties properties = configureProperties(distrib, packaging);
-    writePropertiesFile(properties, homeDir);
-    String host = properties.getProperty(WEB_HOST_PROPERTY);
-    // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
-    String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), getSearchPort(properties, packaging),
-      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
   private File unzip(Packaging packaging) {
@@ -222,6 +227,11 @@ public class ServerInstaller {
     completeJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
     completeJavaOptions(properties, "sonar.search.javaAdditionalOpts");
     completeJavaOptions(properties, "sonar.web.javaAdditionalOpts");
+
+    if (!distribution.isDefaultForceAuthentication() && packaging.getVersion().isGreaterThanOrEquals(8, 6)) {
+      //disable enforcing authentication, as it has been enabled by default starting from 8.6
+      setIfNotPresent(properties, FORCE_AUTHENTICATION_PROPERTY, "false");
+    }
 
     return properties;
   }

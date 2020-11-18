@@ -91,6 +91,30 @@ public class ServerInstallerTest {
     assertThat(server.getEdition()).isEqualTo(Edition.COMMUNITY);
     Properties props = openPropertiesFile(server);
     assertThat(props.getProperty("sonar.jdbc.url")).isEqualTo("jdbc:h2:mem");
+    assertThat(props.getProperty("sonar.forceAuthentication")).isNull();
+  }
+
+  @Test
+  public void force_authentication_fallback_to_false_for_8_6_and_greater() throws Exception {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_6), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+        .setVersion(VERSION_8_6));
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.forceAuthentication")).isEqualTo("false");
+  }
+
+  @Test
+  public void default_force_authentication_can_be_enabled() throws Exception {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_6), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+        .setDefaultForceAuthentication(true)
+        .setVersion(VERSION_8_6));
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.forceAuthentication")).isNull();
   }
 
   @Test

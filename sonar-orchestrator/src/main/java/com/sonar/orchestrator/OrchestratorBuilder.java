@@ -165,6 +165,17 @@ public class OrchestratorBuilder {
     return this;
   }
 
+
+  /**
+   * Fallback to default behaviour of force authentication
+   *
+   * Starting from 8.6 it has been enforced, but due impact on others it will be disabled by default
+   */
+  public OrchestratorBuilder defaultForceAuthentication() {
+    distribution.setDefaultForceAuthentication(true);
+    return this;
+  }
+
   /**
    * SonarSource commercial plugins must be enabled through a non-community edition.
    * By default community edition is installed. Method is ignored on SonarQube
