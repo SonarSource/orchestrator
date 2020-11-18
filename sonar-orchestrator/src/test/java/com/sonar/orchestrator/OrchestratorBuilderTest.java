@@ -24,13 +24,16 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,6 +121,29 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
+  public void enable_default_force_authentication() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+        .setSonarVersion("DEV")
+        .defaultForceAuthentication()
+        .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties.getProperty("sonar.forceAuthentication")).isNull();
+  }
+
+  @Test
+  public void disable_force_authentication_by_default() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+        .setSonarVersion("DEV")
+        .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties.getProperty("sonar.forceAuthentication")).isEqualTo("false");
+  }
+
+  @Test
   public void fail_if_zip_file_does_not_exist() throws IOException {
     File zip = temp.newFile();
     zip.delete();
@@ -173,4 +199,13 @@ public class OrchestratorBuilderTest {
     URL baseUrl = new URL(orchestrator.getServer().getUrl());
     assertThat(baseUrl.getPath()).isEqualTo(expectedWebContext);
   }
+
+  private static Properties openPropertiesFile(Server server) throws IOException {
+    try (InputStream input = FileUtils.openInputStream(new File(server.getHome(), "conf/sonar.properties"))) {
+      Properties conf = new Properties();
+      conf.load(input);
+      return conf;
+    }
+  }
+
 }

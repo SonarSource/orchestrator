@@ -19,6 +19,8 @@
  */
 package com.sonar.orchestrator.container;
 
+import static java.util.Objects.requireNonNull;
+
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
 import java.util.ArrayList;
@@ -27,8 +29,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import javax.annotation.Nullable;
-
-import static java.util.Objects.requireNonNull;
 
 public final class SonarDistribution {
 
@@ -40,6 +40,7 @@ public final class SonarDistribution {
   private Properties serverProperties = new Properties();
   private boolean activateLicense;
   private boolean keepBundledPlugins = false;
+  private boolean defaultForceAuthentication = false;
   private Location zip;
 
   public SonarDistribution() {
@@ -70,10 +71,18 @@ public final class SonarDistribution {
     return this;
   }
 
+  public boolean isDefaultForceAuthentication() {
+    return defaultForceAuthentication;
+  }
+
+  public SonarDistribution setDefaultForceAuthentication(boolean defaultForceAuthentication) {
+    this.defaultForceAuthentication = defaultForceAuthentication;
+    return this;
+  }
+
   /**
-   * Version of SonarQube as defined by {@link com.sonar.orchestrator.OrchestratorBuilder}.
-   * When using local zip (see {@link com.sonar.orchestrator.OrchestratorBuilder#setZipFile(File)},
-   * then returned version is {@code null}.
+   * Version of SonarQube as defined by {@link com.sonar.orchestrator.OrchestratorBuilder}. When using local zip (see
+   * {@link com.sonar.orchestrator.OrchestratorBuilder#setZipFile(File)}, then returned version is {@code null}.
    */
   public Optional<String> getVersion() {
     return Optional.ofNullable(version);
