@@ -37,6 +37,9 @@ import org.apache.commons.lang.SystemUtils;
 public class SonarScanner extends SonarRunner {
 
   private static final Map<String, String> ENV_VARIABLES;
+  private static final String SONAR_LOGIN_PROPERTY = "sonar.login";
+  private static final String SONAR_PASSWORD_PROPERTY = "sonar.password";
+
   static {
     Map<String, String> map = new HashMap<>();
     map.put("SONAR_RUNNER_OPTS", "-Djava.awt.headless=true");
@@ -192,6 +195,29 @@ public class SonarScanner extends SonarRunner {
     return (SonarScanner) super.setProperties(keyValues);
   }
 
+  public SonarScanner asAnonymous() {
+    clearCredentials();
+    return this;
+  }
+
+  private void clearCredentials() {
+    super.getProperties().remove(SONAR_LOGIN_PROPERTY);
+    super.getProperties().remove(SONAR_PASSWORD_PROPERTY);
+  }
+
+  public SonarScanner withToken(String token) {
+    clearCredentials();
+    super.setProperty(SONAR_LOGIN_PROPERTY, token);
+    return this;
+  }
+
+  public SonarScanner asDefaultAdmin() {
+    clearCredentials();
+    super.setProperty(SONAR_LOGIN_PROPERTY, "admin");
+    super.setProperty(SONAR_PASSWORD_PROPERTY, "admin");
+    return this;
+  }
+
   /**
    * @since 3.11 used by SQ Scanner CLI ITs
    */
@@ -233,17 +259,18 @@ public class SonarScanner extends SonarRunner {
 
   public static SonarScanner create() {
     return new SonarScanner()
-      // default value
-      .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING);
+        // default value
+        .asDefaultAdmin()
+        .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING);
   }
 
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
     return
-    // default value
-    create()
-      // incoming values
-      .setProjectDir(projectDir)
-      .setProperties(keyValueProperties);
+        // default value
+        create()
+            // incoming values
+            .setProjectDir(projectDir)
+            .setProperties(keyValueProperties);
   }
 
   @Override

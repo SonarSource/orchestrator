@@ -165,6 +165,11 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  public OrchestratorBuilder disableForceAuthentication() {
+    distribution.setServerProperty("sonar.forceAuthentication", "false");
+    return this;
+  }
+
   /**
    * SonarSource commercial plugins must be enabled through a non-community edition.
    * By default community edition is installed. Method is ignored on SonarQube

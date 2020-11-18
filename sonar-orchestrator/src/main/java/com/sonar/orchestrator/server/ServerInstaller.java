@@ -89,6 +89,18 @@ public class ServerInstaller {
     Packaging packaging = packagingResolver.resolve(distrib);
 
     File homeDir = unzip(packaging);
+    preparePlugins(distrib, packaging, homeDir);
+    copyJdbcDriver(homeDir);
+    Properties properties = configureProperties(distrib, packaging);
+    writePropertiesFile(properties, homeDir);
+    String host = properties.getProperty(WEB_HOST_PROPERTY);
+    // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
+    String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), getSearchPort(properties, packaging),
+      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
+  }
+
+  private void preparePlugins(SonarDistribution distrib, Packaging packaging, File homeDir) {
     if (!distrib.isKeepBundledPlugins()) {
       removeBundledPlugins(homeDir);
     }
@@ -102,14 +114,6 @@ public class ServerInstaller {
       plugins.addAll(distrib.getPluginLocations());
       copyExternalPlugins(packaging, plugins, homeDir);
     }
-    copyJdbcDriver(homeDir);
-    Properties properties = configureProperties(distrib, packaging);
-    writePropertiesFile(properties, homeDir);
-    String host = properties.getProperty(WEB_HOST_PROPERTY);
-    // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
-    String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), getSearchPort(properties, packaging),
-      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
   private File unzip(Packaging packaging) {
