@@ -95,4 +95,14 @@ public class SonarDistributionTest {
     distribution.setEdition(COMMUNITY);
     assertThat(distribution.getEdition()).isEqualTo(COMMUNITY);
   }
+
+  @Test
+  public void correctly_sets_force_default_admin_credentials_redirect_property() {
+    SonarDistribution distribution = new SonarDistribution();
+    assertThat(distribution.isForceDefaultAdminCredentialsRedirect()).isFalse();
+    distribution.setForceDefaultAdminCredentialsRedirect(true);
+    assertThat(distribution.isForceDefaultAdminCredentialsRedirect()).isTrue();
+    distribution.setForceDefaultAdminCredentialsRedirect(false);
+    assertThat(distribution.isForceDefaultAdminCredentialsRedirect()).isFalse();
+  }
 }

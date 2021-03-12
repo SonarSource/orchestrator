@@ -41,6 +41,7 @@ public final class SonarDistribution {
   private boolean activateLicense;
   private boolean keepBundledPlugins = false;
   private boolean defaultForceAuthentication = false;
+  private boolean forceDefaultAdminCredentialsRedirect = false;
   private Location zip;
 
   public SonarDistribution() {
@@ -77,6 +78,15 @@ public final class SonarDistribution {
 
   public SonarDistribution setDefaultForceAuthentication(boolean defaultForceAuthentication) {
     this.defaultForceAuthentication = defaultForceAuthentication;
+    return this;
+  }
+
+  public boolean isForceDefaultAdminCredentialsRedirect() {
+    return forceDefaultAdminCredentialsRedirect;
+  }
+
+  public SonarDistribution setForceDefaultAdminCredentialsRedirect(boolean forceDefaultAdminCredentialsRedirect) {
+    this.forceDefaultAdminCredentialsRedirect = forceDefaultAdminCredentialsRedirect;
     return this;
   }
 

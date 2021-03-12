@@ -144,6 +144,29 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
+  public void enable_default_force_redirect_on_default_admin_creds() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion("DEV")
+      .defaultForceDefaultAdminCredentialsRedirect()
+      .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isNull();
+  }
+
+  @Test
+  public void disable_force_redirect_on_default_admin_creds_by_default() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion("DEV")
+      .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isEqualTo("false");
+  }
+
+  @Test
   public void fail_if_zip_file_does_not_exist() throws IOException {
     File zip = temp.newFile();
     zip.delete();
