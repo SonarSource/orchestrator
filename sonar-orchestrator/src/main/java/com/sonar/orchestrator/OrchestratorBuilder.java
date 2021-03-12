@@ -177,6 +177,16 @@ public class OrchestratorBuilder {
   }
 
   /**
+   * Fallback to default behaviour of force redirect to change admin password
+   *
+   * Starting from 8.8 it has been enforced, but due impact on ITs, it will be disabled by default.
+   */
+  public OrchestratorBuilder defaultForceDefaultAdminCredentialsRedirect() {
+    distribution.setForceDefaultAdminCredentialsRedirect(true);
+    return this;
+  }
+
+  /**
    * SonarSource commercial plugins must be enabled through a non-community edition.
    * By default community edition is installed. Method is ignored on SonarQube
    * versions less than 7.2.

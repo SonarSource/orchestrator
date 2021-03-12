@@ -56,6 +56,7 @@ public class ServerInstallerTest {
   private static final String VERSION_4_5_6 = "4.5.6";
   private static final String VERSION_7_9 = "7.9";
   private static final String VERSION_8_6 = "8.6";
+  private static final String VERSION_8_8 = "8.8";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -92,6 +93,7 @@ public class ServerInstallerTest {
     Properties props = openPropertiesFile(server);
     assertThat(props.getProperty("sonar.jdbc.url")).isEqualTo("jdbc:h2:mem");
     assertThat(props.getProperty("sonar.forceAuthentication")).isNull();
+    assertThat(props.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isNull();
   }
 
   @Test
@@ -115,6 +117,40 @@ public class ServerInstallerTest {
 
     Properties props = openPropertiesFile(server);
     assertThat(props.getProperty("sonar.forceAuthentication")).isNull();
+  }
+
+  @Test
+  public void do_not_force_default_admin_creds_redirect_fallback_to_false_for_8_7_and_lower() throws Exception {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_6), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setVersion(VERSION_8_6));
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isNull();
+  }
+
+  @Test
+  public void force_default_admin_creds_redirect_fallback_to_false_for_8_8_and_greater() throws Exception {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_8), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setVersion(VERSION_8_8));
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isEqualTo("false");
+  }
+
+  @Test
+  public void default_admin_creds_redirect_can_be_enabled() throws Exception {
+    prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_8), SQ_ZIP);
+
+    Server server = newInstaller().install(new SonarDistribution()
+      .setForceDefaultAdminCredentialsRedirect(true)
+      .setVersion(VERSION_8_8));
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isNull();
   }
 
   @Test
