@@ -303,6 +303,34 @@ public class ArtifactoryImplTest {
   }
 
   @Test
+  public void resolveVersion_resolves_DEV_alias_qualifier_one_more_digit() throws Exception {
+    prepareVersions("8.8.0.9999", "8.8.0.10000");
+
+    Configuration configuration = newConfiguration().build();
+    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DEV");
+
+    Optional<String> version = underTest.resolveVersion(location);
+    assertThat(version).hasValue("8.8.0.10000");
+
+    verifyVersionsRequest(location.getGroupId(), location.getArtifactId(), "*", "sonarsource-builds");
+  }
+
+  @Test
+  public void resolveVersion_resolves_DEV_alias_qualifier_one_more_digit_and_milestone() throws Exception {
+    prepareVersions("8.8.0-M1.9999", "8.8.0-M1.10000");
+
+    Configuration configuration = newConfiguration().build();
+    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DEV");
+
+    Optional<String> version = underTest.resolveVersion(location);
+    assertThat(version).hasValue("8.8.0-M1.10000");
+
+    verifyVersionsRequest(location.getGroupId(), location.getArtifactId(), "*", "sonarsource-builds");
+  }
+
+  @Test
   public void resolveVersion_resolves_DOGFOOD_alias() throws Exception {
     prepareVersions("6.7.0.1000", "7.0.0.1010", "7.1.0.1030", "7.1.0.1020");
 

@@ -19,43 +19,77 @@
  */
 package com.sonar.orchestrator.version;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
-import org.apache.commons.lang.StringUtils;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Version implements Comparable<Version> {
 
+  private final static String GROUP_MAJOR        = "major";
+  private final static String GROUP_MINOR        = "minor";
+  private final static String GROUP_PATCH        = "patch";
+  private final static String GROUP_QUALIFIER    = "qualifier";
+  private final static String GROUP_BUILD_NUMBER = "buildNumber";
+  private final static String REGEX = "(?<" + GROUP_MAJOR + ">\\d+)" +
+          "(\\.(?<" + GROUP_MINOR + ">\\d+))?" +
+          "(\\.(?<" + GROUP_PATCH + ">\\d+))?" +
+          "(-(?<" + GROUP_QUALIFIER + ">[A-Za-z0-9_-]+))?" +
+          "(\\.(?<" + GROUP_BUILD_NUMBER + ">\\d+))?";
+  private final static String PARSE_ERR_MSG = "Version string cannot be parsed.";
+
   private final String asString;
   private final long asNumber;
+  private final long asNumberWOBuildNumber;
+  @Nullable
   private final String qualifier;
   private final int major;
   private final int minor;
   private final int patch;
+  private final int buildNumber;
 
   Version(String s) {
-    String[] fields = StringUtils.substringBefore(s, "-").split("\\.");
+    Matcher fields = Pattern.compile(REGEX).matcher(s);
+    if(!fields.find()) {
+      throw new RuntimeException(PARSE_ERR_MSG);
+    }
+
     long l = 0;
     // max representation: 9999.9999.9999.999999
-    this.major = Integer.parseInt(fields[0]);
+
+    if(fields.group(GROUP_MAJOR) != null) {
+      this.major = Integer.parseInt(fields.group(GROUP_MAJOR));
+    } else {
+      this.major = 0;
+    }
     l += 1_0000_0000_000000L * this.major;
-    if (fields.length > 1) {
-      this.minor = Integer.parseInt(fields[1]);
-      l += 1_0000_000000L * this.minor;
-      if (fields.length > 2) {
-        this.patch = Integer.parseInt(fields[2]);
-        l += 1_000000L * this.patch;
-        if (fields.length > 3) {
-          l += Integer.parseInt(fields[3]);
-        }
-      } else {
-        this.patch = 0;
-      }
+
+    if(fields.group(GROUP_MINOR) != null) {
+      this.minor = Integer.parseInt(fields.group(GROUP_MINOR));
     } else {
       this.minor = 0;
+    }
+    l += 1_0000_000000L * this.minor;
+
+    if(fields.group(GROUP_PATCH) != null) {
+      this.patch = Integer.parseInt(fields.group(GROUP_PATCH));
+    } else {
       this.patch = 0;
     }
-    this.asNumber = l;
+    l += 1_000000L * this.patch;
+
+    if(fields.group(GROUP_BUILD_NUMBER) != null) {
+      this.buildNumber = Integer.parseInt(fields.group(GROUP_BUILD_NUMBER));
+    } else {
+      this.buildNumber = 0;
+    }
+    l += this.buildNumber;
+
+    this.asNumberWOBuildNumber = l;
+    this.asNumber = this.asNumberWOBuildNumber + this.buildNumber;
     this.asString = s;
-    this.qualifier = s.contains("-") ? StringUtils.substringAfter(s, "-") : "ZZZ";
+    this.qualifier = fields.group(GROUP_QUALIFIER);
   }
 
   public static Version create(String version) {
@@ -81,9 +115,17 @@ public class Version implements Comparable<Version> {
 
   @Override
   public int compareTo(Version o) {
-    int i = Long.compare(asNumber, o.asNumber);
+    int i = Long.compare(asNumberWOBuildNumber, o.asNumberWOBuildNumber);
     if (i == 0) {
-      i = qualifier.compareToIgnoreCase(o.qualifier);
+      if(Objects.equals(qualifier, o.qualifier)) {
+        i = Integer.compare(buildNumber, o.buildNumber);
+      } else if(qualifier == null) {
+        i = 1;
+      } else if(o.qualifier == null) {
+        i = -1;
+      } else {
+        i = qualifier.compareToIgnoreCase(o.qualifier);
+      }
     }
     return i;
   }
@@ -131,6 +173,15 @@ public class Version implements Comparable<Version> {
 
   public int getPatch() {
     return patch;
+  }
+
+  public int getBuildNumber() {
+    return buildNumber;
+  }
+
+  @Nullable
+  public String getQualifier() {
+    return qualifier;
   }
 
   public boolean isRelease() {
