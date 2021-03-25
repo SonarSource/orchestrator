@@ -27,17 +27,16 @@ import java.util.regex.Pattern;
 
 public class Version implements Comparable<Version> {
 
-  private final static String GROUP_MAJOR        = "major";
-  private final static String GROUP_MINOR        = "minor";
-  private final static String GROUP_PATCH        = "patch";
-  private final static String GROUP_QUALIFIER    = "qualifier";
-  private final static String GROUP_BUILD_NUMBER = "buildNumber";
-  private final static String REGEX = "(?<" + GROUP_MAJOR + ">\\d+)" +
+  private static final String GROUP_MAJOR        = "major";
+  private static final String GROUP_MINOR        = "minor";
+  private static final String GROUP_PATCH        = "patch";
+  private static final String GROUP_QUALIFIER    = "qualifier";
+  private static final String GROUP_BUILD_NUMBER = "buildNumber";
+  private static final String REGEX = "(?<" + GROUP_MAJOR + ">\\d+)" +
           "(\\.(?<" + GROUP_MINOR + ">\\d+))?" +
           "(\\.(?<" + GROUP_PATCH + ">\\d+))?" +
           "(-(?<" + GROUP_QUALIFIER + ">[A-Za-z0-9_-]+))?" +
           "(\\.(?<" + GROUP_BUILD_NUMBER + ">\\d+))?";
-  private final static String PARSE_ERR_MSG = "Version string cannot be parsed.";
 
   private final String asString;
   private final long asNumber;
@@ -52,7 +51,7 @@ public class Version implements Comparable<Version> {
   Version(String s) {
     Matcher fields = Pattern.compile(REGEX).matcher(s);
     if(!fields.find()) {
-      throw new RuntimeException(PARSE_ERR_MSG);
+      throw new VersionParsingException();
     }
 
     long l = 0;
@@ -190,5 +189,13 @@ public class Version implements Comparable<Version> {
 
   public boolean isSnapshot() {
     return asString.endsWith("-SNAPSHOT");
+  }
+
+  static class VersionParsingException extends RuntimeException {
+    private static final String PARSE_ERR_MSG = "Version string cannot be parsed.";
+
+    VersionParsingException() {
+      super(PARSE_ERR_MSG);
+    }
   }
 }

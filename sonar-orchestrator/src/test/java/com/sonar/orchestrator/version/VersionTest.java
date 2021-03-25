@@ -22,8 +22,14 @@ package com.sonar.orchestrator.version;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class VersionTest {
+
+  @Test
+  public void test_parsing_failed() {
+    assertThatThrownBy(() -> Version.create("test")).isInstanceOf(Version.VersionParsingException.class);
+  }
 
   @Test
   public void test_equals() {
