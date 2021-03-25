@@ -22,8 +22,14 @@ package com.sonar.orchestrator.version;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class VersionTest {
+
+  @Test
+  public void test_parsing_failed() {
+    assertThatThrownBy(() -> Version.create("test")).isInstanceOf(Version.VersionParsingException.class);
+  }
 
   @Test
   public void test_equals() {
@@ -56,6 +62,30 @@ public class VersionTest {
     testFields("7.3-RC1", 7, 3, 0);
     testFields("7.3.2-SNAPSHOT", 7, 3, 2);
     testFields("7.3-alpha1", 7, 3, 0);
+  }
+
+  @Test
+  public void test_additional_fields() {
+    Version version = Version.create("1.2.3-M1.1234");
+    assertThat(version.getMajor()).isEqualTo(1);
+    assertThat(version.getMinor()).isEqualTo(2);
+    assertThat(version.getPatch()).isEqualTo(3);
+    assertThat(version.getQualifier()).isEqualTo("M1");
+    assertThat(version.getBuildNumber()).isEqualTo(1234);
+
+    version = Version.create("1.2-M1.1234");
+    assertThat(version.getMajor()).isEqualTo(1);
+    assertThat(version.getMinor()).isEqualTo(2);
+    assertThat(version.getPatch()).isEqualTo(0);
+    assertThat(version.getQualifier()).isEqualTo("M1");
+    assertThat(version.getBuildNumber()).isEqualTo(1234);
+
+    version = Version.create("1.2-beta");
+    assertThat(version.getMajor()).isEqualTo(1);
+    assertThat(version.getMinor()).isEqualTo(2);
+    assertThat(version.getPatch()).isEqualTo(0);
+    assertThat(version.getQualifier()).isEqualTo("beta");
+    assertThat(version.getBuildNumber()).isEqualTo(0);
   }
 
   private static void testFields(String version, int expectedMajor, int expectedMinor, int expectedPatch) {
