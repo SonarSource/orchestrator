@@ -27,10 +27,10 @@ import java.util.regex.Pattern;
 
 public class Version implements Comparable<Version> {
 
-  private static final String GROUP_MAJOR        = "major";
-  private static final String GROUP_MINOR        = "minor";
-  private static final String GROUP_PATCH        = "patch";
-  private static final String GROUP_QUALIFIER    = "qualifier";
+  private static final String GROUP_MAJOR = "major";
+  private static final String GROUP_MINOR = "minor";
+  private static final String GROUP_PATCH = "patch";
+  private static final String GROUP_QUALIFIER = "qualifier";
   private static final String GROUP_BUILD_NUMBER = "buildNumber";
   private static final String REGEX = "(?<" + GROUP_MAJOR + ">\\d+)" +
           "(\\.(?<" + GROUP_MINOR + ">\\d+))?" +
