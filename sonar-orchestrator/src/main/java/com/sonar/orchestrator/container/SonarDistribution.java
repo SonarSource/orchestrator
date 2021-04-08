@@ -42,6 +42,7 @@ public final class SonarDistribution {
   private boolean keepBundledPlugins = false;
   private boolean defaultForceAuthentication = false;
   private boolean forceDefaultAdminCredentialsRedirect = false;
+  private String pluginRiskConsent = "ACCEPTED";
   private Location zip;
 
   public SonarDistribution() {
@@ -168,6 +169,15 @@ public final class SonarDistribution {
 
   public SonarDistribution setKeepBundledPlugins(boolean b) {
     this.keepBundledPlugins = b;
+    return this;
+  }
+
+  public String getPluginRiskConsent() {
+    return pluginRiskConsent;
+  }
+
+  public SonarDistribution setPluginRiskConsent(String pluginRiskConsent) {
+    this.pluginRiskConsent = pluginRiskConsent;
     return this;
   }
 }

@@ -59,6 +59,7 @@ public class ServerInstaller {
   private static final AtomicInteger sharedDirId = new AtomicInteger(0);
   private static final String FORCE_AUTHENTICATION_PROPERTY = "sonar.forceAuthentication";
   private static final String FORCE_REDIRECT_DEFAULT_ADMIN_CREDENTIALS = "sonar.forceRedirectOnDefaultAdminCredentials";
+  private static final String SONAR_PLUGIN_RISK_CONSENT = "sonar.plugins.risk.consent";
   private static final String WEB_HOST_PROPERTY = "sonar.web.host";
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
@@ -237,6 +238,10 @@ public class ServerInstaller {
     if (!distribution.isForceDefaultAdminCredentialsRedirect() && packaging.getVersion().isGreaterThanOrEquals(8, 8)) {
       //disable enforcing the redirect to change the default admin password, as it has been enabled by default starting from 8.8
       setIfNotPresent(properties, FORCE_REDIRECT_DEFAULT_ADMIN_CREDENTIALS, "false");
+    }
+
+    if (distribution.getPluginRiskConsent().equals("ACCEPTED") && packaging.getVersion().isGreaterThanOrEquals(8, 8)) {
+      setIfNotPresent(properties, SONAR_PLUGIN_RISK_CONSENT, "ACCEPTED");
     }
 
     return properties;
