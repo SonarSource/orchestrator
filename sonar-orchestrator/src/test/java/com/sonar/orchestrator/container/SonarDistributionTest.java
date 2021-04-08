@@ -105,4 +105,13 @@ public class SonarDistributionTest {
     distribution.setForceDefaultAdminCredentialsRedirect(false);
     assertThat(distribution.isForceDefaultAdminCredentialsRedirect()).isFalse();
   }
+
+  @Test
+  public void setPluginsRiskConsent_valueIsSet(){
+    SonarDistribution distribution = new SonarDistribution();
+
+    distribution.setPluginRiskConsent("NOT_ACCEPTED");
+
+    assertThat(distribution.getPluginRiskConsent()).isEqualTo("NOT_ACCEPTED");
+  }
 }
