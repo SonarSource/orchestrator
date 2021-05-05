@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -256,9 +257,6 @@ public class SonarScanner extends SonarRunner {
   }
 
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
-    int i = numberOfCreate.incrementAndGet();
-    LOG.info("SONAR-14795 numberOfCreate " + i);
-
     StringBuilder result = new StringBuilder("empty");
     if(keyValueProperties.length > 0 ){
       result = new StringBuilder();
@@ -267,6 +265,7 @@ public class SonarScanner extends SonarRunner {
       }
     }
 
+    LOG.info("SONAR-14795 Scanner created with properties: " + Arrays.toString(keyValueProperties));
     map.putIfAbsent(result.toString(), new AtomicInteger(0));
     map.get(result.toString()).incrementAndGet();
 
@@ -285,12 +284,10 @@ public class SonarScanner extends SonarRunner {
 
     LOG.info("SONAR-14795 numberOfRuns " + i);
 
-
-    map.values().stream()
-      .map(AtomicInteger::get)
-      .sorted()
+    map.entrySet().stream()
+      .sorted((k1, k2) -> -Integer.compare(k1.getValue().intValue(), k2.getValue().intValue()))
       .limit(10)
-      .forEach(integer -> LOG.info(integer + ""));
+      .forEach((entry) -> LOG.info("SONAR-14795, top 10 arguments for scanner distribution: " + entry.getKey() + " " + entry.getValue()));
 
     check();
     return new SonarScannerExecutor().execute(this, config, adjustedProperties);
