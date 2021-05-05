@@ -21,13 +21,18 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
+import org.apache.commons.lang.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
-import org.apache.commons.lang.SystemUtils;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Executes the sonar-runner script. In-process mode is not supported yet.
@@ -35,6 +40,12 @@ import org.apache.commons.lang.SystemUtils;
  * @since 3.8
  */
 public class SonarScanner extends SonarRunner {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SonarScanner.class);
+
+  public static AtomicInteger numberOfRuns = new AtomicInteger(0), numberOfCreate = new AtomicInteger(0);
+
+  public static ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<String, AtomicInteger>();
 
   private static final Map<String, String> ENV_VARIABLES;
   static {
@@ -232,12 +243,33 @@ public class SonarScanner extends SonarRunner {
   }
 
   public static SonarScanner create() {
+    int i = numberOfCreate.incrementAndGet();
+
+    LOG.info("SONAR-14795 numberOfCreate " + i);
+
+    map.putIfAbsent("empty", new AtomicInteger(0));
+    map.get("empty").incrementAndGet();
+
     return new SonarScanner()
       // default value
       .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING);
   }
 
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
+    int i = numberOfCreate.incrementAndGet();
+    LOG.info("SONAR-14795 numberOfCreate " + i);
+
+    StringBuilder result = new StringBuilder("empty");
+    if(keyValueProperties.length > 0 ){
+      result = new StringBuilder();
+      for(String keyValue : keyValueProperties){
+        result.append(keyValue);
+      }
+    }
+
+    map.putIfAbsent(result.toString(), new AtomicInteger(0));
+    map.get(result.toString()).incrementAndGet();
+
     return
     // default value
     create()
@@ -248,6 +280,14 @@ public class SonarScanner extends SonarRunner {
 
   @Override
   BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+
+    int i = numberOfRuns.incrementAndGet();
+
+    LOG.info("SONAR-14795 numberOfRuns " + i);
+
+
+    map.values().stream().sorted().limit(10).forEach(value -> LOG.info("SONAR-14795 map" + value));
+
     check();
     return new SonarScannerExecutor().execute(this, config, adjustedProperties);
   }
