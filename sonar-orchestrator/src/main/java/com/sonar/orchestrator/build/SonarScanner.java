@@ -46,7 +46,9 @@ public class SonarScanner extends SonarRunner {
 
   public static AtomicInteger numberOfRuns = new AtomicInteger(0), numberOfCreate = new AtomicInteger(0);
 
-  public static ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<String, AtomicInteger>();
+  public static ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
+
+  public static long totalScannerTimeInMiliSeconds = 0;
 
   private static final Map<String, String> ENV_VARIABLES;
   static {
@@ -248,28 +250,13 @@ public class SonarScanner extends SonarRunner {
 
     LOG.info("SONAR-14795 numberOfCreate " + i);
 
-    map.putIfAbsent("empty", new AtomicInteger(0));
-    map.get("empty").incrementAndGet();
-
     return createPrivate();
   }
 
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
-    StringBuilder result = new StringBuilder("empty");
-    if(keyValueProperties.length > 0 ){
-      result = new StringBuilder();
-      for(String keyValue : keyValueProperties){
-        result.append(keyValue);
-      }
-    }
-
     int i = numberOfCreate.incrementAndGet();
 
     LOG.info("SONAR-14795 numberOfCreate " + i);
-
-    LOG.info("SONAR-14795 Scanner created with properties: " + Arrays.toString(keyValueProperties));
-    map.putIfAbsent(result.toString(), new AtomicInteger(0));
-    map.get(result.toString()).incrementAndGet();
 
     return
     // default value
@@ -290,13 +277,44 @@ public class SonarScanner extends SonarRunner {
 
     LOG.info("SONAR-14795 numberOfRuns " + i);
 
+    File projectDir = getProjectDir();
+
+    StringBuilder resultKey = new StringBuilder();
+    if(projectDir != null ) {
+      resultKey.append(projectDir.getPath()).append("_");
+    }
+
+    for(Map.Entry<String, String> e : adjustedProperties.entrySet()){
+      resultKey.append(e.getKey());
+      resultKey.append(e.getValue());
+    }
+
+    String resultString = resultKey.toString();
+
+    LOG.info("SONAR-14795 Scanner created with properties: " + resultString);
+
+    map.putIfAbsent(resultString, new AtomicInteger(0));
+    map.get(resultString).incrementAndGet();
+
+
     map.entrySet().stream()
       .sorted((k1, k2) -> -Integer.compare(k1.getValue().intValue(), k2.getValue().intValue()))
       .limit(10)
       .forEach((entry) -> LOG.info("SONAR-14795, top 10 arguments for scanner distribution: " + entry.getKey() + " " + entry.getValue()));
 
+
     check();
-    return new SonarScannerExecutor().execute(this, config, adjustedProperties);
+
+    long start = System.currentTimeMillis();
+    BuildResult execute = new SonarScannerExecutor().execute(this, config, adjustedProperties);
+    long time = System.currentTimeMillis() - start;
+
+    totalScannerTimeInMiliSeconds += time;
+
+    LOG.info(totalScannerTimeInMiliSeconds + "");
+    LOG.info("SONAR-14795 average time for now " + totalScannerTimeInMiliSeconds / (numberOfRuns.intValue() * 1.0));
+
+    return execute;
   }
 
 }
