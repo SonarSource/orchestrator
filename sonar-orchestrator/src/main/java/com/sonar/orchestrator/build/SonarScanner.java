@@ -286,7 +286,11 @@ public class SonarScanner extends SonarRunner {
     LOG.info("SONAR-14795 numberOfRuns " + i);
 
 
-    map.values().stream().sorted().limit(10).forEach(value -> LOG.info("SONAR-14795 map" + value));
+    map.values().stream()
+      .map(AtomicInteger::get)
+      .sorted()
+      .limit(10)
+      .forEach(integer -> LOG.info(integer + ""));
 
     check();
     return new SonarScannerExecutor().execute(this, config, adjustedProperties);
