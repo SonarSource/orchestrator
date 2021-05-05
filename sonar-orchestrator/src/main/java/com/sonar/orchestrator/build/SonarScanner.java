@@ -251,9 +251,7 @@ public class SonarScanner extends SonarRunner {
     map.putIfAbsent("empty", new AtomicInteger(0));
     map.get("empty").incrementAndGet();
 
-    return new SonarScanner()
-      // default value
-      .setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING);
+    return createPrivate();
   }
 
   public static SonarScanner create(File projectDir, String... keyValueProperties) {
@@ -265,16 +263,24 @@ public class SonarScanner extends SonarRunner {
       }
     }
 
+    int i = numberOfCreate.incrementAndGet();
+
+    LOG.info("SONAR-14795 numberOfCreate " + i);
+
     LOG.info("SONAR-14795 Scanner created with properties: " + Arrays.toString(keyValueProperties));
     map.putIfAbsent(result.toString(), new AtomicInteger(0));
     map.get(result.toString()).incrementAndGet();
 
     return
     // default value
-    create()
+      createPrivate()
       // incoming values
       .setProjectDir(projectDir)
       .setProperties(keyValueProperties);
+  }
+
+  private static SonarScanner createPrivate() {
+    return new SonarScanner().setProperty(PROP_KEY_SOURCE_ENCODING, DEFAULT_SOURCE_ENCODING);
   }
 
   @Override
