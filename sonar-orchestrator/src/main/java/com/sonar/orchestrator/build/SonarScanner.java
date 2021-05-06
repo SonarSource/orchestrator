@@ -22,10 +22,12 @@ package com.sonar.orchestrator.build;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.SystemUtils;
 
@@ -252,4 +254,8 @@ public class SonarScanner extends SonarRunner {
     return new SonarScannerExecutor().execute(this, config, adjustedProperties);
   }
 
+  @Override
+  public Optional<Path> getScannerReportDirectory() {
+    return Optional.of(getProjectDir().toPath().resolve(".scannerwork").resolve("scanner-report"));
+  }
 }

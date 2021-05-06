@@ -19,14 +19,20 @@
  */
 package com.sonar.orchestrator.util;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -96,6 +102,58 @@ public final class ZipUtils {
     if (!entryPath.normalize().startsWith(targetDirNormalizedPath)) {
       // vulnerability - trying to create a file outside the target directory
       throw new IllegalStateException("Unzipping an entry outside the target directory is not allowed: " + entry.getName());
+    }
+  }
+
+  /**
+   * Zip directory in memory. It should only be used for small files.
+   */
+  public static byte[] zipDir(File dir) throws IOException {
+    ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+    try ( ByteArrayOutputStream out = out2;
+      ZipOutputStream zout = new ZipOutputStream(out)) {
+      doZipDir(dir, zout);
+    }
+    return out2.toByteArray();
+  }
+
+  private static void doZip(String entryName, InputStream in, ZipOutputStream out) throws IOException {
+    ZipEntry entry = new ZipEntry(entryName);
+    out.putNextEntry(entry);
+    IOUtils.copy(in, out);
+    out.closeEntry();
+  }
+
+  private static void doZip(String entryName, File file, ZipOutputStream out) throws IOException {
+    if (file.isDirectory()) {
+      entryName += "/";
+      ZipEntry entry = new ZipEntry(entryName);
+      out.putNextEntry(entry);
+      out.closeEntry();
+      File[] files = file.listFiles();
+      // java.io.File#listFiles() returns null if object is a directory (not possible here) or if
+      // an I/O error occurs (weird!)
+      if (files == null) {
+        throw new IllegalStateException("Fail to list files of directory " + file.getAbsolutePath());
+      }
+      for (File f : files) {
+        doZip(entryName + f.getName(), f, out);
+      }
+
+    } else {
+      try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+        doZip(entryName, in, out);
+      }
+    }
+  }
+
+  private static void doZipDir(File dir, ZipOutputStream out) throws IOException {
+    File[] children = dir.listFiles();
+    if (children == null) {
+      throw new IllegalStateException("Fail to list files of directory " + dir.getAbsolutePath());
+    }
+    for (File child : children) {
+      doZip(child.getName(), child, out);
     }
   }
 }

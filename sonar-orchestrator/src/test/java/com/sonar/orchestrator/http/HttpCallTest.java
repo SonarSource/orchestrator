@@ -191,6 +191,26 @@ public class HttpCallTest {
   }
 
   @Test
+  public void MULTIPART_SCANNER_REPORT_request_send_params_in_the_url_and_file_in_body() throws Exception {
+    server.enqueue(new MockResponse().setBody(PONG));
+    HttpResponse response = newCall("api/system/ping")
+      .setMethod(HttpMethod.MULTIPART_SCANNER_REPORT)
+      .setMultipartContent("testContent".getBytes(UTF_8))
+      .setParam("foo", "foz")
+      .setParam("bar", "baz")
+      .execute();
+
+    verifySuccess(response, PONG);
+    RecordedRequest recordedRequest = server.takeRequest();
+    verifyRecorded(recordedRequest, "POST", "api/system/ping?foo=foz&bar=baz");
+    String body = recordedRequest.getBody().readUtf8();
+    assertThat(body).containsSubsequence("Content-Disposition: form-data; name=\"report\"; filename=\"report.zip\"");
+    assertThat(body).containsSubsequence("Content-Type: application/zip");
+    assertThat(body).containsSubsequence("testContent");
+
+  }
+
+  @Test
   public void HttpResponse_contains_headers() {
     server.enqueue(new MockResponse().setBody(PONG)
       .setHeader("foo", "foo_val")

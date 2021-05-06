@@ -21,11 +21,13 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
@@ -193,4 +195,7 @@ public abstract class Build<T extends Build<T>> {
 
   abstract BuildResult execute(Configuration config, Map<String, String> adjustedProperties);
 
+  public Optional<Path> getScannerReportDirectory() {
+    return Optional.empty();
+  }
 }

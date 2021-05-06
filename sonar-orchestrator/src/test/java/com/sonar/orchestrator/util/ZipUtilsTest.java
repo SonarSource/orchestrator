@@ -21,6 +21,9 @@ package com.sonar.orchestrator.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,6 +38,7 @@ public class ZipUtilsTest {
   public TemporaryFolder temp = new TemporaryFolder();
 
   private File zip = FileUtils.toFile(getClass().getResource("ZipUtilsTest/shouldUnzipFile.zip"));
+  private File dir = FileUtils.toFile(getClass().getResource("ZipUtilsTest/dir"));
 
   @Test
   public void unzip_in_existing_directory() throws IOException {
@@ -42,6 +46,16 @@ public class ZipUtilsTest {
 
     ZipUtils.unzip(zip, toDir);
 
+    assertThat(toDir.list()).hasSize(3);
+  }
+
+  @Test
+  public void zip_and_unzip() throws IOException {
+    byte[] zipped = ZipUtils.zipDir(dir);
+    Path zippedFile = Files.createTempFile("report", ".zip");
+    Files.write(zippedFile, zipped, StandardOpenOption.TRUNCATE_EXISTING);
+    File toDir = temp.newFolder();
+    ZipUtils.unzip(zippedFile.toFile(), toDir);
     assertThat(toDir.list()).hasSize(3);
   }
 

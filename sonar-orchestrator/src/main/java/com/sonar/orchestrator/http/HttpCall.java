@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,9 +33,11 @@ import javax.annotation.Nullable;
 import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +58,7 @@ public class HttpCall {
   private HttpMethod method = HttpMethod.GET;
   private final Map<String, String> parameters = new LinkedHashMap<>();
   private final Map<String, String> headers = new LinkedHashMap<>();
+  private byte[] multipartContent;
   private Long timeoutMs = null;
 
   HttpCall(OkHttpClient okClient, HttpUrl baseUrl) {
@@ -69,6 +73,11 @@ public class HttpCall {
 
   public HttpCall setMethod(HttpMethod m) {
     this.method = m;
+    return this;
+  }
+
+  public HttpCall setMultipartContent(byte[] content) {
+    multipartContent = content;
     return this;
   }
 
@@ -156,7 +165,7 @@ public class HttpCall {
     Request okRequest = buildOkHttpRequest();
     try {
       doDownloadToFile(okRequest, file);
-    } catch (ProtocolException|SocketException|SocketTimeoutException se) {
+    } catch (ProtocolException | SocketException | SocketTimeoutException se) {
       // retry, because of some false-positives when downloading files from GitHub
       try {
         doDownloadToFile(okRequest, file);
@@ -181,7 +190,7 @@ public class HttpCall {
     Request okRequest = buildOkHttpRequest();
     try {
       return doDownloadToDirectory(dir, okRequest);
-    } catch (ProtocolException|SocketException|SocketTimeoutException se) {
+    } catch (ProtocolException | SocketException | SocketTimeoutException se) {
       // retry, because of some false-positives when downloading files from GitHub
       try {
         return doDownloadToDirectory(dir, okRequest);
@@ -228,6 +237,19 @@ public class HttpCall {
         MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
         parameters.forEach(bodyBuilder::addFormDataPart);
         okRequest.post(bodyBuilder.build());
+        break;
+      case MULTIPART_SCANNER_REPORT:
+        requireNonNull(multipartContent);
+        // parameters are defined in the URL (as GET)
+        HttpUrl.Builder urlBuilder = baseUrl.newBuilder();
+        parameters.forEach(urlBuilder::setQueryParameter);
+        okRequest = new Request.Builder().url(urlBuilder.build());
+        MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        builder.addFormDataPart(
+          "report",
+          "report.zip",
+          RequestBody.create(multipartContent, MediaType.parse("application/zip")));
+        okRequest.post(builder.build());
         break;
       default:
         throw new UnsupportedOperationException("Unsupported HTTP method: " + method);

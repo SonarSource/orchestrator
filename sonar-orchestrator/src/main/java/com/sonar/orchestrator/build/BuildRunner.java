@@ -54,6 +54,7 @@ public class BuildRunner {
       }
       adjustedProperties.put("sonar.scm.disabled", "true");
       adjustedProperties.put("sonar.branch.autoconfig.disabled", "true");
+      adjustedProperties.put("sonar.scanner.keepReport", "true");
     }
     // build properties override predefined properties
     adjustedProperties.putAll(build.getProperties());

@@ -20,6 +20,7 @@
 package com.sonar.orchestrator;
 
 import com.sonar.orchestrator.build.Build;
+import com.sonar.orchestrator.build.BuildCache;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
@@ -32,6 +33,7 @@ import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
+import com.sonar.orchestrator.http.HttpResponse;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
@@ -41,6 +43,9 @@ import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
+import com.sonar.orchestrator.util.ZipUtils;
+import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
@@ -60,6 +65,7 @@ public class Orchestrator extends SingleStartExternalResource {
   private BuildRunner buildRunner;
   private ServerProcess process;
   private StartupLogWatcher startupLogWatcher;
+  private BuildCache buildCache;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
@@ -129,6 +135,7 @@ public class Orchestrator extends SingleStartExternalResource {
     }
 
     buildRunner = new BuildRunner(config);
+    buildCache = new BuildCache();
   }
 
   /**
@@ -178,6 +185,8 @@ public class Orchestrator extends SingleStartExternalResource {
     if (database != null) {
       database.stop();
     }
+
+    buildCache.clear();
   }
 
   /**
@@ -228,6 +237,45 @@ public class Orchestrator extends SingleStartExternalResource {
 
   public BuildResult executeBuildQuietly(Build<?> build, boolean waitForComputeEngine) {
     return executeBuildInternal(build, true, waitForComputeEngine);
+  }
+
+  public BuildResult executeBuildWithCache(Build<?> build, String cacheId) {
+    return executeBuildWithCache(build, false, true, cacheId);
+  }
+
+  public BuildResult executeBuildWithCache(Build<?> build, boolean quietly, boolean waitForComputeEngine, String cacheId) {
+    Optional<BuildCache.CachedReport> cached = buildCache.getCached(cacheId);
+    if (cached.isPresent()) {
+      return submitCacheReport(cached.get());
+    }
+    BuildResult result = executeBuildInternal(build, quietly, waitForComputeEngine);
+    if (result.isSuccess()) {
+      buildCache.cache(cacheId, build);
+    }
+    return result;
+  }
+
+  private BuildResult submitCacheReport(BuildCache.CachedReport cached) {
+    try {
+      byte[] zippedReport = ZipUtils.zipDir(cached.getReportDirectory().toFile());
+      HttpCall httpCall = server.newHttpCall("api/ce/submit")
+        .setMultipartContent(zippedReport)
+        .setMethod(HttpMethod.MULTIPART_SCANNER_REPORT)
+        .setParam("projectKey", cached.getProjectKey())
+        .setParam("projectName", cached.getProjectName())
+        .setAdminCredentials();
+      if (cached.getBranchName() != null) {
+        httpCall.setParam("branch", cached.getBranchName());
+        httpCall.setParam("branchType", "BRANCH");
+      } else if (cached.getPrKey() != null) {
+        httpCall.setParam("pullRequest", cached.getPrKey());
+      }
+
+      HttpResponse response = httpCall.execute();
+      return new BuildResult().addStatus(response.isSuccessful() ? 0 : 1);
+    } catch(IOException e) {
+      throw new IllegalStateException("Failed to zip scanner report", e);
+    }
   }
 
   private BuildResult executeBuildInternal(Build<?> build, boolean quietly, boolean waitForComputeEngine) {
