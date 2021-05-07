@@ -84,7 +84,8 @@ public class ScannerReportSubmitterTest {
     scannerReportSubmitter.submit(cachedReport);
     RecordedRequest receivedRequest = server.takeRequest();
     assertThat(receivedRequest.getMethod()).isEqualTo("POST");
-    assertThat(receivedRequest.getPath()).isEqualTo("/api/ce/submit?projectKey=projectKey&projectName=projectName&branch=branch&branchType=BRANCH");
+    assertThat(receivedRequest.getPath())
+      .isEqualTo("/api/ce/submit?projectKey=projectKey&projectName=projectName&characteristic=branch%3Dbranch&characteristic=branchType%3DBRANCH");
     String body = receivedRequest.getBody().readUtf8();
     assertThat(body).contains("Content-Type: application/zip");
     assertThat(body).contains("Content-Disposition: form-data; name=\"report\"; filename=\"report.zip\"");
@@ -100,18 +101,10 @@ public class ScannerReportSubmitterTest {
     scannerReportSubmitter.submit(cachedReport);
     RecordedRequest receivedRequest = server.takeRequest();
     assertThat(receivedRequest.getMethod()).isEqualTo("POST");
-    assertThat(receivedRequest.getPath()).isEqualTo("/api/ce/submit?projectKey=projectKey&projectName=projectName&pullRequest=pr1");
+    assertThat(receivedRequest.getPath()).isEqualTo("/api/ce/submit?projectKey=projectKey&projectName=projectName&characteristic=pullRequest%3Dpr1");
     String body = receivedRequest.getBody().readUtf8();
     assertThat(body).contains("Content-Type: application/zip");
     assertThat(body).contains("Content-Disposition: form-data; name=\"report\"; filename=\"report.zip\"");
-  }
-
-  @Test
-  public void fail_if_pr_and_branch_are_set() {
-    BuildCache.CachedReport cachedReport = new BuildCache.CachedReport(Paths.get("fake"), "projectKey", "projectName", "branch", "pr1");
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Cannot be pull request and branch at the same time");
-    scannerReportSubmitter.submit(cachedReport);
   }
 
   private Server newServer() {

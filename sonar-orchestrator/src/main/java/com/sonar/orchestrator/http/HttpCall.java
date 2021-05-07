@@ -25,9 +25,13 @@ import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import okhttp3.Credentials;
@@ -56,7 +60,7 @@ public class HttpCall {
   private final OkHttpClient okClient;
   private final HttpUrl baseUrl;
   private HttpMethod method = HttpMethod.GET;
-  private final Map<String, String> parameters = new LinkedHashMap<>();
+  private final Map<String, List<String>> parameters = new LinkedHashMap<>();
   private final Map<String, String> headers = new LinkedHashMap<>();
   private byte[] multipartContent;
   private Long timeoutMs = null;
@@ -101,7 +105,7 @@ public class HttpCall {
    * {@code setParam("foo", null)} sends "?foo".
    */
   public HttpCall setParam(String key, @Nullable String value) {
-    parameters.put(key, value);
+    parameters.computeIfAbsent(key, s -> new ArrayList<>()).add(value);
     return this;
   }
 
@@ -114,9 +118,9 @@ public class HttpCall {
    */
   public HttpCall setParams(String key1, @Nullable String value1, String... otherKeysAndNames) {
     checkArgument(otherKeysAndNames.length % 2 == 0, "Expecting even number of arguments: %s", Arrays.toString(otherKeysAndNames));
-    parameters.put(key1, value1);
+    parameters.computeIfAbsent(key1, s -> new ArrayList<>()).add(value1);
     for (int i = 0; i < otherKeysAndNames.length; i++) {
-      parameters.put(otherKeysAndNames[i], otherKeysAndNames[i + 1]);
+      parameters.computeIfAbsent(otherKeysAndNames[i], s -> new ArrayList<>()).add(otherKeysAndNames[i + 1]);
       i++;
     }
     return this;
@@ -220,29 +224,27 @@ public class HttpCall {
       case GET:
         // parameters of GET request are sent in the URL
         HttpUrl.Builder okUrl = baseUrl.newBuilder();
-        parameters.forEach(okUrl::setQueryParameter);
+        parameters.forEach((k, l) -> l.forEach(v -> okUrl.addQueryParameter(k, v)));
         okRequest = new Request.Builder().url(okUrl.build());
         break;
       case POST:
         // parameters of POST request are sent in the body
         okRequest = new Request.Builder().url(baseUrl);
-        FormBody.Builder schwarzy = new FormBody.Builder();
-        parameters.entrySet().stream()
-          .filter(e -> e.getValue() != null)
-          .forEach(e -> schwarzy.add(e.getKey(), e.getValue()));
-        okRequest.post(schwarzy.build());
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        parameters.entrySet().forEach(e -> e.getValue().stream().filter(Objects::nonNull).forEach(v -> formBuilder.add(e.getKey(), v)));
+        okRequest.post(formBuilder.build());
         break;
       case MULTIPART_POST:
         okRequest = new Request.Builder().url(baseUrl);
         MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-        parameters.forEach(bodyBuilder::addFormDataPart);
+        parameters.forEach((k, l) -> l.forEach(v -> bodyBuilder.addFormDataPart(k, v)));
         okRequest.post(bodyBuilder.build());
         break;
       case MULTIPART_SCANNER_REPORT:
         requireNonNull(multipartContent);
         // parameters are defined in the URL (as GET)
         HttpUrl.Builder urlBuilder = baseUrl.newBuilder();
-        parameters.forEach(urlBuilder::setQueryParameter);
+        parameters.forEach((k, l) -> l.forEach(v -> urlBuilder.addQueryParameter(k, v)));
         okRequest = new Request.Builder().url(urlBuilder.build());
         MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
         builder.addFormDataPart(

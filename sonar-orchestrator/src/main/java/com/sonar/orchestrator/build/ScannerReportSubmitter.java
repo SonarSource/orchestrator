@@ -25,7 +25,6 @@ import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.http.HttpResponse;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.IOException;
-import org.sonar.api.utils.Preconditions;
 
 public class ScannerReportSubmitter {
   private final Server server;
@@ -35,7 +34,6 @@ public class ScannerReportSubmitter {
   }
 
   public BuildResult submit(BuildCache.CachedReport cachedReport) {
-    Preconditions.checkArgument(cachedReport.getPrKey() == null || cachedReport.getBranchName() == null, "Cannot be pull request and branch at the same time");
     try {
       byte[] zippedReport = ZipUtils.zipDir(cachedReport.getReportDirectory().toFile());
       HttpCall httpCall = server.newHttpCall("api/ce/submit")
@@ -44,15 +42,15 @@ public class ScannerReportSubmitter {
         .setParam("projectKey", cachedReport.getProjectKey())
         .setParam("projectName", cachedReport.getProjectName())
         .setAdminCredentials();
-      if (cachedReport.getBranchName() != null) {
-        httpCall.setParam("branch", cachedReport.getBranchName());
-        httpCall.setParam("branchType", "BRANCH");
-      } else if (cachedReport.getPrKey() != null) {
-        httpCall.setParam("pullRequest", cachedReport.getPrKey());
+      if (cachedReport.getPrKey() != null) {
+        httpCall.setParam("characteristic", "pullRequest=" + cachedReport.getPrKey());
+      } else if (cachedReport.getBranchName() != null) {
+        httpCall.setParam("characteristic", "branch=" + cachedReport.getBranchName());
+        httpCall.setParam("characteristic", "branchType=" + "BRANCH");
       }
       HttpResponse response = httpCall.execute();
       return new BuildResult().addStatus(response.isSuccessful() ? 0 : 1);
-    } catch(IOException e) {
+    } catch (IOException e) {
       throw new IllegalStateException("Failed to zip scanner report", e);
     }
   }
