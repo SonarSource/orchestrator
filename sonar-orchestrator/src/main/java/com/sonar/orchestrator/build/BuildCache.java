@@ -19,19 +19,19 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.util.ZipUtils;
+import org.apache.commons.io.FileUtils;
+import org.sonar.scanner.protocol.output.ScannerReport;
+import org.sonar.scanner.protocol.output.ScannerReportReader;
+
+import static java.util.Optional.ofNullable;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-import org.apache.commons.io.FileUtils;
-
-import static java.util.Optional.ofNullable;
 
 public class BuildCache {
   private final Map<String, CachedReport> cacheMap = new HashMap<>();
@@ -44,7 +44,9 @@ public class BuildCache {
     try {
       Path cachedDir = Files.createTempDirectory("sonar-scanner-report");
       Path reportDir = build.getScannerReportDirectory().get();
-      Files.copy(reportDir, cachedDir, StandardCopyOption.REPLACE_EXISTING);
+
+      FileUtils.copyDirectory(reportDir.toFile(), cachedDir.toFile());
+
       CachedReport entry = toCacheReport(cachedDir);
       ofNullable(cacheMap.put(id, entry)).ifPresent(e -> FileUtils.deleteQuietly(e.getReportDirectory().toFile()));
     } catch (IOException e) {
@@ -53,13 +55,15 @@ public class BuildCache {
   }
 
   public Optional<CachedReport> getCached(String id) {
-    // TODO change analysis date before returning entry?
-    return Optional.ofNullable(cacheMap.get(id));
+    return ofNullable(cacheMap.get(id));
   }
 
   private CachedReport toCacheReport(Path reportDir) {
-    // TODO parse from scanner report files
-    return new CachedReport(reportDir, "sample", "sample", null, null);
+    ScannerReportReader reader = new ScannerReportReader(reportDir.toFile());
+    ScannerReport.Metadata metadata = reader.readMetadata();
+    String projectName = reader.readComponent(reader.readMetadata().getRootComponentRef()).getName();
+
+    return new CachedReport(reportDir, metadata.getProjectKey(), projectName, metadata.getBranchName(), metadata.getPullRequestKey());
   }
 
   public void clear() {
