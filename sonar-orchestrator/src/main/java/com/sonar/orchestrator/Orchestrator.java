@@ -23,6 +23,7 @@ import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildCache;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
+import com.sonar.orchestrator.build.ScannerReportModifier;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
@@ -44,11 +45,14 @@ import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.util.ZipUtils;
+import org.sonar.scanner.protocol.output.ScannerReportWriter;
+
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
+import static com.sonar.orchestrator.build.ScannerReportModifier.modifyAnalysisDateInTheReport;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -246,7 +250,9 @@ public class Orchestrator extends SingleStartExternalResource {
   public BuildResult executeBuildWithCache(Build<?> build, boolean quietly, boolean waitForComputeEngine, String cacheId) {
     Optional<BuildCache.CachedReport> cached = buildCache.getCached(cacheId);
     if (cached.isPresent()) {
-      return submitCacheReport(cached.get());
+      BuildCache.CachedReport cachedReport = cached.get();
+      modifyAnalysisDateInTheReport(cachedReport);
+      return submitCacheReport(cachedReport);
     }
     BuildResult result = executeBuildInternal(build, quietly, waitForComputeEngine);
     if (result.isSuccess()) {
