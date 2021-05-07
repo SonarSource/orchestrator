@@ -23,35 +23,66 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 public class BuildRunner {
 
   public static final String SONAR_HOST_URL = "sonar.host.url";
+  private final Server server;
   private final Configuration config;
+  private final BuildCache buildCache = new BuildCache();
+  private final ScannerReportSubmitter scannerReportSubmitter;
+  private final ScannerReportModifier scannerReportModifier = new ScannerReportModifier();
 
-  public BuildRunner(Configuration config) {
+  public BuildRunner(Server server, Configuration config) {
+    this.server = server;
     this.config = config;
+    this.scannerReportSubmitter = new ScannerReportSubmitter(server);
   }
 
-  public BuildResult runQuietly(@Nullable Server server, Build<?> build) {
-    return build.execute(config, adjustProperties(server, build));
+  public BuildResult run(Build<?> build) {
+    return run(build, null);
   }
 
-  public BuildResult run(@Nullable Server server, Build<?> build) {
-    BuildResult result = runQuietly(server, build);
+  public BuildResult run(Build<?> build, @Nullable String cacheId) {
+    BuildResult result = runQuietly(build, cacheId);
     if (!result.isSuccess()) {
       throw new BuildFailureException(build, result);
     }
     return result;
   }
 
-  Map<String, String> adjustProperties(@Nullable Server server, Build<?> build) {
+  public BuildResult runQuietly(Build<?> build) {
+    return runQuietly(build, null);
+  }
+
+  public BuildResult runQuietly(Build<?> build, @Nullable String cacheId) {
+    if (cacheId != null) {
+      return runCached(build, cacheId);
+    } else {
+      return build.execute(config, adjustProperties(build));
+    }
+  }
+
+  private BuildResult runCached(Build<?> build, String cacheId) {
+    Optional<BuildCache.CachedReport> cached = buildCache.getCached(cacheId);
+    if (cached.isPresent()) {
+      BuildCache.CachedReport cachedReport = cached.get();
+      scannerReportModifier.modifyAnalysisDateInTheReport(cachedReport.getReportDirectory());
+      return scannerReportSubmitter.submit(cachedReport);
+    }
+    BuildResult result = build.execute(config, adjustProperties(build));
+    if (result.isSuccess()) {
+      buildCache.cache(cacheId, build);
+    }
+    return result;
+  }
+
+  Map<String, String> adjustProperties(Build<?> build) {
     Map<String, String> adjustedProperties = new HashMap<>();
     if (!(build instanceof ScannerForMSBuild) || !build.arguments().contains("end")) {
-      if (server != null) {
-        adjustedProperties.put(SONAR_HOST_URL, server.getUrl());
-      }
+      adjustedProperties.put(SONAR_HOST_URL, server.getUrl());
       adjustedProperties.put("sonar.scm.disabled", "true");
       adjustedProperties.put("sonar.branch.autoconfig.disabled", "true");
       adjustedProperties.put("sonar.scanner.keepReport", "true");
@@ -62,4 +93,7 @@ public class BuildRunner {
     return adjustedProperties;
   }
 
+  public void clearCache() {
+    buildCache.clear();
+  }
 }

@@ -24,6 +24,7 @@ import org.sonar.scanner.protocol.output.ScannerReport;
 import org.sonar.scanner.protocol.output.ScannerReportReader;
 
 import static java.util.Optional.ofNullable;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class BuildCache {
 
       FileUtils.copyDirectory(reportDir.toFile(), cachedDir.toFile());
 
-      CachedReport entry = toCacheReport(cachedDir);
+      CachedReport entry = toCachedReport(cachedDir);
       ofNullable(cacheMap.put(id, entry)).ifPresent(e -> FileUtils.deleteQuietly(e.getReportDirectory().toFile()));
     } catch (IOException e) {
       e.printStackTrace();
@@ -58,12 +59,21 @@ public class BuildCache {
     return ofNullable(cacheMap.get(id));
   }
 
-  private CachedReport toCacheReport(Path reportDir) {
+  private CachedReport toCachedReport(Path reportDir) {
     ScannerReportReader reader = new ScannerReportReader(reportDir.toFile());
     ScannerReport.Metadata metadata = reader.readMetadata();
     String projectName = reader.readComponent(reader.readMetadata().getRootComponentRef()).getName();
 
-    return new CachedReport(reportDir, metadata.getProjectKey(), projectName, metadata.getBranchName(), metadata.getPullRequestKey());
+    return new CachedReport(reportDir, metadata.getProjectKey(), projectName,
+      nullIfEmpty(metadata.getBranchName()), nullIfEmpty(metadata.getPullRequestKey()));
+  }
+
+  @CheckForNull
+  private static String nullIfEmpty(@Nullable String str) {
+    if (str == null || str.isEmpty()) {
+      return null;
+    }
+    return str;
   }
 
   public void clear() {
@@ -78,7 +88,7 @@ public class BuildCache {
     private final String branchName;
     private final String prKey;
 
-    private CachedReport(Path reportDirectory, String projectKey, String projectName, @Nullable String branchName, @Nullable String prKey) {
+    CachedReport(Path reportDirectory, String projectKey, String projectName, @Nullable String branchName, @Nullable String prKey) {
       this.reportDirectory = reportDirectory;
       this.projectKey = projectKey;
       this.projectName = projectName;

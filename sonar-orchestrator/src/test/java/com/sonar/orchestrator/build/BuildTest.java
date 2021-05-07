@@ -31,6 +31,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BuildTest {
 
   @Test
+  public void getScannerReportDirectory_returns_empty_by_default() {
+    assertThat(new FakeBuild().getScannerReportDirectory()).isEmpty();
+  }
+
+  @Test
   public void test_set_null_property_value() {
     FakeBuild build = new FakeBuild();
     assertThat(build.getProperties()).isEmpty();

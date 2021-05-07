@@ -1,0 +1,26 @@
+public class Sample1 {
+  private int i;
+  private Sample1() {
+
+  }
+
+  public void hello() {
+    System.out.println("hello" + " xoo");
+  }
+
+  protected String getHello() {
+    return "hello";
+  }
+
+  protected String getHello2() {
+    return "hello";
+  }
+
+  protected String getHello3() {
+    return "hello";
+  }
+
+  protected String getHello4() {
+    return "hello";
+  }
+}

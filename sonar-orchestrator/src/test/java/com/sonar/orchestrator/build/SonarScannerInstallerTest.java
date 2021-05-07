@@ -98,7 +98,7 @@ public class SonarScannerInstallerTest {
   public void find_version_available_in_maven_repositories() throws Exception {
     File toDir = temp.newFolder();
     when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
-      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarScannerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
 
     // we're sure that SNAPSHOT versions are not embedded in sonar-runner
     File script = installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
@@ -113,7 +113,7 @@ public class SonarScannerInstallerTest {
   public void new_sonar_scanner_script() throws Exception {
     File toDir = temp.newFolder();
     when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("2.6-SNAPSHOT")))).thenReturn(
-      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-scanner-2.6-SNAPSHOT.zip").toURI()));
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarScannerInstallerTest/sonar-scanner-2.6-SNAPSHOT.zip").toURI()));
 
     File script = installer.install(Version.create("2.6-SNAPSHOT"), toDir, false);
 
@@ -137,7 +137,7 @@ public class SonarScannerInstallerTest {
   public void should_not_keep_cache_of_snapshot_versions() throws Exception {
     File toDir = temp.newFolder();
     when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
-      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarScannerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
 
     installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
     installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);

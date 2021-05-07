@@ -19,19 +19,30 @@
  */
 package com.sonar.orchestrator.build;
 
+import java.nio.file.Path;
+import org.sonar.api.utils.System2;
 import org.sonar.scanner.protocol.output.ScannerReport;
 import org.sonar.scanner.protocol.output.ScannerReportReader;
 import org.sonar.scanner.protocol.output.ScannerReportWriter;
 
 public class ScannerReportModifier {
+  private final System2 system;
 
-  public static void modifyAnalysisDateInTheReport(BuildCache.CachedReport report) {
-    ScannerReportReader reader = new ScannerReportReader(report.getReportDirectory().toFile());
+  public ScannerReportModifier() {
+    this(System2.INSTANCE);
+  }
+
+  public ScannerReportModifier(System2 system) {
+    this.system = system;
+  }
+
+  public void modifyAnalysisDateInTheReport(Path reportDir) {
+    ScannerReportReader reader = new ScannerReportReader(reportDir.toFile());
     ScannerReport.Metadata metadata = reader.readMetadata();
 
-    ScannerReportWriter writer = new ScannerReportWriter(report.getReportDirectory().toFile());
+    ScannerReportWriter writer = new ScannerReportWriter(reportDir.toFile());
 
-    ScannerReport.Metadata tamperedMetadata = ScannerReport.Metadata.newBuilder(metadata).setAnalysisDate(System.currentTimeMillis()).build();
+    ScannerReport.Metadata tamperedMetadata = ScannerReport.Metadata.newBuilder(metadata).setAnalysisDate(system.now()).build();
 
     writer.writeMetadata(tamperedMetadata);
   }

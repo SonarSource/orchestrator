@@ -24,6 +24,7 @@ import com.sonar.orchestrator.build.BuildCache;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
 import com.sonar.orchestrator.build.ScannerReportModifier;
+import com.sonar.orchestrator.build.ScannerReportSubmitter;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
@@ -52,7 +53,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
-import static com.sonar.orchestrator.build.ScannerReportModifier.modifyAnalysisDateInTheReport;
 import static java.util.Objects.requireNonNull;
 
 public class Orchestrator extends SingleStartExternalResource {
@@ -69,7 +69,6 @@ public class Orchestrator extends SingleStartExternalResource {
   private BuildRunner buildRunner;
   private ServerProcess process;
   private StartupLogWatcher startupLogWatcher;
-  private BuildCache buildCache;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
@@ -138,8 +137,7 @@ public class Orchestrator extends SingleStartExternalResource {
       activateLicense();
     }
 
-    buildRunner = new BuildRunner(config);
-    buildCache = new BuildCache();
+    buildRunner = new BuildRunner(server, config);
   }
 
   /**
@@ -190,7 +188,7 @@ public class Orchestrator extends SingleStartExternalResource {
       database.stop();
     }
 
-    buildCache.clear();
+    buildRunner.clearCache();
   }
 
   /**
@@ -232,7 +230,7 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   public BuildResult executeBuild(Build<?> build, boolean waitForComputeEngine) {
-    return executeBuildInternal(build, false, waitForComputeEngine);
+    return executeBuildInternal(build, false, waitForComputeEngine, null);
   }
 
   public BuildResult executeBuildQuietly(Build<?> build) {
@@ -240,7 +238,7 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   public BuildResult executeBuildQuietly(Build<?> build, boolean waitForComputeEngine) {
-    return executeBuildInternal(build, true, waitForComputeEngine);
+    return executeBuildInternal(build, true, waitForComputeEngine, null);
   }
 
   public BuildResult executeBuildWithCache(Build<?> build, String cacheId) {
@@ -248,50 +246,17 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   public BuildResult executeBuildWithCache(Build<?> build, boolean quietly, boolean waitForComputeEngine, String cacheId) {
-    Optional<BuildCache.CachedReport> cached = buildCache.getCached(cacheId);
-    if (cached.isPresent()) {
-      BuildCache.CachedReport cachedReport = cached.get();
-      modifyAnalysisDateInTheReport(cachedReport);
-      return submitCacheReport(cachedReport);
-    }
-    BuildResult result = executeBuildInternal(build, quietly, waitForComputeEngine);
-    if (result.isSuccess()) {
-      buildCache.cache(cacheId, build);
-    }
-    return result;
+    return executeBuildInternal(build, quietly, waitForComputeEngine, cacheId);
   }
 
-  private BuildResult submitCacheReport(BuildCache.CachedReport cached) {
-    try {
-      byte[] zippedReport = ZipUtils.zipDir(cached.getReportDirectory().toFile());
-      HttpCall httpCall = server.newHttpCall("api/ce/submit")
-        .setMultipartContent(zippedReport)
-        .setMethod(HttpMethod.MULTIPART_SCANNER_REPORT)
-        .setParam("projectKey", cached.getProjectKey())
-        .setParam("projectName", cached.getProjectName())
-        .setAdminCredentials();
-      if (cached.getBranchName() != null) {
-        httpCall.setParam("branch", cached.getBranchName());
-        httpCall.setParam("branchType", "BRANCH");
-      } else if (cached.getPrKey() != null) {
-        httpCall.setParam("pullRequest", cached.getPrKey());
-      }
-
-      HttpResponse response = httpCall.execute();
-      return new BuildResult().addStatus(response.isSuccessful() ? 0 : 1);
-    } catch(IOException e) {
-      throw new IllegalStateException("Failed to zip scanner report", e);
-    }
-  }
-
-  private BuildResult executeBuildInternal(Build<?> build, boolean quietly, boolean waitForComputeEngine) {
+  private BuildResult executeBuildInternal(Build<?> build, boolean quietly, boolean waitForComputeEngine, @Nullable String cacheId) {
     requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
 
     BuildResult buildResult;
     if (quietly) {
-      buildResult = buildRunner.runQuietly(server, build);
+      buildResult = buildRunner.runQuietly(build, cacheId);
     } else {
-      buildResult = buildRunner.run(server, build);
+      buildResult = buildRunner.run(build, cacheId);
     }
     if (waitForComputeEngine) {
       new SynchronousAnalyzer(server).waitForDone();
@@ -304,7 +269,7 @@ public class Orchestrator extends SingleStartExternalResource {
 
     BuildResult[] results = new BuildResult[builds.length];
     for (int index = 0; index < builds.length; index++) {
-      results[index] = buildRunner.run(server, builds[index]);
+      results[index] = buildRunner.run(builds[index]);
     }
     new SynchronousAnalyzer(server).waitForDone();
     return results;
