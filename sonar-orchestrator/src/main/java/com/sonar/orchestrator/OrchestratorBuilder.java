@@ -165,6 +165,13 @@ public class OrchestratorBuilder {
     return this;
   }
 
+  /**
+   * Orchestrator will start with clean sonar.properties file
+   */
+  public OrchestratorBuilder emptySonarProperties() {
+    distribution.setEmptySonarProperties(true);
+    return this;
+  }
 
   /**
    * Fallback to default behaviour of force authentication
