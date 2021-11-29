@@ -19,6 +19,10 @@
  */
 package com.sonar.orchestrator.server;
 
+import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.lang.String.format;
+
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
@@ -49,10 +53,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
-import static java.lang.String.format;
-
 public class ServerInstaller {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerInstaller.class);
@@ -80,7 +80,8 @@ public class ServerInstaller {
   private final Locators locators;
   private final DatabaseClient databaseClient;
 
-  public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, Locators locators, DatabaseClient databaseClient) {
+  public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, Locators locators,
+      DatabaseClient databaseClient) {
     this.packagingResolver = packagingResolver;
     this.configuration = configuration;
     this.locators = locators;
@@ -95,11 +96,14 @@ public class ServerInstaller {
     copyJdbcDriver(homeDir);
     Properties properties = configureProperties(distrib, packaging);
     writePropertiesFile(properties, homeDir);
-    String host = properties.getProperty(WEB_HOST_PROPERTY);
+    String host = properties.getProperty(WEB_HOST_PROPERTY, "localhost");
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
-    String url = format("http://%s:%s%s", ALL_IPS_HOST.equals(host) ? "localhost" : host, properties.getProperty(WEB_PORT_PROPERTY), properties.getProperty(WEB_CONTEXT_PROPERTY));
-    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url), getSearchPort(properties, packaging),
-      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
+    String resolvedHost = ALL_IPS_HOST.equals(host) ? "localhost" : host;
+    String url = format("http://%s:%s%s", resolvedHost, properties.getProperty(WEB_PORT_PROPERTY, "9000"),
+        properties.getProperty(WEB_CONTEXT_PROPERTY, ""));
+    return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
+        getSearchPort(properties, packaging),
+        (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
   private void preparePlugins(SonarDistribution distrib, Packaging packaging, File homeDir) {
@@ -172,15 +176,17 @@ public class ServerInstaller {
     Version sqVersion = packaging.getVersion();
     if (packaging.getEdition() != Edition.COMMUNITY && !sqVersion.isGreaterThanOrEquals(7, 2)) {
       boolean hasLicensePlugin = plugins.stream()
-        .filter(p -> p instanceof MavenLocation)
-        .map(p -> (MavenLocation) p)
-        .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId().equals("sonar-dev-license-plugin"));
+          .filter(p -> p instanceof MavenLocation)
+          .map(p -> (MavenLocation) p)
+          .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId()
+              .equals("sonar-dev-license-plugin"));
       if (!hasLicensePlugin) {
         String licenseVersion = "LATEST_RELEASE[3.3]";
         if (sqVersion.getMajor() == 6 && sqVersion.getMinor() == 7 && sqVersion.getPatch() >= 5) {
           licenseVersion = "LATEST_RELEASE[3]";
         }
-        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion), toDir);
+        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion),
+            toDir);
       }
     }
   }
@@ -214,6 +220,10 @@ public class ServerInstaller {
     Properties properties = new Properties();
     properties.putAll(distribution.getServerProperties());
 
+    if (distribution.isEmptySonarProperties()) {
+      return properties;
+    }
+
     InetAddress loopbackHost = InetAddress.getLoopbackAddress();
     setIfNotPresent(properties, "sonar.jdbc.url", databaseClient.getUrl());
     setIfNotPresent(properties, "sonar.jdbc.username", databaseClient.getLogin());
@@ -243,8 +253,9 @@ public class ServerInstaller {
   }
 
   /**
-   * A new way of configuring ElasticSearch in cluster mode is required since SonarQube 8.6 (see SONAR-13971 for details). We still
-   * have to support the old configuration so that orchestrator can work with SonarQube DCE versions < 8.6.
+   * A new way of configuring ElasticSearch in cluster mode is required since SonarQube 8.6 (see SONAR-13971 for
+   * details). We still have to support the old configuration so that orchestrator can work with SonarQube DCE versions
+   * < 8.6.
    */
   private static boolean useNewDCESearchClusterConfiguration(Packaging packaging, Properties properties) {
     boolean clusterEnabled = Boolean.parseBoolean(properties.getProperty(CLUSTER_ENABLED_PROPERTY));
@@ -261,12 +272,15 @@ public class ServerInstaller {
     boolean useNewDCESearchClusterConfiguration = useNewDCESearchClusterConfiguration(packaging, properties);
     if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
       setIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY,
+          String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
       setIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY,
+          String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
     } else if (!useNewDCESearchClusterConfiguration) {
       setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(SEARCH_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(SEARCH_PORT_PROPERTY,
+          String.valueOf(loadPort(SEARCH_PORT_PROPERTY, properties, loopbackHost)));
     }
   }
 
@@ -279,10 +293,11 @@ public class ServerInstaller {
   }
 
   private int loadWebPort(Properties properties, InetAddress webHost) {
-    int webPort = Integer.parseInt(Stream.of(properties.getProperty(WEB_PORT_PROPERTY), configuration.getString("orchestrator.container.port"))
-      .filter(s -> !isEmpty(s))
-      .findFirst()
-      .orElse("0"));
+    int webPort = Integer.parseInt(
+        Stream.of(properties.getProperty(WEB_PORT_PROPERTY), configuration.getString("orchestrator.container.port"))
+            .filter(s -> !isEmpty(s))
+            .findFirst()
+            .orElse("0"));
     if (webPort == 0) {
       webPort = getNextAvailablePort(webHost);
     }
@@ -291,21 +306,28 @@ public class ServerInstaller {
 
   private static int getSearchPort(Properties properties, Packaging packaging) {
     if (useNewDCESearchClusterConfiguration(packaging, properties)) {
-      if (isSearchNode(properties)) {
-        return Integer.parseInt(properties.getProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY));
-      } else {
-        return 0;
-      }
-    } else {
+      return getForDCESearchCluster(properties);
+    } else if (properties.getProperty(SEARCH_PORT_PROPERTY) != null) {
       return Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY));
+    } else {
+      //SonarQube's default
+      return 9001;
+    }
+  }
+
+  private static int getForDCESearchCluster(Properties properties) {
+    if (isSearchNode(properties)) {
+      return Integer.parseInt(properties.getProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY));
+    } else {
+      return 0;
     }
   }
 
   private static int loadPort(String portProperty, Properties definedProperties, InetAddress webHost) {
     return Optional.ofNullable(definedProperties.getProperty(portProperty))
-      .filter(s -> !isEmpty(s))
-      .map(Integer::parseInt)
-      .orElseGet(() -> getNextAvailablePort(webHost));
+        .filter(s -> !isEmpty(s))
+        .map(Integer::parseInt)
+        .orElseGet(() -> getNextAvailablePort(webHost));
   }
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {

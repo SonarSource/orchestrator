@@ -34,11 +34,12 @@ public final class SonarDistribution {
 
   private String version;
   private Edition edition = Edition.COMMUNITY;
-  private List<Location> pluginLocations = new ArrayList<>();
-  private List<Location> bundledPluginLocations = new ArrayList<>();
-  private List<Location> profileBackups = new ArrayList<>();
-  private Properties serverProperties = new Properties();
+  private final List<Location> pluginLocations = new ArrayList<>();
+  private final List<Location> bundledPluginLocations = new ArrayList<>();
+  private final List<Location> profileBackups = new ArrayList<>();
+  private final Properties serverProperties = new Properties();
   private boolean activateLicense;
+  private boolean emptySonarProperties = false;
   private boolean keepBundledPlugins = false;
   private boolean defaultForceAuthentication = false;
   private boolean forceDefaultAdminCredentialsRedirect = false;
@@ -69,6 +70,15 @@ public final class SonarDistribution {
 
   public SonarDistribution addBundledPluginLocation(Location plugin) {
     bundledPluginLocations.add(plugin);
+    return this;
+  }
+
+  public boolean isEmptySonarProperties() {
+    return emptySonarProperties;
+  }
+
+  public SonarDistribution setEmptySonarProperties(boolean emptySonarProperties) {
+    this.emptySonarProperties = emptySonarProperties;
     return this;
   }
 

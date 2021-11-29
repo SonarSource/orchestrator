@@ -133,6 +133,20 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
+  public void empty_sonar_properties() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+        .setSonarVersion("DEV")
+        .emptySonarProperties()
+        .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties.isEmpty()).isTrue();
+    assertThat(server.getSearchPort()).isEqualTo(9001);
+    assertThat(server.getUrl()).isEqualTo("http://localhost:9000");
+  }
+
+  @Test
   public void disable_force_authentication_by_default() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
         .setSonarVersion("DEV")
