@@ -26,6 +26,7 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.util.System2;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +42,9 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class OrchestratorBuilderTest {
 
@@ -130,6 +134,41 @@ public class OrchestratorBuilderTest {
 
     Properties properties = openPropertiesFile(server);
     assertThat(properties.getProperty("sonar.forceAuthentication")).isNull();
+  }
+
+  @Test
+  public void enable_debug_ce() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create(), mock(System2.class))
+      .setSonarVersion("DEV")
+      .enableCeDebug()
+      .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties).containsKey("sonar.ce.javaAdditionalOpts");
+    assertThat(properties.getProperty("sonar.ce.javaAdditionalOpts")).contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006");
+  }
+
+  @Test
+  public void enable_debug_web() throws Exception {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create(), mock(System2.class))
+      .setSonarVersion("DEV")
+      .enableWebDebug()
+      .build();
+    Server server = orchestrator.install();
+
+    Properties properties = openPropertiesFile(server);
+    assertThat(properties).containsKey("sonar.web.javaAdditionalOpts");
+    assertThat(properties.getProperty("sonar.web.javaAdditionalOpts")).contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+  }
+
+  @Test
+  public void fail_enable_debug_if_on_CI() {
+    System2 system2 = mock(System2.class);
+    when(system2.getenv("CIRRUS_CI")).thenReturn("true");
+    OrchestratorBuilder orchestratorBuilder = new OrchestratorBuilder(Configuration.create(), system2);
+    assertThatThrownBy(orchestratorBuilder::enableWebDebug).isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(orchestratorBuilder::enableCeDebug).isInstanceOf(IllegalStateException.class);
   }
 
   @Test
