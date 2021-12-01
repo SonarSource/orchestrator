@@ -26,6 +26,7 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.server.StartupLogWatcher;
+import com.sonar.orchestrator.util.System2;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,12 +40,18 @@ import static java.util.Objects.requireNonNull;
 public class OrchestratorBuilder {
 
   private final Configuration config;
+  private final System2 system2;
   private final SonarDistribution distribution;
   private final Map<String, String> overriddenProperties;
   private StartupLogWatcher startupLogWatcher;
 
   OrchestratorBuilder(Configuration initialConfig) {
+    this(initialConfig, System2.INSTANCE);
+  }
+
+  OrchestratorBuilder(Configuration initialConfig, System2 system2) {
     this.config = initialConfig;
+    this.system2 = system2;
     this.distribution = new SonarDistribution();
     this.overriddenProperties = new HashMap<>();
   }
@@ -163,6 +170,31 @@ public class OrchestratorBuilder {
     checkNotEmpty(key);
     distribution.setServerProperty(key, value);
     return this;
+  }
+
+  /**
+   * Enable JDWP agent in the CE process for remote debugging on port 5006
+   */
+  public OrchestratorBuilder enableCeDebug() {
+    failIfRunningOnCI();
+    this.setServerProperty("sonar.ce.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006");
+    return this;
+
+  }
+
+  /**
+   * Enable JDWP agent in the web process for remote debugging on port 5005
+   */
+  public OrchestratorBuilder enableWebDebug() {
+    failIfRunningOnCI();
+    this.setServerProperty("sonar.web.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+    return this;
+  }
+
+  private void failIfRunningOnCI() {
+    if ("true".equals(system2.getenv("CIRRUS_CI"))) {
+      throw new IllegalStateException("Method shouldn't be called on CI");
+    }
   }
 
   /**
