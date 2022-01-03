@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GradleBuildTest {
 
   @Test
-  public void test_create() {
+  public void create() {
     Location projectDir = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/GradleBuildTest"));
     GradleBuild build = GradleBuild.create(projectDir).addTask("build");
 
@@ -25,22 +25,22 @@ public class GradleBuildTest {
   }
 
   @Test
-  public void test_add_tasks() {
+  public void add_tasks() {
     GradleBuild build = GradleBuild.create();
     assertThat(build.getTasks()).isEmpty();
 
     build.addTask("clean").addTask("build");
-    assertThat(build.getTasks()).containsExactly("clean build");
+    assertThat(build.getTasks()).containsExactly("clean", "build");
   }
 
   @Test
-  public void test_set_tasks() {
+  public void set_tasks() {
     GradleBuild build = GradleBuild.create().setTasks("clean", "build", "sonarqube");
-    assertThat(build.getTasks()).containsExactly("clean build");
+    assertThat(build.getTasks()).containsExactly("clean", "build", "sonarqube");
   }
 
   @Test
-  public void test_add_sonar_task() {
+  public void add_sonar_task() {
     GradleBuild build = GradleBuild.create().addSonarTask();
     assertThat(build.getTasks()).containsExactly("sonarqube");
   }

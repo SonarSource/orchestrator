@@ -6,14 +6,10 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.LoggerFactory;
@@ -21,6 +17,17 @@ import org.slf4j.LoggerFactory;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 public class GradleBuildExecutor extends AbstractBuildExecutor<GradleBuild> {
+
+  private final Os os;
+
+  GradleBuildExecutor() {
+    this(new Os());
+  }
+
+  // Visible for testing
+  GradleBuildExecutor(Os os) {
+    this.os = os;
+  }
 
   @Override
   BuildResult execute(GradleBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
@@ -35,18 +42,21 @@ public class GradleBuildExecutor extends AbstractBuildExecutor<GradleBuild> {
   private void executeTask(GradleBuild build, Configuration config, Map<String, String> adjustedProperties, String task,
     final BuildResult result, CommandExecutor commandExecutor) {
     try {
-      File gradlew = config.locators().locate(getGradleWrapper(build.getProjectDirectory().toString()));
+      File projectDir = config.locators().locate(build.getProjectDirectory());
+
+      File gradlew = getGradleWrapper(projectDir);
       checkState(gradlew.exists(), "Gradle wrapper does not exist: '%s'", gradlew.toString());
 
       Command command = Command.create(gradlew.toString());
+      command.setDirectory(projectDir);
       for (Map.Entry<String, String> env : build.getEnvironmentVariables().entrySet()) {
         command.setEnvironmentVariable(env.getKey(), env.getValue());
       }
       command.addArguments(task.split(" "));
 
       command.addArguments(build.arguments());
-      for (Map.Entry entry : adjustedProperties.entrySet()) {
-        command.addSystemArgument(entry.getKey().toString(), entry.getValue().toString());
+      for (Map.Entry<String, String> entry : adjustedProperties.entrySet()) {
+        command.addSystemArgument(entry.getKey(), entry.getValue());
       }
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       LoggerFactory.getLogger(getClass()).info("Execute: {}", command);
@@ -57,14 +67,19 @@ public class GradleBuildExecutor extends AbstractBuildExecutor<GradleBuild> {
     }
   }
 
-  private static Location getGradleWrapper(String wrapperDirectoryLocation) {
-    return FileLocation.of(Paths.get(wrapperDirectoryLocation, gradleWrapperName()).toAbsolutePath().toFile());
+  private File getGradleWrapper(File wrapperDirectory) {
+    String gradlewName = "gradlew";
+    if (os.isWindows()) {
+      gradlewName += ".bat";
+    }
+
+    return wrapperDirectory.toPath().resolve(gradlewName).toAbsolutePath().toFile();
   }
 
-  private static String gradleWrapperName() {
-    if (SystemUtils.IS_OS_WINDOWS) {
-      return "gradlew.bat";
+  static class Os {
+    boolean isWindows() {
+      return SystemUtils.IS_OS_WINDOWS;
     }
-    return "gradlew";
   }
+
 }
