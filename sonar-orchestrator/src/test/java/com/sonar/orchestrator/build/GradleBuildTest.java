@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import java.io.File;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,14 @@ public class GradleBuildTest {
     assertThat(build.getProjectDirectory()).isEqualTo(projectDir);
     assertThat(build.getTimeoutSeconds()).isPositive();
     assertThat(build.getProperties()).isEmpty();
+  }
+
+  @Test
+  public void create_from_file() {
+    File projectDir = new File("some_nice_project");
+    GradleBuild build = GradleBuild.create(projectDir);
+
+    assertThat(build.getProjectDirectory()).isEqualTo(FileLocation.of(projectDir));
   }
 
   @Test
@@ -55,7 +64,7 @@ public class GradleBuildTest {
 
   @Test
   public void add_sonar_task() {
-    GradleBuild build = GradleBuild.create().addSonarTask();
-    assertThat(build.getTasks()).containsExactly("sonarqube");
+    GradleBuild build = GradleBuild.create().setTasks("clean", "build").addSonarTask();
+    assertThat(build.getTasks()).containsExactly("clean", "build", "sonarqube");
   }
 }

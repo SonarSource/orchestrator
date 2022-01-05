@@ -20,7 +20,9 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +67,7 @@ public final class GradleBuild extends Build<GradleBuild> {
 
   public GradleBuild setTasks(List<String> tasks) {
     checkArgument(!tasks.isEmpty(), "At least one task must be set");
-    this.tasks = tasks;
+    this.tasks = new ArrayList<>(tasks);
     return this;
   }
 
@@ -80,5 +82,8 @@ public final class GradleBuild extends Build<GradleBuild> {
   public static GradleBuild create(Location projectDirectory) {
     return create().setProjectDirectory(projectDirectory);
   }
-
+  
+  public static GradleBuild create(File projectDirectory) {
+    return create(FileLocation.of(projectDirectory));
+  }
 }
