@@ -58,7 +58,7 @@ public class H2Test {
   public void getSelectConnectionIdsSql_is_defined_and_excludes_root_login() {
     H2 h2 = H2.builder().setLogin("foo").setRootLogin("bar").build();
 
-    assertThat(h2.getSelectConnectionIdsSql()).isEqualTo("select id from information_schema.sessions where user_name <> 'bar'");
+    assertThat(h2.getSelectConnectionIdsSql()).isEqualTo("select session_id from information_schema.sessions where user_name <> 'bar'");
   }
 
   @Test

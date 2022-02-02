@@ -39,7 +39,11 @@ public final class H2 extends DatabaseClient {
 
   @Override
   public String getSelectConnectionIdsSql() {
-    return "select id from information_schema.sessions where user_name <> '" + getRootLogin() + "'";
+    if (super.getDBMajorVersion() == 1) {
+      return "select id from information_schema.sessions where user_name <> '" + getRootLogin() + "'";
+    } else {
+      return "select session_id from information_schema.sessions where user_name <> '" + getRootLogin() + "'";
+    }
   }
 
   @Override
