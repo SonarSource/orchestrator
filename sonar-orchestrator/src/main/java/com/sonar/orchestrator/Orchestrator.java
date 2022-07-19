@@ -167,13 +167,26 @@ public class Orchestrator extends SingleStartExternalResource {
    * 2/ database
    */
   public void stop() {
+    stop(false);
+  }
+
+  /**
+   * Put down testing infrastructure by killing the main process
+   * 1/ sonarserver
+   * 2/ database
+   */
+  public void killProcess() {
+    stop(true);
+  }
+
+  private void stop(boolean killProcess) {
     if (!started.getAndSet(false)) {
       // ignore double-stop
       return;
     }
 
     if (process != null) {
-      process.stop();
+      process.stop(killProcess);
     }
     if (database != null) {
       database.stop();
@@ -185,7 +198,7 @@ public class Orchestrator extends SingleStartExternalResource {
    */
   public void restartServer() {
     if (process != null) {
-      process.stop();
+      process.stop(false);
       process.start();
     }
   }

@@ -21,5 +21,10 @@ package com.sonar.orchestrator.server;
 
 public interface ServerProcess {
   void start();
-  void stop();
+
+  /**
+   * Stops the server process.
+   * @param killProcess true if the process is killed, or false if the server should be gracefully shutdown
+   */
+  void stop(boolean killProcess);
 }

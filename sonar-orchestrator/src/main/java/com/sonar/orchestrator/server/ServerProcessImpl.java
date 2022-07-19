@@ -115,22 +115,27 @@ public class ServerProcessImpl implements ServerProcess {
         Thread.currentThread().interrupt();
       }
     }
-    stop();
+    stop(false);
     throw fail("Server did not start in timely fashion", null);
   }
 
   @Override
-  public void stop() {
+  public void stop(boolean killProcess) {
     if (!isProcessAlive()) {
       return;
     }
     try {
-      LOGGER.info("Stop server");
-      askForStop();
-      waitForExit();
-      if (isProcessAlive()) {
-        LOGGER.warn("Server is still up. Killing it.");
+      if (killProcess) {
+        LOGGER.info("Stop server by killing process");
         forceKillProcess();
+      } else {
+        LOGGER.info("Stop server");
+        askForStop();
+        waitForExit();
+        if (isProcessAlive()) {
+          LOGGER.warn("Server is still up. Killing it.");
+          forceKillProcess();
+        }
       }
       cleanState();
     } catch (Exception e) {
@@ -197,7 +202,7 @@ public class ServerProcessImpl implements ServerProcess {
   private class StopShutdownHook implements Runnable {
     @Override
     public void run() {
-      stop();
+      stop(false);
     }
   }
 }

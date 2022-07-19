@@ -58,13 +58,22 @@ public class ServerProcessImplTest {
 
   @Test
   public void successfully_start_and_stop() throws Exception {
+    checkStartAndStop(false);
+  }
+
+  @Test
+  public void successfully_start_and_kill_process() throws Exception {
+    checkStartAndStop(true);
+  }
+
+  private void checkStartAndStop(boolean killProcess) throws IOException {
     prepareValidCommand("com.sonar.orchestrator.echo.SonarQubeEmulator");
     underTest.start();
 
     verify(logWatcher).isStarted("starting");
     verify(logWatcher).isStarted("started");
 
-    underTest.stop();
+    underTest.stop(killProcess);
     verify(logWatcher).isStarted("stopped");
   }
 
@@ -77,7 +86,7 @@ public class ServerProcessImplTest {
       expectedException.expect(IllegalStateException.class);
       underTest.start();
     } finally {
-      underTest.stop();
+      underTest.stop(false);
     }
   }
 
@@ -85,11 +94,11 @@ public class ServerProcessImplTest {
   public void can_stop_if_not_started() throws Exception {
     prepareValidCommand("com.sonar.orchestrator.echo.SonarQubeEmulator");
     underTest.start();
-    underTest.stop();
+    underTest.stop(false);
 
     // following stops do not fail
-    underTest.stop();
-    underTest.stop();
+    underTest.stop(false);
+    underTest.stop(false);
   }
 
   @Test
@@ -117,7 +126,7 @@ public class ServerProcessImplTest {
     verify(logWatcher).isStarted("starting");
     verify(logWatcher).isStarted("error");
 
-    underTest.stop();
+    underTest.stop(false);
   }
 
   @Test
