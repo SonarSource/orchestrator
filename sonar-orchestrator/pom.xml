@@ -12,7 +12,7 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <argLine>-Xmx128m -server</argLine>
-    <okhttp.version>4.5.0</okhttp.version>
+    <okhttp.version>4.10.0</okhttp.version>
   </properties>
 
   <dependencies>
