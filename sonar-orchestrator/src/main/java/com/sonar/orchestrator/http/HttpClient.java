@@ -20,11 +20,13 @@
 package com.sonar.orchestrator.http;
 
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Authenticator;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
@@ -66,7 +68,10 @@ public class HttpClient {
         // (that are known to be slow or often under pressure...)
         .connectTimeout(30L, TimeUnit.SECONDS)
         .readTimeout(5L, TimeUnit.MINUTES)
-        .writeTimeout(5L, TimeUnit.MINUTES);
+        .writeTimeout(5L, TimeUnit.MINUTES)
+
+        // disable HTTP/2 as it is not needed
+        .protocols(Collections.singletonList(Protocol.HTTP_1_1));
 
       // OkHttp detects 'http.proxyHost' java property, but credentials should be filled
       String proxyLogin = system.getProperty("http.proxyUser");
