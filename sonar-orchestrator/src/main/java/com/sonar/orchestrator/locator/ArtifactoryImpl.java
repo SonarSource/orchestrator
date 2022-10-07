@@ -55,18 +55,23 @@ public class ArtifactoryImpl implements Artifactory {
   private final String baseUrl;
   @Nullable
   private final String apiKey;
+  @Nullable
+  private final String accessToken;
 
-  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String apiKey) {
+
+  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String apiKey, @Nullable String accessToken) {
     this.tempDir = tempDir;
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
+    this.accessToken = accessToken;
   }
 
   public static ArtifactoryImpl create(Configuration configuration) {
     File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
-    return new ArtifactoryImpl(downloadTempDir, baseUrl, apiKey);
+    String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
+    return new ArtifactoryImpl(downloadTempDir, baseUrl, apiKey, accessToken);
   }
 
   @Override
@@ -170,6 +175,8 @@ public class ArtifactoryImpl implements Artifactory {
     HttpCall call = HttpClientFactory.create().newCall(url);
     if (!isEmpty(apiKey)) {
       call.setHeader("X-JFrog-Art-Api", apiKey);
+    }else if (!isEmpty(accessToken)) {
+      call.setHeader("Authorization", "Bearer " + accessToken);
     }
     return call;
   }
