@@ -59,7 +59,7 @@ public class ArtifactoryImpl implements Artifactory {
   private final String accessToken;
 
 
-  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String apiKey, @Nullable String accessToken) {
+  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
     this.tempDir = tempDir;
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
@@ -71,7 +71,7 @@ public class ArtifactoryImpl implements Artifactory {
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
-    return new ArtifactoryImpl(downloadTempDir, baseUrl, apiKey, accessToken);
+    return new ArtifactoryImpl(downloadTempDir, baseUrl, accessToken, apiKey);
   }
 
   @Override
@@ -173,10 +173,10 @@ public class ArtifactoryImpl implements Artifactory {
 
   private HttpCall newArtifactoryCall(HttpUrl url) {
     HttpCall call = HttpClientFactory.create().newCall(url);
-    if (!isEmpty(apiKey)) {
-      call.setHeader("X-JFrog-Art-Api", apiKey);
-    }else if (!isEmpty(accessToken)) {
+    if (!isEmpty(accessToken)) {
       call.setHeader("Authorization", "Bearer " + accessToken);
+    } else if (!isEmpty(apiKey)) {
+      call.setHeader("X-JFrog-Art-Api", apiKey);
     }
     return call;
   }
