@@ -129,6 +129,7 @@ public class ArtifactoryImplTest {
 
     Configuration configuration = newConfiguration()
             .setProperty("orchestrator.artifactory.accessToken", "abcde")
+            .setProperty("orchestrator.artifactory.apiKey", "defgh")
             .build();
     ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
 
@@ -141,6 +142,7 @@ public class ArtifactoryImplTest {
     RecordedRequest request = server.takeRequest();
     assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
     assertThat(request.getHeader("Authorization")).isEqualTo("Bearer abcde");
+    assertThat(request.getHeader("X-JFrog-Art-Api")).isNull();
   }
 
 
