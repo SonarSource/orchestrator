@@ -66,6 +66,8 @@ jobs:
         with:
           build-number: ${{ steps.get_version.outputs.build }}
           local-repo-dir: ${{ steps.local_repo.outputs.dir }}
+      - name: Remove echo module
+        run: rm -rf "${{ steps.local_repo.outputs.dir }}/org/sonarsource/orchestrator/echo"
       - name: Maven Central Sync
         id: maven-central-sync
         continue-on-error: true
