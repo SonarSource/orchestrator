@@ -55,4 +55,10 @@ public class DatabaseClientTest {
     assertThat(h2.getDBMajorVersion() >= 0).isTrue();
     assertThat(h2.getDBMinorVersion() >= 0).isTrue();
   }
+
+  @Test
+  public void testDefaultGetPermissionOnSchema() {
+    H2 h2 = H2.builder().setDriverClassName("my.Driver").build();
+    assertThat(h2.getPermissionOnSchema()).isEmpty();
+  }
 }

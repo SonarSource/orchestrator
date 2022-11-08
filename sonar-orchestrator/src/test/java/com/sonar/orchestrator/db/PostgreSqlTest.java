@@ -21,6 +21,8 @@ package com.sonar.orchestrator.db;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PostgreSqlTest {
@@ -33,7 +35,7 @@ public class PostgreSqlTest {
     assertThat(postgreSql.getUrl()).isEqualTo("jdbc:postgresql://localhost/sonar");
     assertThat(postgreSql.getLogin()).isEqualTo("sonar");
     assertThat(postgreSql.getPassword()).isEqualTo("sonar");
-    assertThat(postgreSql.isDropAndCreate()).isEqualTo(true);
+    assertThat(postgreSql.isDropAndCreate()).isTrue();
   }
 
   @Test
@@ -49,7 +51,7 @@ public class PostgreSqlTest {
     assertThat(postgreSql.getLogin()).isEqualTo("sonar");
     assertThat(postgreSql.getPassword()).isEqualTo("sonar");
 
-    assertThat(postgreSql.isDropAndCreate()).isEqualTo(false);
+    assertThat(postgreSql.isDropAndCreate()).isFalse();
     assertThat(postgreSql.getRootUrl()).isEqualTo("jdbc:postgresql://localhost");
     assertThat(postgreSql.getRootLogin()).isEqualTo("hello");
     assertThat(postgreSql.getRootPassword()).isEqualTo("world");
@@ -61,6 +63,24 @@ public class PostgreSqlTest {
     assertThat(postgreSql.getCreateDdl().length).isGreaterThan(0);
     assertThat(postgreSql.getDropDdl().length).isGreaterThan(0);
 
+  }
+
+  @Test
+  public void createdDdlShouldBeDefined() {
+    PostgreSql postgreSql = PostgreSql.builder().build();
+    String[] expectedSqlCommand = {
+      "create database \"sonar\"",
+      "CREATE USER \"sonar\" WITH PASSWORD 'sonar' CREATEDB",
+      "GRANT ALL PRIVILEGES ON DATABASE \"sonar\" TO \"sonar\""
+    };
+    assertThat(Arrays.equals(postgreSql.getCreateDdl(), expectedSqlCommand)).isTrue();
+  }
+
+  @Test
+  public void permissionOnSchemaShouldBeDefined() {
+    PostgreSql postgreSql = PostgreSql.builder().build();
+    String[] expectedSqlCommand = { "GRANT CREATE, USAGE ON SCHEMA public TO \"sonar\";" };
+    assertThat(Arrays.equals(postgreSql.getPermissionOnSchema(), expectedSqlCommand)).isTrue();
   }
 
   @Test
