@@ -226,6 +226,16 @@ public class OrchestratorBuilder {
   }
 
   /**
+   * Sets default admin token for all build executions if 'sonar.login' property not provided.
+   *
+   * Starting from 9.8, permissions for 'Anyone' group has been limited for new instances.
+   */
+  public OrchestratorBuilder useDefaultAdminCredentialsForBuilds(boolean defaultAdminCredentialsForBuilds) {
+    distribution.useDefaultAdminCredentialsForBuilds(defaultAdminCredentialsForBuilds);
+    return this;
+  }
+
+  /**
    * SonarSource commercial plugins must be enabled through a non-community edition.
    * By default community edition is installed. Method is ignored on SonarQube
    * versions less than 7.2.
