@@ -19,6 +19,8 @@
  */
 package com.sonar.orchestrator;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
@@ -32,6 +34,7 @@ import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
+import com.sonar.orchestrator.http.HttpResponse;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
@@ -41,14 +44,18 @@ import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
+import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
 
 public class Orchestrator extends SingleStartExternalResource {
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
+  private static final String SONAR_LOGIN_PROPERTY_NAME = "sonar.login";
 
   private final Configuration config;
   private final SonarDistribution distribution;
@@ -60,6 +67,7 @@ public class Orchestrator extends SingleStartExternalResource {
   private BuildRunner buildRunner;
   private ServerProcess process;
   private StartupLogWatcher startupLogWatcher;
+  private String adminToken;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
@@ -233,6 +241,8 @@ public class Orchestrator extends SingleStartExternalResource {
   private BuildResult executeBuildInternal(Build<?> build, boolean quietly, boolean waitForComputeEngine) {
     requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
 
+    setDefaultAdminToken(build);
+
     BuildResult buildResult;
     if (quietly) {
       buildResult = buildRunner.runQuietly(server, build);
@@ -245,8 +255,47 @@ public class Orchestrator extends SingleStartExternalResource {
     return buildResult;
   }
 
+  private void setDefaultAdminToken(Build<?> build) {
+    if (build.getProperties().containsKey(SONAR_LOGIN_PROPERTY_NAME)) {
+      return;
+    }
+
+    if (build.arguments().stream().anyMatch(s -> s.contains(SONAR_LOGIN_PROPERTY_NAME))) {
+      return;
+    }
+
+    if (distribution.useDefaultAdminCredentialsForBuilds()) {
+      build.setProperty(SONAR_LOGIN_PROPERTY_NAME, getDefaultAdminToken());
+    }
+  }
+
+  public String getDefaultAdminToken() {
+    if (this.adminToken != null) {
+      return this.adminToken;
+    }
+    return generateDefaultAdminToken();
+  }
+
+  private String generateDefaultAdminToken() {
+    HttpCall httpCall = server.newHttpCall("api/user_tokens/generate")
+      .setParam("name", UUID.randomUUID().toString())
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials();
+    HttpResponse response = httpCall.execute();
+    if (response.isSuccessful()) {
+      this.adminToken = ofNullable(Json.parse(response.getBodyAsString()).asObject().get("token"))
+        .map(JsonValue::asString)
+        .orElseThrow(() -> new IllegalStateException("Could not extract admin token from response: " + response.getBodyAsString()));
+      return this.adminToken;
+    } else {
+      throw new IllegalStateException("Could not get token for admin: " + response.getBodyAsString());
+    }
+  }
+
   public BuildResult[] executeBuilds(Build<?>... builds) {
     requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
+
+    Arrays.stream(builds).forEach(this::setDefaultAdminToken);
 
     BuildResult[] results = new BuildResult[builds.length];
     for (int index = 0; index < builds.length; index++) {

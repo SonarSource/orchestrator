@@ -22,6 +22,9 @@ package com.sonar.orchestrator;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
+import com.sonar.orchestrator.build.Build;
+import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.FakeBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
@@ -121,15 +124,15 @@ public class OrchestratorBuilderTest {
     assertThat(orchestrator.getServer().version().toString()).startsWith("8.9.");
     assertThat(orchestrator.getServer().getEdition()).isEqualTo(Edition.COMMUNITY);
     File pluginsDir = new File(orchestrator.getServer().getHome(), "lib/extensions");
-    assertThat(FileUtils.listFiles(pluginsDir, new String[] {"jar"}, false)).isNotEmpty();
+    assertThat(FileUtils.listFiles(pluginsDir, new String[]{"jar"}, false)).isNotEmpty();
   }
 
   @Test
   public void enable_default_force_authentication() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-        .setSonarVersion("DEV")
-        .defaultForceAuthentication()
-        .build();
+      .setSonarVersion("DEV")
+      .defaultForceAuthentication()
+      .build();
     Server server = orchestrator.install();
 
     Properties properties = openPropertiesFile(server);
@@ -174,9 +177,9 @@ public class OrchestratorBuilderTest {
   @Test
   public void empty_sonar_properties() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-        .setSonarVersion("DEV")
-        .emptySonarProperties()
-        .build();
+      .setSonarVersion("DEV")
+      .emptySonarProperties()
+      .build();
     Server server = orchestrator.install();
 
     Properties properties = openPropertiesFile(server);
@@ -188,8 +191,8 @@ public class OrchestratorBuilderTest {
   @Test
   public void disable_force_authentication_by_default() throws Exception {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
-        .setSonarVersion("DEV")
-        .build();
+      .setSonarVersion("DEV")
+      .build();
     Server server = orchestrator.install();
 
     Properties properties = openPropertiesFile(server);
@@ -217,6 +220,57 @@ public class OrchestratorBuilderTest {
 
     Properties properties = openPropertiesFile(server);
     assertThat(properties.getProperty("sonar.forceRedirectOnDefaultAdminCredentials")).isEqualTo("false");
+  }
+
+  @Test
+  public void use_default_admin_credentials_for_builds_if_enabled() {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion("DEV")
+      .useDefaultAdminCredentialsForBuilds(true)
+      .build();
+
+    try {
+      orchestrator.start();
+
+      BuildResult successResult = mock(BuildResult.class);
+      when(successResult.isSuccess()).thenReturn(true);
+
+      Build<FakeBuild> fakeBuild = FakeBuild.create(successResult);
+      orchestrator.executeBuild(fakeBuild);
+      String adminToken = fakeBuild.getProperties().get("sonar.login");
+      assertThat(adminToken).isNotBlank();
+
+      //second execution should reuse admin token
+      fakeBuild = FakeBuild.create(successResult);
+      orchestrator.executeBuild(fakeBuild);
+      String secondAdminToken = fakeBuild.getProperties().get("sonar.login");
+      assertThat(secondAdminToken).isNotBlank()
+        .isEqualTo(adminToken);
+
+      fakeBuild = FakeBuild.create(successResult);
+      fakeBuild.setProperty("sonar.login", "custom-property-token");
+      orchestrator.executeBuildQuietly(fakeBuild);
+
+      assertThat(fakeBuild.getProperties()).containsEntry("sonar.login", "custom-property-token");
+
+      fakeBuild = FakeBuild.create(successResult);
+      fakeBuild.addArgument("-Dsonar.login=custom-argument-token");
+      orchestrator.executeBuildQuietly(fakeBuild);
+
+      assertThat(fakeBuild.arguments()).contains("-Dsonar.login=custom-argument-token");
+
+      Build<FakeBuild> fakeBuild1 = FakeBuild.create(successResult);
+      Build<FakeBuild> fakeBuild2 = FakeBuild.create(successResult);
+      Build<FakeBuild> fakeBuild3 = FakeBuild.create(successResult);
+      orchestrator.executeBuilds(fakeBuild1, fakeBuild2, fakeBuild3);
+
+      assertThat(fakeBuild1.getProperties()).hasEntrySatisfying("sonar.login", s -> assertThat(s).isNotBlank());
+      assertThat(fakeBuild2.getProperties()).hasEntrySatisfying("sonar.login", s -> assertThat(s).isNotBlank());
+      assertThat(fakeBuild3.getProperties()).hasEntrySatisfying("sonar.login", s -> assertThat(s).isNotBlank());
+
+    } finally {
+      orchestrator.stop();
+    }
   }
 
   @Test
