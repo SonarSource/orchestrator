@@ -23,7 +23,6 @@ import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.version.Version;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -66,7 +65,7 @@ public class LicensesTest {
     github.enqueue(new MockResponse().setResponseCode(404));
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + github.getPort() + "/master/edition_testing/de.txt] returned code [404]");
+    expectedException.expectMessage("Fail to download license. URL [http://localhost:" + github.getPort() + "/edition_testing/de.txt] returned code [404]");
 
     newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("8.0.0.10000"));
   }
@@ -76,7 +75,7 @@ public class LicensesTest {
     github.shutdown();
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Can not call http://localhost:" + github.getPort() + "/master/edition_testing/de.txt due to network failure");
+    expectedException.expectMessage("Can not call http://localhost:" + github.getPort() + "/edition_testing/de.txt due to network failure");
 
     newLicenses(true).getLicense(Edition.DEVELOPER, Version.create("8.0.0.10000"));
   }
@@ -96,9 +95,4 @@ public class LicensesTest {
     return new Licenses(configuration, "http://localhost:" + github.getPort() + "/");
   }
 
-  private void verifyRequested(String path) throws Exception {
-    RecordedRequest recordedRequest = github.takeRequest();
-    assertThat(recordedRequest.getHeader("Authorization")).isEqualTo("token " + TOKEN_VALUE);
-    assertThat(recordedRequest.getRequestUrl().encodedPath()).isEqualTo(path);
-  }
 }

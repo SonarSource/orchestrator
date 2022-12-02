@@ -47,7 +47,7 @@ public class Licenses {
   }
 
   public Licenses(Configuration configuration) {
-    this(configuration, "https://raw.githubusercontent.com/SonarSource/licenses/");
+    this(configuration, "https://api.github.com/repos/SonarSource/licenses/contents/");
   }
 
   public String getLicense(Edition edition, Version version) {
@@ -69,13 +69,14 @@ public class Licenses {
         default:
           throw new IllegalStateException("License does not exist for edition " + e);
       }
-      return download(baseUrl + "master/edition_testing/" + filename);
+      return download(baseUrl + "edition_testing/" + filename);
     });
   }
 
   private String download(String url) {
     HttpResponse response = HttpClientFactory.create().newCall(HttpUrl.parse(url))
-      .setHeader("Authorization", "token " + loadGithubToken())
+      .setHeader("Accept", "application/vnd.github.v3.raw")
+      .setHeader("Authorization", "Bearer " + loadGithubToken())
       .executeUnsafely();
     if (response.isSuccessful()) {
       return cleanUpLicense(response.getBodyAsString());
