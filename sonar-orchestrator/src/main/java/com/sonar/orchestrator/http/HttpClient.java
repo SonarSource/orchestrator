@@ -20,11 +20,13 @@
 package com.sonar.orchestrator.http;
 
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Authenticator;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
@@ -61,6 +63,8 @@ public class HttpClient {
         .followRedirects(true)
         .followSslRedirects(true)
         .retryOnConnectionFailure(true)
+        // Disable HTTP/2 to avoid SocketTimeoutException
+        .protocols(Collections.singletonList(Protocol.HTTP_1_1))
 
         // super high timeouts because Orchestrator targets build environments
         // (that are known to be slow or often under pressure...)
