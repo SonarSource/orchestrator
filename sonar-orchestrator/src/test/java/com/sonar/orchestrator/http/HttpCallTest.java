@@ -337,12 +337,12 @@ public class HttpCallTest {
   }
 
   @Test
-  public void downloadToFile_throws_ISE_if_target_is_a_directory() throws Exception {
+  public void downloadToFile_throws_IAE_if_target_is_a_directory() throws Exception {
     server.enqueue(new MockResponse().setBody(PONG));
     File dir = temp.newFolder();
 
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Can not call " + server.url("api/system/ping"));
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Parameter 'file' is not a file");
 
     newCall("api/system/ping").downloadToFile(dir);
   }
