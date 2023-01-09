@@ -48,11 +48,14 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
-public class Orchestrator extends SingleStartExternalResource {
+public class Orchestrator extends SingleStartExternalResource implements AfterAllCallback, BeforeAllCallback {
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
   private static final String SONAR_LOGIN_PROPERTY_NAME = "sonar.login";
@@ -85,7 +88,17 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    start();
+  }
+
+  @Override
   protected void afterAll() {
+    stop();
+  }
+
+  @Override
+  public void afterAll(ExtensionContext context) throws Exception {
     stop();
   }
 
@@ -312,4 +325,6 @@ public class Orchestrator extends SingleStartExternalResource {
   public static OrchestratorBuilder builder(Configuration config) {
     return new OrchestratorBuilder(config);
   }
+
+
 }

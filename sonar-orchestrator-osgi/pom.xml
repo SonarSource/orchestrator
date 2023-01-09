@@ -26,6 +26,10 @@
           <artifactId>junit</artifactId>
           <groupId>junit</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -55,7 +59,8 @@
               org.sonarqube.ws.client.*;version="${sonar-ws.version}"
             </_exportcontents>
             <Require-Bundle>
-              org.junit;bundle-version="4.11"
+              org.junit;bundle-version="4.11",
+              junit-jupiter-api;
             </Require-Bundle>
             <Bundle-ClassPath>{maven-dependencies}</Bundle-ClassPath>
             <Embed-Transitive>true</Embed-Transitive>
