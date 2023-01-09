@@ -47,6 +47,7 @@ import com.sonar.orchestrator.server.StartupLogWatcher;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -59,6 +60,8 @@ public class Orchestrator extends SingleStartExternalResource implements AfterAl
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
   private static final String SONAR_LOGIN_PROPERTY_NAME = "sonar.login";
+
+  private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(Orchestrator.class);
 
   private final Configuration config;
   private final SonarDistribution distribution;
@@ -88,8 +91,12 @@ public class Orchestrator extends SingleStartExternalResource implements AfterAl
   }
 
   @Override
-  public void beforeAll(ExtensionContext context) throws Exception {
-    start();
+  public void beforeAll(ExtensionContext context) {
+    // This is to avoid multiple starts when using nested tests
+    // See https://github.com/junit-team/junit5/issues/2421
+    if (context.getStore(NAMESPACE).getOrComputeIfAbsent(AtomicInteger.class).getAndIncrement() == 0) {
+      start();
+    }
   }
 
   @Override
@@ -98,8 +105,10 @@ public class Orchestrator extends SingleStartExternalResource implements AfterAl
   }
 
   @Override
-  public void afterAll(ExtensionContext context) throws Exception {
-    stop();
+  public void afterAll(ExtensionContext context) {
+    if (context.getStore(NAMESPACE).getOrComputeIfAbsent(AtomicInteger.class).decrementAndGet() == 0) {
+      stop();
+    }
   }
 
   /**
