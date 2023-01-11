@@ -63,13 +63,13 @@ public class OrchestratorBuilderTest {
     Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
       // fixed version
-      .addPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
+      .addPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "2.0.1.2020"))
       // alias DEV
       .addPlugin(MavenLocation.of("org.sonarsource.python", "sonar-python-plugin", "DEV"))
       // alias LATEST_RELEASE
       .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "LATEST_RELEASE"))
       // alias LATEST_RELEASE[x.y]
-      .addPlugin(MavenLocation.of("org.sonarsource.php", "sonar-php-plugin", "LATEST_RELEASE[2.13]"))
+      .addPlugin(MavenLocation.of("org.sonarsource.php", "sonar-php-plugin", "LATEST_RELEASE[3.17]"))
       .build();
     try {
       orchestrator.start();
@@ -78,10 +78,10 @@ public class OrchestratorBuilderTest {
       assertThat(orchestrator.getServer().version().toString()).startsWith("8.9.");
       Map<String, String> pluginVersions = loadInstalledPluginVersions(orchestrator);
       System.out.println(pluginVersions);
-      assertThat(pluginVersions.get("xml")).isEqualTo("1.5 (build 1373)");
+      assertThat(pluginVersions).containsEntry("xml", "2.0.1 (build 2020)");
       assertThat(pluginVersions.get("python")).isNotEmpty();
       assertThat(pluginVersions.get("java")).isNotEmpty();
-      assertThat(pluginVersions.get("php")).startsWith("2.13");
+      assertThat(pluginVersions.get("php")).startsWith("3.17");
     } finally {
       orchestrator.stop();
     }
