@@ -43,12 +43,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OrchestratorBuilderTest {
 
   private static final String LTS_ALIAS = "LATEST_RELEASE[8.9]";
@@ -57,6 +61,9 @@ public class OrchestratorBuilderTest {
   public ExpectedException expectedException = ExpectedException.none();
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+
+  @Mock
+  private BuildResult successResult;
 
   @Test
   public void install_plugins_on_sonarqube_lts() throws Exception {
@@ -231,46 +238,76 @@ public class OrchestratorBuilderTest {
 
     try {
       orchestrator.start();
-
-      BuildResult successResult = mock(BuildResult.class);
       when(successResult.isSuccess()).thenReturn(true);
 
-      Build<FakeBuild> fakeBuild = FakeBuild.create(successResult);
-      orchestrator.executeBuild(fakeBuild);
-      String adminToken = fakeBuild.getProperties().get("sonar.login");
-      assertThat(adminToken).isNotBlank();
-
-      //second execution should reuse admin token
-      fakeBuild = FakeBuild.create(successResult);
-      orchestrator.executeBuild(fakeBuild);
-      String secondAdminToken = fakeBuild.getProperties().get("sonar.login");
-      assertThat(secondAdminToken).isNotBlank()
-        .isEqualTo(adminToken);
-
-      fakeBuild = FakeBuild.create(successResult);
-      fakeBuild.setProperty("sonar.login", "custom-property-token");
-      orchestrator.executeBuildQuietly(fakeBuild);
-
-      assertThat(fakeBuild.getProperties()).containsEntry("sonar.login", "custom-property-token");
-
-      fakeBuild = FakeBuild.create(successResult);
-      fakeBuild.addArgument("-Dsonar.login=custom-argument-token");
-      orchestrator.executeBuildQuietly(fakeBuild);
-
-      assertThat(fakeBuild.arguments()).contains("-Dsonar.login=custom-argument-token");
-
-      Build<FakeBuild> fakeBuild1 = FakeBuild.create(successResult);
-      Build<FakeBuild> fakeBuild2 = FakeBuild.create(successResult);
-      Build<FakeBuild> fakeBuild3 = FakeBuild.create(successResult);
-      orchestrator.executeBuilds(fakeBuild1, fakeBuild2, fakeBuild3);
-
-      assertThat(fakeBuild1.getProperties()).hasEntrySatisfying("sonar.login", s -> assertThat(s).isNotBlank());
-      assertThat(fakeBuild2.getProperties()).hasEntrySatisfying("sonar.login", s -> assertThat(s).isNotBlank());
-      assertThat(fakeBuild3.getProperties()).hasEntrySatisfying("sonar.login", s -> assertThat(s).isNotBlank());
-
+      String adminToken = verifyTokenCreated(orchestrator, "sonar.token");
+      verifyTokenReused(orchestrator, "sonar.token", adminToken);
+      verifyTokenFromProperty(orchestrator, "sonar.token");
+      verifyTokenFromProperty(orchestrator, "sonar.login");
+      verifyTokenFromArgument(orchestrator, "sonar.token");
+      verifyTokenFromArgument(orchestrator, "sonar.login");
+      verifyTokenCreatedForMultipleBuilds(orchestrator);
     } finally {
       orchestrator.stop();
     }
+  }
+
+  @Test
+  public void executeBuild_whenDefaultAdminCredentialsEnabledOnOldVersion_shouldUseLoginProperty() {
+    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+      .setSonarVersion(LTS_ALIAS)
+      .useDefaultAdminCredentialsForBuilds(true)
+      .build();
+
+    try {
+      orchestrator.start();
+      when(successResult.isSuccess()).thenReturn(true);
+
+      String adminToken = verifyTokenCreated(orchestrator, "sonar.login");
+      verifyTokenReused(orchestrator, "sonar.login", adminToken);
+    } finally {
+      orchestrator.stop();
+    }
+  }
+
+  private String verifyTokenCreated(Orchestrator orchestrator, String property) {
+    Build<FakeBuild> fakeBuild = FakeBuild.create(successResult);
+    orchestrator.executeBuild(fakeBuild);
+    String token = fakeBuild.getProperties().get(property);
+    assertThat(token).isNotBlank();
+    return token;
+  }
+
+  private void verifyTokenReused(Orchestrator orchestrator, String property, String tokenToReuse) {
+    Build<FakeBuild> fakeBuild = FakeBuild.create(successResult);
+    orchestrator.executeBuild(fakeBuild);
+    String token = fakeBuild.getProperties().get(property);
+    assertThat(token).isNotBlank().isEqualTo(tokenToReuse);
+  }
+
+  private void verifyTokenFromProperty(Orchestrator orchestrator, String property) {
+    Build<FakeBuild> fakeBuild = FakeBuild.create(successResult);
+    fakeBuild.setProperty(property, "custom-property-token");
+    orchestrator.executeBuildQuietly(fakeBuild);
+    assertThat(fakeBuild.getProperties()).containsEntry(property, "custom-property-token");
+  }
+
+  private void verifyTokenFromArgument(Orchestrator orchestrator, String property) {
+    Build<FakeBuild> fakeBuild = FakeBuild.create(successResult);
+    fakeBuild.addArgument("-D" + property + "=custom-argument-token");
+    orchestrator.executeBuildQuietly(fakeBuild);
+    assertThat(fakeBuild.arguments()).contains("-D" + property + "=custom-argument-token");
+  }
+
+  private void verifyTokenCreatedForMultipleBuilds(Orchestrator orchestrator) {
+    Build<FakeBuild> fakeBuild1 = FakeBuild.create(successResult);
+    Build<FakeBuild> fakeBuild2 = FakeBuild.create(successResult);
+    Build<FakeBuild> fakeBuild3 = FakeBuild.create(successResult);
+    orchestrator.executeBuilds(fakeBuild1, fakeBuild2, fakeBuild3);
+
+    assertThat(fakeBuild1.getProperties()).hasEntrySatisfying("sonar.token", s -> assertThat(s).isNotBlank());
+    assertThat(fakeBuild2.getProperties()).hasEntrySatisfying("sonar.token", s -> assertThat(s).isNotBlank());
+    assertThat(fakeBuild3.getProperties()).hasEntrySatisfying("sonar.token", s -> assertThat(s).isNotBlank());
   }
 
   @Test

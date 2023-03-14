@@ -38,6 +38,7 @@ import com.sonar.orchestrator.http.HttpResponse;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.server.Packaging;
 import com.sonar.orchestrator.server.PackagingResolver;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
 import com.sonar.orchestrator.server.ServerInstaller;
@@ -56,6 +57,7 @@ public class Orchestrator extends SingleStartExternalResource {
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
   private static final String SONAR_LOGIN_PROPERTY_NAME = "sonar.login";
+  private static final String SONAR_TOKEN_PROPERTY_NAME = "sonar.token";
 
   private final Configuration config;
   private final SonarDistribution distribution;
@@ -68,6 +70,7 @@ public class Orchestrator extends SingleStartExternalResource {
   private ServerProcess process;
   private StartupLogWatcher startupLogWatcher;
   private String adminToken;
+  private Packaging packaging;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
@@ -101,6 +104,7 @@ public class Orchestrator extends SingleStartExternalResource {
       database.start();
 
       PackagingResolver packagingResolver = new PackagingResolver(config.locators());
+      packaging = packagingResolver.resolve(distribution);
       ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
       server = serverInstaller.install(distribution);
     }
@@ -256,16 +260,21 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   private void setDefaultAdminToken(Build<?> build) {
-    if (build.getProperties().containsKey(SONAR_LOGIN_PROPERTY_NAME)) {
+    if (build.getProperties().containsKey(SONAR_LOGIN_PROPERTY_NAME) || build.getProperties().containsKey(SONAR_TOKEN_PROPERTY_NAME)) {
       return;
     }
 
-    if (build.arguments().stream().anyMatch(s -> s.contains(SONAR_LOGIN_PROPERTY_NAME))) {
+    if (build.arguments().stream().anyMatch(s -> s.contains(SONAR_LOGIN_PROPERTY_NAME) || s.contains(SONAR_TOKEN_PROPERTY_NAME))) {
       return;
     }
 
     if (distribution.useDefaultAdminCredentialsForBuilds()) {
-      build.setProperty(SONAR_LOGIN_PROPERTY_NAME, getDefaultAdminToken());
+      if (packaging.getVersion().isGreaterThanOrEquals(10, 0)) {
+        build.setProperty(SONAR_TOKEN_PROPERTY_NAME, getDefaultAdminToken());
+      } else {
+        // Keep backwards compatibility with SQ < 10.0, where the sonar.token property is not implemented
+        build.setProperty(SONAR_LOGIN_PROPERTY_NAME, getDefaultAdminToken());
+      }
     }
   }
 
