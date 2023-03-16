@@ -1,5 +1,7 @@
+---
 name: sonar-release
-
+# This workflow is triggered when publishing a new github release
+# yamllint disable-line rule:truthy
 on:
   release:
     types:
@@ -7,14 +9,11 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    name: Release
-    timeout-minutes: 60
     permissions:
-      contents: read
       id-token: write
-    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@d42e8be3a9772d0447a7d2f3d2be31312b218383  # tag=5.0.1
+      contents: write
+    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v5
     with:
-      publishToBinaries: true
-      mavenCentralSync: true
-      slackChannel: sonarqube-build
+      publishToBinaries: true  # disabled by default
+      mavenCentralSync: true   # disabled by default
+      slackChannel: team-sonarqube-build
