@@ -194,32 +194,6 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>truezip-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <id>copy-package</id>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <verbose>true</verbose>
-              <fileset>
-                <directory>${project.basedir}/lib/sqljdbc41.jar</directory>
-                <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                <excludes>
-                  <exclude>META-INF/M*</exclude>
-                </excludes>
-              </fileset>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
 
 </project>
