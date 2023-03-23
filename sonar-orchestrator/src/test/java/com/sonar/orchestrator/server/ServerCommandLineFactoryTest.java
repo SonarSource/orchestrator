@@ -73,6 +73,9 @@ public class ServerCommandLineFactoryTest {
 
   @Test
   public void fail_if_libs_are_missing() throws Exception {
+    generateValidFileSystem();
+    FileUtils.deleteQuietly(new File(server.getHome(), "lib/sonar-application-5.6.jar"));
+
     ServerCommandLineFactory underTest = new ServerCommandLineFactory(fs);
 
     expectedException.expect(IllegalStateException.class);
@@ -81,7 +84,7 @@ public class ServerCommandLineFactoryTest {
   }
 
   private void generateValidFileSystem() throws IOException {
-    File homeDir = temp.newFolder();
+    File homeDir = temp.getRoot();
     FileUtils.touch(new File(homeDir, "lib/sonar-application-5.6.jar"));
     when(server.getHome()).thenReturn(homeDir);
   }
