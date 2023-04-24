@@ -37,7 +37,7 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
-public class OrchestratorBuilder {
+public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BUILDER, ORCH>, ORCH> {
 
   private final Configuration config;
   private final System2 system2;
@@ -49,7 +49,7 @@ public class OrchestratorBuilder {
     this(initialConfig, System2.INSTANCE);
   }
 
-  OrchestratorBuilder(Configuration initialConfig, System2 system2) {
+  protected OrchestratorBuilder(Configuration initialConfig, System2 system2) {
     this.config = initialConfig;
     this.system2 = system2;
     this.distribution = new SonarDistribution();
@@ -63,7 +63,7 @@ public class OrchestratorBuilder {
    *
    * @throws IllegalArgumentException if the zip file does not exist
    */
-  public OrchestratorBuilder setZipFile(File zip) {
+  public BUILDER setZipFile(File zip) {
     checkArgument(zip.exists(), "SonarQube ZIP file does not exist: %s", zip.getAbsolutePath());
     checkArgument(zip.isFile(), "SonarQube ZIP is not a file: %s", zip.getAbsolutePath());
     return setZipLocation(FileLocation.of(zip));
@@ -73,9 +73,9 @@ public class OrchestratorBuilder {
    * Set the path to SonarQube zip by its location, for instance {@link FileLocation} or {@link MavenLocation}
    * @since 3.19
    */
-  public OrchestratorBuilder setZipLocation(Location zip) {
+  public BUILDER setZipLocation(Location zip) {
     this.distribution.setZipLocation(requireNonNull(zip));
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -100,10 +100,10 @@ public class OrchestratorBuilder {
    * supported. The caller is responsible for loading the version of SonarQube from wherever it
    * needs.
    */
-  public OrchestratorBuilder setSonarVersion(String s) {
+  public BUILDER setSonarVersion(String s) {
     checkArgument(!isEmpty(s), "Empty SonarQube version");
     this.distribution.setVersion(s);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -120,9 +120,9 @@ public class OrchestratorBuilder {
    *
    * @since 3.13
    */
-  public OrchestratorBuilder setStartupLogWatcher(@Nullable StartupLogWatcher w) {
+  public BUILDER setStartupLogWatcher(@Nullable StartupLogWatcher w) {
     this.startupLogWatcher = w;
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -146,49 +146,49 @@ public class OrchestratorBuilder {
    * Downloading and resolving aliases of commercial plugins requires the Artifactory credentials to be set
    * (see parameter "orchestrator.artifactory.apiKey").
    */
-  public OrchestratorBuilder addPlugin(Location location) {
+  public BUILDER addPlugin(Location location) {
     distribution.addPluginLocation(requireNonNull(location));
-    return this;
+    return (BUILDER) this;
   }
 
   /**
    * Similar to {@link #addPlugin} but installs the plugin in the directory for bundled plugins.
    * Only supported by SQ 8.5+
    */
-  public OrchestratorBuilder addBundledPlugin(Location location) {
+  public BUILDER addBundledPlugin(Location location) {
     distribution.addBundledPluginLocation(requireNonNull(location));
-    return this;
+    return (BUILDER) this;
   }
 
-  public OrchestratorBuilder setOrchestratorProperty(String key, @Nullable String value) {
+  public BUILDER setOrchestratorProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     overriddenProperties.put(key, value);
-    return this;
+    return (BUILDER) this;
   }
 
-  public OrchestratorBuilder setServerProperty(String key, @Nullable String value) {
+  public BUILDER setServerProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     distribution.setServerProperty(key, value);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
    * Enable JDWP agent in the CE process for remote debugging on port 5006
    */
-  public OrchestratorBuilder enableCeDebug() {
+  public BUILDER enableCeDebug() {
     failIfRunningOnCI();
     this.setServerProperty("sonar.ce.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006");
-    return this;
+    return (BUILDER) this;
 
   }
 
   /**
    * Enable JDWP agent in the web process for remote debugging on port 5005
    */
-  public OrchestratorBuilder enableWebDebug() {
+  public BUILDER enableWebDebug() {
     failIfRunningOnCI();
     this.setServerProperty("sonar.web.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
-    return this;
+    return (BUILDER) this;
   }
 
   private void failIfRunningOnCI() {
@@ -200,9 +200,9 @@ public class OrchestratorBuilder {
   /**
    * Orchestrator will start with clean sonar.properties file
    */
-  public OrchestratorBuilder emptySonarProperties() {
+  public BUILDER emptySonarProperties() {
     distribution.setEmptySonarProperties(true);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -210,9 +210,9 @@ public class OrchestratorBuilder {
    *
    * Starting from 8.6 it has been enforced, but due impact on others it will be disabled by default
    */
-  public OrchestratorBuilder defaultForceAuthentication() {
+  public BUILDER defaultForceAuthentication() {
     distribution.setDefaultForceAuthentication(true);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -220,9 +220,9 @@ public class OrchestratorBuilder {
    *
    * Starting from 8.8 it has been enforced, but due impact on ITs, it will be disabled by default.
    */
-  public OrchestratorBuilder defaultForceDefaultAdminCredentialsRedirect() {
+  public BUILDER defaultForceDefaultAdminCredentialsRedirect() {
     distribution.setForceDefaultAdminCredentialsRedirect(true);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -230,9 +230,9 @@ public class OrchestratorBuilder {
    *
    * Starting from 9.8, permissions for 'Anyone' group has been limited for new instances.
    */
-  public OrchestratorBuilder useDefaultAdminCredentialsForBuilds(boolean defaultAdminCredentialsForBuilds) {
+  public BUILDER useDefaultAdminCredentialsForBuilds(boolean defaultAdminCredentialsForBuilds) {
     distribution.useDefaultAdminCredentialsForBuilds(defaultAdminCredentialsForBuilds);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -242,18 +242,18 @@ public class OrchestratorBuilder {
    *
    * @since 3.19
    */
-  public OrchestratorBuilder setEdition(Edition edition) {
+  public BUILDER setEdition(Edition edition) {
     distribution.setEdition(edition);
-    return this;
+    return (BUILDER) this;
   }
 
   private static void checkNotEmpty(String key) {
     checkArgument(!isEmpty(key), "Empty property key");
   }
 
-  public OrchestratorBuilder restoreProfileAtStartup(Location profileBackup) {
+  public BUILDER restoreProfileAtStartup(Location profileBackup) {
     distribution.restoreProfileAtStartup(profileBackup);
-    return this;
+    return (BUILDER) this;
   }
 
   /**
@@ -262,17 +262,17 @@ public class OrchestratorBuilder {
    *
    * @since 3.15
    */
-  public OrchestratorBuilder activateLicense() {
+  public BUILDER activateLicense() {
     distribution.activateLicense();
-    return this;
+    return (BUILDER) this;
   }
 
-  public OrchestratorBuilder keepBundledPlugins() {
+  public BUILDER keepBundledPlugins() {
     distribution.setKeepBundledPlugins(true);
-    return this;
+    return (BUILDER) this;
   }
 
-  public Orchestrator build() {
+  public ORCH build() {
     checkState(distribution.getZipLocation().isPresent() ^ distribution.getVersion().isPresent(),
       "One, and only one, of methods setSonarVersion(String) or setZipFile(File) must be called");
     Configuration.Builder configBuilder = Configuration.builder();
@@ -281,6 +281,8 @@ public class OrchestratorBuilder {
       .addMap(overriddenProperties)
       .build();
 
-    return new Orchestrator(finalConfig, distribution, startupLogWatcher);
+    return build(finalConfig, distribution, startupLogWatcher);
   }
+
+  protected abstract ORCH build(Configuration finalConfig, SonarDistribution distribution, StartupLogWatcher startupLogWatcher);
 }

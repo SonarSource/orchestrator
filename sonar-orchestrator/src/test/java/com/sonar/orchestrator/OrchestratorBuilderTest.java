@@ -28,7 +28,9 @@ import com.sonar.orchestrator.build.FakeBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
+import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.util.System2;
 import java.io.File;
 import java.io.IOException;
@@ -65,9 +67,25 @@ public class OrchestratorBuilderTest {
   @Mock
   private BuildResult successResult;
 
+  private static class VanillaOrchestratorBuilder extends OrchestratorBuilder<VanillaOrchestratorBuilder, Orchestrator> {
+
+    VanillaOrchestratorBuilder(Configuration initialConfig) {
+      super(initialConfig);
+    }
+
+    VanillaOrchestratorBuilder(Configuration initialConfig, System2 system2) {
+      super(initialConfig, system2);
+    }
+
+    @Override
+    protected Orchestrator build(Configuration finalConfig, SonarDistribution distribution, StartupLogWatcher startupLogWatcher) {
+      return new Orchestrator(finalConfig, distribution, startupLogWatcher);
+    }
+  }
+
   @Test
   public void install_plugins_on_sonarqube_lts() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
       // fixed version
       .addPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "2.0.1.2020"))
@@ -96,7 +114,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void add_bundled_plugins() {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .addBundledPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
       .build();
@@ -109,7 +127,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void add_bundled_plugins_as_normal_plugin() {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
       .addPlugin(MavenLocation.of("org.sonarsource.xml", "sonar-xml-plugin", "1.5.0.1373"))
       .build();
@@ -122,7 +140,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void install_with_bundled_plugins() {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
       .keepBundledPlugins()
       .build();
@@ -136,7 +154,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void enable_default_force_authentication() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .defaultForceAuthentication()
       .build();
@@ -148,7 +166,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void enable_debug_ce() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create(), mock(System2.class))
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create(), mock(System2.class))
       .setSonarVersion("DEV")
       .enableCeDebug()
       .build();
@@ -161,7 +179,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void enable_debug_web() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create(), mock(System2.class))
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create(), mock(System2.class))
       .setSonarVersion("DEV")
       .enableWebDebug()
       .build();
@@ -176,28 +194,28 @@ public class OrchestratorBuilderTest {
   public void fail_enable_debug_if_on_CI() {
     System2 system2 = mock(System2.class);
     when(system2.getenv("CIRRUS_CI")).thenReturn("true");
-    OrchestratorBuilder orchestratorBuilder = new OrchestratorBuilder(Configuration.create(), system2);
+    OrchestratorBuilder<?, ?> orchestratorBuilder = new VanillaOrchestratorBuilder(Configuration.create(), system2);
     assertThatThrownBy(orchestratorBuilder::enableWebDebug).isInstanceOf(IllegalStateException.class);
     assertThatThrownBy(orchestratorBuilder::enableCeDebug).isInstanceOf(IllegalStateException.class);
   }
 
   @Test
   public void empty_sonar_properties() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .emptySonarProperties()
       .build();
     Server server = orchestrator.install();
 
     Properties properties = openPropertiesFile(server);
-    assertThat(properties.isEmpty()).isTrue();
+    assertThat(properties).isEmpty();
     assertThat(server.getSearchPort()).isEqualTo(9001);
     assertThat(server.getUrl()).isEqualTo("http://localhost:9000");
   }
 
   @Test
   public void disable_force_authentication_by_default() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .build();
     Server server = orchestrator.install();
@@ -208,7 +226,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void enable_default_force_redirect_on_default_admin_creds() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .defaultForceDefaultAdminCredentialsRedirect()
       .build();
@@ -220,7 +238,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void disable_force_redirect_on_default_admin_creds_by_default() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .build();
     Server server = orchestrator.install();
@@ -231,7 +249,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void use_default_admin_credentials_for_builds_if_enabled() {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")
       .useDefaultAdminCredentialsForBuilds(true)
       .build();
@@ -254,7 +272,7 @@ public class OrchestratorBuilderTest {
 
   @Test
   public void executeBuild_whenDefaultAdminCredentialsEnabledOnOldVersion_shouldUseLoginProperty() {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
       .useDefaultAdminCredentialsForBuilds(true)
       .build();
@@ -313,12 +331,12 @@ public class OrchestratorBuilderTest {
   @Test
   public void fail_if_zip_file_does_not_exist() throws IOException {
     File zip = temp.newFile();
-    zip.delete();
+    assertThat(zip.delete()).isTrue();
 
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("SonarQube ZIP file does not exist: " + zip.getAbsolutePath());
 
-    new OrchestratorBuilder(Configuration.create())
+    new VanillaOrchestratorBuilder(Configuration.create())
       .setZipFile(zip)
       .build();
   }
@@ -330,14 +348,14 @@ public class OrchestratorBuilderTest {
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("SonarQube ZIP is not a file: " + dir.getAbsolutePath());
 
-    new OrchestratorBuilder(Configuration.create())
+    new VanillaOrchestratorBuilder(Configuration.create())
       .setZipFile(dir)
       .build();
   }
 
   @Test
   public void override_web_context() throws Exception {
-    Orchestrator orchestrator = new OrchestratorBuilder(Configuration.create())
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion(LTS_ALIAS)
       .setServerProperty("sonar.web.context", "/sonarqube")
       .build();
