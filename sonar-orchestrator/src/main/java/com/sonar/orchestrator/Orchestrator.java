@@ -35,7 +35,6 @@ import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.http.HttpResponse;
-import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.server.Packaging;
@@ -53,7 +52,7 @@ import javax.annotation.Nullable;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
-public class Orchestrator extends SingleStartExternalResource {
+public class Orchestrator {
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
   private static final String SONAR_LOGIN_PROPERTY_NAME = "sonar.login";
@@ -75,21 +74,11 @@ public class Orchestrator extends SingleStartExternalResource {
   /**
    * Constructor, but use rather OrchestratorBuilder
    */
-  Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
+  public Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
     this.config = requireNonNull(config);
     this.distribution = requireNonNull(distribution);
     this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
-  }
-
-  @Override
-  protected void beforeAll() {
-    start();
-  }
-
-  @Override
-  protected void afterAll() {
-    stop();
   }
 
   /**
@@ -112,11 +101,11 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   /**
-   * Install ans start SonarQube.
+   * Install and start SonarQube.
    * <p>
    * Steps are:
    * 1/ connect to db
-   * 2/ download an install SonarQube server
+   * 2/ download and install SonarQube server
    * 3/ download and install plugins
    * 4/ start SonarQube server
    * 5/ restore Quality profiles, if any
@@ -314,11 +303,4 @@ public class Orchestrator extends SingleStartExternalResource {
     return results;
   }
 
-  public static OrchestratorBuilder builderEnv() {
-    return new OrchestratorBuilder(Configuration.createEnv());
-  }
-
-  public static OrchestratorBuilder builder(Configuration config) {
-    return new OrchestratorBuilder(config);
-  }
 }

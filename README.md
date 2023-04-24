@@ -1,29 +1,62 @@
 [![Build Status](https://travis-ci.org/SonarSource/orchestrator.svg?branch=master)](https://travis-ci.org/SonarSource/orchestrator) [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.sonarsource.orchestrator%3Aorchestrator-parent&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.sonarsource.orchestrator%3Aorchestrator-parent)
 
-Orchestrator is a Java library to install SonarQube from tests.
+Orchestrator is a Java library to install and run SonarQube from tests.
 
-## API
+## JUnit 4 API
 
-An instance of class `com.sonar.orchestrator.Orchestrator` represents a SonarQube server:
+An instance of class `com.sonar.orchestrator.junit4.OrchestratorRule` can be used as `Rule` or `ClassRule`. It will represent a SonarQube server that will be started before tests, and stopped after:
 
-    Orchestrator orchestrator = Orchestrator.newBuilder()
+```
+public class MyTest {
+
+    @ClassRule
+    public static OrchestratorRule ORCHESTRATOR = OrchestratorRule.builderEnv()
       .setSonarVersion("7.0")
       .addPlugin(FileLocation.of("/path/to/plugin.jar"))
       .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "5.2.0.13398")
       .setServerProperty("sonar.web.javaOpts", "-Xmx1G")
       .build();
 
-    // start server
-    orchestrator.start();
+    @Test
+    public void myTest() {
+        // run SonarQube Scanner
+        ORCHESTRATOR.executeBuild(SonarScanner.create(new File("/path/to/project")));
 
-    // run SonarQube Scanner
-    orchestrator.executeBuild(SonarScanner.create(new File("/path/to/project")));
+        // requests web services
+        String baseUrl = ORCHESTRATOR.getServer().getUrl();
+        // ...
+    }
 
-    // requests web services
-    String baseUrl = orchestrator.getServer().getUrl();
-    // ...
+}
+```
 
-    orchestrator.stop();
+## JUnit 5 API
+
+An instance of class `com.sonar.orchestrator.junit5.OrchestratorExtension` can be used as `Extension`. It will represent a SonarQube server that will be started before tests, and stopped after:
+
+```
+class MyTests {
+
+    @RegisterExtension
+    static OrchestratorExtension ORCHESTRATOR = OrchestratorExtension.builderEnv()
+      .setSonarVersion("7.0")
+      .addPlugin(FileLocation.of("/path/to/plugin.jar"))
+      .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "5.2.0.13398")
+      .setServerProperty("sonar.web.javaOpts", "-Xmx1G")
+      .build();
+
+    @Test
+    void myTest() {
+        // run SonarQube Scanner
+        ORCHESTRATOR.executeBuild(SonarScanner.create(new File("/path/to/project")));
+
+        // requests web services
+        String baseUrl = ORCHESTRATOR.getServer().getUrl();
+        // ...
+    }
+
+}
+```
 
 ## Version Aliases
 

@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator - JUnit 5
  * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 @ParametersAreNonnullByDefault
-package com.sonar.orchestrator.junit;
+package com.sonar.orchestrator.junit5;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-
