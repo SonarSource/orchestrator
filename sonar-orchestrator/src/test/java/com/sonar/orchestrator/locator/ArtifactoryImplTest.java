@@ -63,7 +63,9 @@ public class ArtifactoryImplTest {
   public void download_file_with_success() throws Exception {
     prepareDownload("this_is_bytecode");
 
-    Configuration configuration = newConfiguration().build();
+    Configuration configuration = newConfiguration()
+      .setProperty("orchestrator.artifactory.apiKey", "")
+      .build();
     ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
 
     File targetFile = temp.newFile();
@@ -83,7 +85,9 @@ public class ArtifactoryImplTest {
     prepareResponseError(403);
     prepareDownload("this_is_bytecode");
 
-    Configuration configuration = newConfiguration().build();
+    Configuration configuration = newConfiguration()
+      .setProperty("orchestrator.artifactory.apiKey", "")
+      .build();
     ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
 
     File targetFile = temp.newFile();
