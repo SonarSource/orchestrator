@@ -16,7 +16,8 @@ env:
   CIRRUS_CLONE_DEPTH: 50
   ARTIFACTS: "\
     org.sonarsource.orchestrator:sonar-orchestrator:jar,\
-    org.sonarsource.orchestrator:sonar-orchestrator-osgi:jar"
+    org.sonarsource.orchestrator:sonar-orchestrator-junit4:jar,\
+    org.sonarsource.orchestrator:sonar-orchestrator-junit5:jar"
 
 eks_container:
   image: ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j17-g7-latest
