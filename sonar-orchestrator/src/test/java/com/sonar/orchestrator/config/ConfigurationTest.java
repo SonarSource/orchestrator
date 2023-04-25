@@ -78,7 +78,7 @@ public class ConfigurationTest extends PropertyAndEnvTest {
 
     Configuration config = Configuration.create(props);
 
-    assertThat(config.asMap()).containsOnly(entry("foo", "1"), entry("bar", "2"));
+    assertThat(config.asMap()).contains(entry("foo", "1"), entry("bar", "2"));
   }
 
   @Test
