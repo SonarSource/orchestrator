@@ -13,6 +13,8 @@
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <argLine>-Xmx128m -server</argLine>
     <okhttp.version>4.5.0</okhttp.version>
+
+    <jacoco.version>0.8.10</jacoco.version>
   </properties>
 
   <dependencies>
