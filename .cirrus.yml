@@ -45,6 +45,7 @@ build_task:
   build_script:
     - source cirrus-env BUILD
     - regular_mvn_build_deploy_analyze -X
+    - cat /tmp/cirrus-ci-build/sonar-orchestrator/target/site/jacoco/jacoco.xml
     - ./check-license-compliance.sh
   cleanup_before_cache_script: cleanup_maven_repository
   on_failure:
