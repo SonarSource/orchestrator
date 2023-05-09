@@ -19,16 +19,12 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.google.common.collect.ImmutableMap;
-import com.sonar.orchestrator.PropertyAndEnvTest;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.test.MockHttpServer;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -37,17 +33,19 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
-import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
-public class ConfigurationTest extends PropertyAndEnvTest {
+public class ConfigurationTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+  @Rule
+  public EnvironmentVariablesRule env = new EnvironmentVariablesRule();
 
   @Test
   public void getString() {
@@ -164,14 +162,13 @@ public class ConfigurationTest extends PropertyAndEnvTest {
   }
 
   @Test
-  public void getFileLocationOfSharedApplyPriority() throws URISyntaxException {
+  public void getFileLocationOfSharedApplyPriority() throws Exception {
     URL url = getClass().getResource("/com/sonar/orchestrator/config/ConfigurationTest/sample.properties");
     Properties props = new Properties();
     props.setProperty("orchestrator.configUrl", url.toString());
-    Map<String, String> envVariables = new HashMap<>(System.getenv());
-    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
-    setEnv(ImmutableMap.copyOf(envVariables));
     props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
+    env.set("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
+
     Configuration config = Configuration.create(props);
 
     FileLocation location = config.getFileLocationOfShared("sample.properties");

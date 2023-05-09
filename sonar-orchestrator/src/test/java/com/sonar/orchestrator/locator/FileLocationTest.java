@@ -19,31 +19,28 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.collect.ImmutableMap;
-import com.sonar.orchestrator.PropertyAndEnvTest;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
-import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FileLocationTest extends PropertyAndEnvTest {
+public class FileLocationTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
+  @Rule
+  public EnvironmentVariablesRule env = new EnvironmentVariablesRule();
 
   @Test
   public void shouldCreateWithFile() {
@@ -71,14 +68,13 @@ public class FileLocationTest extends PropertyAndEnvTest {
   }
 
   @Test
-  public void ofSharedWithEnv() throws URISyntaxException {
+  public void ofSharedWithEnv() throws Exception {
     URL url = getClass().getResource("/com/sonar/orchestrator/locator/FileLocationTest/index.txt");
 
-    Map<String, String> envVariables = new HashMap<>(System.getenv());
-    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
-    setEnv(ImmutableMap.copyOf(envVariables));
+    env.set("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
 
-    FileLocation location = FileLocation.ofShared("abap/foo.txt");
+    FileLocation location= FileLocation.ofShared("abap/foo.txt");
+
     assertThat(location.getFile().isFile()).isTrue();
     assertThat(location.getFile().exists()).isTrue();
     assertThat(location.getFile().getName()).isEqualTo("foo.txt");
