@@ -156,9 +156,9 @@ public class ConfigurationTest {
     Configuration config = Configuration.create(props);
 
     FileLocation location = config.getFileLocationOfShared("sample.properties");
-    assertThat(location.getFile()).isFile();
-    assertThat(location.getFile()).exists();
-    assertThat(location.getFile().getName()).isEqualTo("sample.properties");
+    assertThat(location.getFile())
+      .isFile()
+      .hasName("sample.properties");
   }
 
   @Test
@@ -167,12 +167,11 @@ public class ConfigurationTest {
     Properties props = new Properties();
     props.setProperty("orchestrator.configUrl", url.toString());
     props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
+    Configuration config = Configuration.create(props);
     env.set("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
 
-    Configuration config = Configuration.create(props);
-
     FileLocation location = config.getFileLocationOfShared("sample.properties");
-    assertThat(location.getFile().exists()).isTrue();
+    assertThat(location.getFile()).exists();
   }
 
   @Test
