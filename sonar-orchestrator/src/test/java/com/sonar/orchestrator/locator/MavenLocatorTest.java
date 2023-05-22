@@ -34,9 +34,9 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class MavenLocatorTest {
@@ -63,7 +63,7 @@ public class MavenLocatorTest {
     File file = underTest.locateResolvedVersion(location);
 
     assertThat(file).exists().hasName("the_file.jar");
-    verifyZeroInteractions(artifactory);
+    verifyNoInteractions(artifactory);
   }
 
   @Test
@@ -76,7 +76,7 @@ public class MavenLocatorTest {
     File file = underTest.locateResolvedVersion(MavenLocation.of("foo", "bar", "1.0"));
     assertThat(file).exists().hasName("bar-1.0.jar");
 
-    verifyZeroInteractions(artifactory);
+    verifyNoInteractions(artifactory);
     // do not copy in cache
     verifyEmptyCache();
   }
