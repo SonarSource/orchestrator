@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import okhttp3.mockwebserver.SocketPolicy;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -433,8 +434,7 @@ public class HttpCallTest {
 
   @Test
   public void setTimeout_overrides_default_timeouts() throws Exception {
-    // default timeouts would support this slow response
-    server.enqueue(new MockResponse().setBody(PONG).setBodyDelay(10, TimeUnit.SECONDS));
+    server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
 
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage("Can not call " + server.url("api/system/ping") + " due to network failure");
