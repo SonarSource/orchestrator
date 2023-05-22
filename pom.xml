@@ -48,7 +48,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <version.jacoco.plugin>0.8.10</version.jacoco.plugin>
     <sonar.exclusions>
-      **/com/sonar/orchestrator/echo/**/*.java,**/com/sonar/orchestrator/test/**/*.java,target/generated-sources/**/*
+      **/com/sonar/orchestrator/echo/**/*.java,target/generated-sources/**/*
     </sonar.exclusions>
 
     <!-- used for deployment to SonarSource Artifactory -->
