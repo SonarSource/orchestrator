@@ -82,7 +82,7 @@ This directory is _not_ automatically purged and may grow significantly when usi
 The test environment is configured in the file `~/.sonar/orchestrator/orchestrator.properties`:
 
     # Token used to download SonarSource private artifacts from https://repox.jfrog.io/repox
-    # Generate your API key at https://repox.jfrog.io/repox/webapp/#/profile
+    # Generate your API key at https://repox.jfrog.io/ui/admin/artifactory/user_profile
     # This property can be replaced by the environment variable ARTIFACTORY_API_KEY.
     #orchestrator.artifactory.apiKey=xxx
 
