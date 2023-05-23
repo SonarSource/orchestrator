@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -224,7 +224,7 @@ public final class DefaultDatabase implements Database {
   private DefaultDatabase dropAndCreateDatabase() {
     Connection connection = null;
     try {
-      // get a connection as root, to be be allowed to kill the other connections
+      // get a connection as root, to be allowed to kill the other connections
       connection = databaseClient.openRootConnection();
       killOtherConnections(connection);
       dropDatabase(connection);
@@ -316,7 +316,7 @@ public final class DefaultDatabase implements Database {
     }
     List<String> spids = new ArrayList<>();
     try (Statement stmt = connection.createStatement();
-      ResultSet rs = stmt.executeQuery(sql)) {
+         ResultSet rs = stmt.executeQuery(sql)) {
       while (rs.next()) {
         String spid = rs.getString(1);
         if (!isEmpty(spid)) {
@@ -341,7 +341,26 @@ public final class DefaultDatabase implements Database {
 
   private DefaultDatabase createDatabase(Connection connection) {
     LOG.info("Create database");
-    return executeDdl(connection, databaseClient.getCreateDdl());
+    executeDdl(connection, databaseClient.getCreateDdl());
+    executeDdlByRoot(databaseClient.getPermissionOnSchema());
+    return this;
+  }
+
+  /**
+   * We need to open a new connection, as root, on the non-root database, because the GRANT XXX ON SCHEMA instruction apply
+   * to the database we are connected to, so we can't to it from the root database (otherwise that would grant permission on the root schema)
+   */
+  private void executeDdlByRoot(String... ddls) {
+    Connection connectionNotRoot = null;
+    try {
+      // get a connection as root, but on the non-root database
+      connectionNotRoot = databaseClient.openRootConnectionOnNonRootDatabase();
+      executeDdl(connectionNotRoot, ddls);
+    } catch (SQLException e) {
+      throw new IllegalStateException("Fail to dropAndCreate database", e);
+    } finally {
+      closeQuietly(connectionNotRoot);
+    }
   }
 
   DefaultDatabase executeDdl(String... ddls) {

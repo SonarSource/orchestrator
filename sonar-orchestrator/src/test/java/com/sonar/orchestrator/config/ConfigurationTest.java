@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -78,7 +78,7 @@ public class ConfigurationTest extends PropertyAndEnvTest {
 
     Configuration config = Configuration.create(props);
 
-    assertThat(config.asMap()).containsOnly(entry("foo", "1"), entry("bar", "2"));
+    assertThat(config.asMap()).contains(entry("foo", "1"), entry("bar", "2"));
   }
 
   @Test

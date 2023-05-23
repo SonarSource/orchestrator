@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -135,6 +135,11 @@ public abstract class DatabaseClient {
     return new String[0];
   }
 
+  public String[] getPermissionOnSchema() {
+    // to be overridden
+    return new String[0];
+  }
+
   // list all the SQL connections ID not own by getlogin()
   @CheckForNull
   public String getSelectConnectionIdsSql() {
@@ -203,6 +208,12 @@ public abstract class DatabaseClient {
     } catch (SQLException e) {
       throw new IllegalStateException("Can't get JDBC metadata", e);
     }
+  }
+
+  public Connection openRootConnectionOnNonRootDatabase() throws SQLException {
+    Connection conn = DriverManager.getConnection(getUrl(), getRootLogin(), getRootPassword());
+    fillDbMetadata(conn);
+    return conn;
   }
 
   public abstract static class Builder<D extends DatabaseClient> {

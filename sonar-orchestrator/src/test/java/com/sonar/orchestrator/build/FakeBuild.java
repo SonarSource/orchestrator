@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,8 +17,25 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-@ParametersAreNonnullByDefault
-package com.sonar.orchestrator.junit;
+package com.sonar.orchestrator.build;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import com.sonar.orchestrator.config.Configuration;
+import java.util.Map;
 
+public class FakeBuild extends Build<FakeBuild> {
+
+  private final BuildResult result;
+
+  public FakeBuild(BuildResult result) {
+    this.result = result;
+  }
+
+  public static FakeBuild create(BuildResult result) {
+    return new FakeBuild(result);
+  }
+
+  @Override
+  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+    return result;
+  }
+}

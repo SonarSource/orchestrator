@@ -1,6 +1,6 @@
 /*
- * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Orchestrator - JUnit 5
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,22 +17,39 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.junit;
+package com.sonar.orchestrator.junit5;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by IntelliJ IDEA.
- * User: eric
- * Date: 03/02/15
- * Time: 14:31
+ * Allow to skip execution of tests, based on SonarQube runtime version. Example:
+ * <pre>{@code
+ * public class MyTest {
+ *
+ *   @RegisterExtension
+ *   static OrchestratorExtension ORCHESTRATOR = OrchestratorExtension.builderEnv()
+ *     .setSonarVersion("LATEST_RELEASE")
+ *     .build();
+ *
+ *   @Test
+ *   @OnlyOnSonarQube(from = "9.2")
+ *   void shouldRaiseIssuesOnACloudFormationProject() {
+ *     // ...
+ *   }
+ * }
+ * }</pre>
  */
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface TestOnlyIf {
-  String[] database() default {};
-  String[] os() default {};
+@Documented
+public @interface OnlyOnSonarQube {
+  /**
+   * min version of SonarQube to run the test (inclusive)
+   */
+  String from();
+
 }

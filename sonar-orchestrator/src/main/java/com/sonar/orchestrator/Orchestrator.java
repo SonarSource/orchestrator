@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,8 @@
  */
 package com.sonar.orchestrator;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
@@ -32,23 +34,29 @@ import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
-import com.sonar.orchestrator.junit.SingleStartExternalResource;
+import com.sonar.orchestrator.http.HttpResponse;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.server.Packaging;
 import com.sonar.orchestrator.server.PackagingResolver;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
 import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
+import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
 
-public class Orchestrator extends SingleStartExternalResource {
+public class Orchestrator {
 
   private static final String ORCHESTRATOR_IS_NOT_STARTED = "Orchestrator is not started";
+  private static final String SONAR_LOGIN_PROPERTY_NAME = "sonar.login";
+  private static final String SONAR_TOKEN_PROPERTY_NAME = "sonar.token";
 
   private final Configuration config;
   private final SonarDistribution distribution;
@@ -60,25 +68,17 @@ public class Orchestrator extends SingleStartExternalResource {
   private BuildRunner buildRunner;
   private ServerProcess process;
   private StartupLogWatcher startupLogWatcher;
+  private String adminToken;
+  private Packaging packaging;
 
   /**
    * Constructor, but use rather OrchestratorBuilder
    */
-  Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
+  public Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
     this.config = requireNonNull(config);
     this.distribution = requireNonNull(distribution);
     this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
-  }
-
-  @Override
-  protected void beforeAll() {
-    start();
-  }
-
-  @Override
-  protected void afterAll() {
-    stop();
   }
 
   /**
@@ -93,6 +93,7 @@ public class Orchestrator extends SingleStartExternalResource {
       database.start();
 
       PackagingResolver packagingResolver = new PackagingResolver(config.locators());
+      packaging = packagingResolver.resolve(distribution);
       ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
       server = serverInstaller.install(distribution);
     }
@@ -100,11 +101,11 @@ public class Orchestrator extends SingleStartExternalResource {
   }
 
   /**
-   * Install ans start SonarQube.
+   * Install and start SonarQube.
    * <p>
    * Steps are:
    * 1/ connect to db
-   * 2/ download an install SonarQube server
+   * 2/ download and install SonarQube server
    * 3/ download and install plugins
    * 4/ start SonarQube server
    * 5/ restore Quality profiles, if any
@@ -233,6 +234,8 @@ public class Orchestrator extends SingleStartExternalResource {
   private BuildResult executeBuildInternal(Build<?> build, boolean quietly, boolean waitForComputeEngine) {
     requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
 
+    setDefaultAdminToken(build);
+
     BuildResult buildResult;
     if (quietly) {
       buildResult = buildRunner.runQuietly(server, build);
@@ -245,8 +248,52 @@ public class Orchestrator extends SingleStartExternalResource {
     return buildResult;
   }
 
+  private void setDefaultAdminToken(Build<?> build) {
+    if (build.getProperties().containsKey(SONAR_LOGIN_PROPERTY_NAME) || build.getProperties().containsKey(SONAR_TOKEN_PROPERTY_NAME)) {
+      return;
+    }
+
+    if (build.arguments().stream().anyMatch(s -> s.contains(SONAR_LOGIN_PROPERTY_NAME) || s.contains(SONAR_TOKEN_PROPERTY_NAME))) {
+      return;
+    }
+
+    if (distribution.useDefaultAdminCredentialsForBuilds()) {
+      if (packaging.getVersion().isGreaterThanOrEquals(10, 0)) {
+        build.setProperty(SONAR_TOKEN_PROPERTY_NAME, getDefaultAdminToken());
+      } else {
+        // Keep backwards compatibility with SQ < 10.0, where the sonar.token property is not implemented
+        build.setProperty(SONAR_LOGIN_PROPERTY_NAME, getDefaultAdminToken());
+      }
+    }
+  }
+
+  public String getDefaultAdminToken() {
+    if (this.adminToken != null) {
+      return this.adminToken;
+    }
+    return generateDefaultAdminToken();
+  }
+
+  private String generateDefaultAdminToken() {
+    HttpCall httpCall = server.newHttpCall("api/user_tokens/generate")
+      .setParam("name", UUID.randomUUID().toString())
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials();
+    HttpResponse response = httpCall.execute();
+    if (response.isSuccessful()) {
+      this.adminToken = ofNullable(Json.parse(response.getBodyAsString()).asObject().get("token"))
+        .map(JsonValue::asString)
+        .orElseThrow(() -> new IllegalStateException("Could not extract admin token from response: " + response.getBodyAsString()));
+      return this.adminToken;
+    } else {
+      throw new IllegalStateException("Could not get token for admin: " + response.getBodyAsString());
+    }
+  }
+
   public BuildResult[] executeBuilds(Build<?>... builds) {
     requireNonNull(buildRunner, ORCHESTRATOR_IS_NOT_STARTED);
+
+    Arrays.stream(builds).forEach(this::setDefaultAdminToken);
 
     BuildResult[] results = new BuildResult[builds.length];
     for (int index = 0; index < builds.length; index++) {
@@ -256,11 +303,4 @@ public class Orchestrator extends SingleStartExternalResource {
     return results;
   }
 
-  public static OrchestratorBuilder builderEnv() {
-    return new OrchestratorBuilder(Configuration.createEnv());
-  }
-
-  public static OrchestratorBuilder builder(Configuration config) {
-    return new OrchestratorBuilder(config);
-  }
 }

@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,5 +54,11 @@ public class DatabaseClientTest {
     try{ h2.openConnection(); } catch( Exception devnull ) {}
     assertThat(h2.getDBMajorVersion() >= 0).isTrue();
     assertThat(h2.getDBMinorVersion() >= 0).isTrue();
+  }
+
+  @Test
+  public void testDefaultGetPermissionOnSchema() {
+    H2 h2 = H2.builder().setDriverClassName("my.Driver").build();
+    assertThat(h2.getPermissionOnSchema()).isEmpty();
   }
 }

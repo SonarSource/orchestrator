@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,9 @@ public class ArtifactoryImplTest {
   public void download_file_with_success() throws Exception {
     prepareDownload("this_is_bytecode");
 
-    Configuration configuration = newConfiguration().build();
+    Configuration configuration = newConfiguration()
+      .setProperty("orchestrator.artifactory.apiKey", "")
+      .build();
     ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
 
     File targetFile = temp.newFile();
@@ -75,6 +77,7 @@ public class ArtifactoryImplTest {
     RecordedRequest request = server.takeRequest();
     assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
     assertThat(request.getHeader("X-JFrog-Art-Api")).isNull();
+    assertThat(request.getHeader("Authorization")).isNull();
   }
 
   @Test
@@ -82,7 +85,9 @@ public class ArtifactoryImplTest {
     prepareResponseError(403);
     prepareDownload("this_is_bytecode");
 
-    Configuration configuration = newConfiguration().build();
+    Configuration configuration = newConfiguration()
+      .setProperty("orchestrator.artifactory.apiKey", "")
+      .build();
     ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
 
     File targetFile = temp.newFile();
@@ -94,14 +99,16 @@ public class ArtifactoryImplTest {
     RecordedRequest request1 = server.takeRequest();
     assertThat(request1.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
     assertThat(request1.getHeader("X-JFrog-Art-Api")).isNull();
+    assertThat(request1.getHeader("Authorization")).isNull();
 
     RecordedRequest request2 = server.takeRequest();
     assertThat(request2.getPath()).isEqualTo("/sonarsource-qa/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
     assertThat(request2.getHeader("X-JFrog-Art-Api")).isNull();
+    assertThat(request2.getHeader("Authorization")).isNull();
   }
 
   @Test
-  public void download_private_file_with_successful_authentication() throws Exception {
+  public void download_private_file_with_successful_authentication_apikey() throws Exception {
     prepareDownload("this_is_bytecode");
 
     Configuration configuration = newConfiguration()
@@ -119,6 +126,29 @@ public class ArtifactoryImplTest {
     assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
     assertThat(request.getHeader("X-JFrog-Art-Api")).isEqualTo("abcde");
   }
+
+  @Test
+  public void download_private_file_with_successful_authentication_accessToken() throws Exception {
+    prepareDownload("this_is_bytecode");
+
+    Configuration configuration = newConfiguration()
+            .setProperty("orchestrator.artifactory.accessToken", "abcde")
+            .setProperty("orchestrator.artifactory.apiKey", "defgh")
+            .build();
+    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+
+    File targetFile = temp.newFile();
+    boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+
+    assertThat(found).isTrue();
+    assertThat(targetFile).exists().hasContent("this_is_bytecode");
+
+    RecordedRequest request = server.takeRequest();
+    assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
+    assertThat(request.getHeader("Authorization")).isEqualTo("Bearer abcde");
+    assertThat(request.getHeader("X-JFrog-Art-Api")).isNull();
+  }
+
 
   @Test
   public void download_considers_unauthorized_error_as_artifact_not_found() throws Exception {

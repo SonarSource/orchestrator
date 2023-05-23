@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -60,8 +60,19 @@ public final class PostgreSql extends DatabaseClient {
   public String[] getCreateDdl() {
     return new String[] {
       "create database \"" + getLogin() + "\"",
-      String.format("CREATE USER \"%s\" WITH PASSWORD '%s' CREATEDB",
-        getLogin(), getPassword())};
+      String.format("CREATE USER \"%s\" WITH PASSWORD '%s' CREATEDB", getLogin(), getPassword()),
+      "GRANT ALL PRIVILEGES ON DATABASE \"" + getLogin() + "\" TO \"" + getLogin() + "\""
+    };
+  }
+
+  /**
+   * This is needed starting with postgres 15, because the default permissions changed:
+   * By default, the users created don't have permissions on the public schema, and we need to grant these permissions explicitly.
+   * A new root connection should be opened in order to GRANT XXX ON SCHEMA.
+   */
+  @Override
+  public String[] getPermissionOnSchema() {
+    return new String[] {"GRANT CREATE, USAGE ON SCHEMA public TO \"" + getLogin() + "\";"};
   }
 
   @Override

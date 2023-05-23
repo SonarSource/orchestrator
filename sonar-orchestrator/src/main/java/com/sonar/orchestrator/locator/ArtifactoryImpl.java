@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2022 SonarSource SA
+ * Copyright (C) 2011-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,18 +55,23 @@ public class ArtifactoryImpl implements Artifactory {
   private final String baseUrl;
   @Nullable
   private final String apiKey;
+  @Nullable
+  private final String accessToken;
 
-  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String apiKey) {
+
+  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
     this.tempDir = tempDir;
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
+    this.accessToken = accessToken;
   }
 
   public static ArtifactoryImpl create(Configuration configuration) {
     File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
-    return new ArtifactoryImpl(downloadTempDir, baseUrl, apiKey);
+    String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
+    return new ArtifactoryImpl(downloadTempDir, baseUrl, accessToken, apiKey);
   }
 
   @Override
@@ -168,7 +173,9 @@ public class ArtifactoryImpl implements Artifactory {
 
   private HttpCall newArtifactoryCall(HttpUrl url) {
     HttpCall call = HttpClientFactory.create().newCall(url);
-    if (!isEmpty(apiKey)) {
+    if (!isEmpty(accessToken)) {
+      call.setHeader("Authorization", "Bearer " + accessToken);
+    } else if (!isEmpty(apiKey)) {
       call.setHeader("X-JFrog-Art-Api", apiKey);
     }
     return call;
