@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OrchestratorBuilderTest {
 
-  private static final String LTS_ALIAS = "LATEST_RELEASE[8.9]";
+  private static final String LTS_ALIAS = "LATEST_RELEASE[9.9]";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -100,7 +100,7 @@ public class OrchestratorBuilderTest {
       orchestrator.start();
 
       verifyWebContext(orchestrator, "");
-      assertThat(orchestrator.getServer().version().toString()).startsWith("8.9.");
+      assertThat(orchestrator.getServer().version().toString()).startsWith("9.9.");
       Map<String, String> pluginVersions = loadInstalledPluginVersions(orchestrator);
       System.out.println(pluginVersions);
       assertThat(pluginVersions).containsEntry("xml", "2.0.1 (build 2020)");
@@ -146,7 +146,7 @@ public class OrchestratorBuilderTest {
       .build();
     orchestrator.install();
 
-    assertThat(orchestrator.getServer().version().toString()).startsWith("8.9.");
+    assertThat(orchestrator.getServer().version().toString()).startsWith("9.9.");
     assertThat(orchestrator.getServer().getEdition()).isEqualTo(Edition.COMMUNITY);
     File pluginsDir = new File(orchestrator.getServer().getHome(), "lib/extensions");
     assertThat(FileUtils.listFiles(pluginsDir, new String[]{"jar"}, false)).isNotEmpty();
@@ -369,7 +369,7 @@ public class OrchestratorBuilderTest {
   }
 
   private Map<String, String> loadInstalledPluginVersions(Orchestrator orchestrator) {
-    String json = orchestrator.getServer().newHttpCall("api/plugins/installed").execute().getBodyAsString();
+    String json = orchestrator.getServer().newHttpCall("api/plugins/installed").setAdminCredentials().execute().getBodyAsString();
     JsonArray plugins = Json.parse(json)
       .asObject().get("plugins")
       .asArray();
