@@ -19,10 +19,6 @@
  */
 package com.sonar.orchestrator.server;
 
-import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
-import static java.lang.String.format;
-
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
@@ -40,7 +36,10 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -52,6 +51,10 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
+import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static java.lang.String.format;
 
 public class ServerInstaller {
 
@@ -81,7 +84,7 @@ public class ServerInstaller {
   private final DatabaseClient databaseClient;
 
   public ServerInstaller(PackagingResolver packagingResolver, Configuration configuration, Locators locators,
-      DatabaseClient databaseClient) {
+    DatabaseClient databaseClient) {
     this.packagingResolver = packagingResolver;
     this.configuration = configuration;
     this.locators = locators;
@@ -100,15 +103,15 @@ public class ServerInstaller {
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
     String resolvedHost = ALL_IPS_HOST.equals(host) ? "localhost" : host;
     String url = format("http://%s:%s%s", resolvedHost, properties.getProperty(WEB_PORT_PROPERTY, "9000"),
-        properties.getProperty(WEB_CONTEXT_PROPERTY, ""));
+      properties.getProperty(WEB_CONTEXT_PROPERTY, ""));
     return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
-        getSearchPort(properties, packaging),
-        (String) properties.get(SONAR_CLUSTER_NODE_NAME));
+      getSearchPort(properties, packaging),
+      (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
   private void preparePlugins(SonarDistribution distrib, Packaging packaging, File homeDir) {
     if (!distrib.isKeepBundledPlugins()) {
-      removeBundledPlugins(homeDir);
+      removeBundledPlugins(homeDir, distrib.getBundledPluginNamePrefixesToKeep());
     }
 
     if (packaging.getVersion().isGreaterThanOrEquals(8, 5)) {
@@ -149,23 +152,47 @@ public class ServerInstaller {
     }
   }
 
-  private static void removeBundledPlugins(File homeDir) {
-    LOG.info("Remove bundled plugins");
-    cleanDirectory(new File(homeDir, "lib/bundled-plugins"));
+  private static void removeBundledPlugins(File homeDir, Collection<String> bundledPluginNamePrefixesToKeep) {
+    if (bundledPluginNamePrefixesToKeep.isEmpty()) {
+      LOG.info("Remove bundled plugins");
+    } else {
+      LOG.info("Remove bundled plugins except: " + String.join(", ", bundledPluginNamePrefixesToKeep));
+
+    }
+    cleanDirectory(new File(homeDir, "lib/bundled-plugins"), bundledPluginNamePrefixesToKeep);
     // plugins are bundled in extensions/plugins since version 7.2
-    cleanDirectory(new File(homeDir, "extensions/plugins"));
+    cleanDirectory(new File(homeDir, "extensions/plugins"), bundledPluginNamePrefixesToKeep);
     // SonarSource plugins are bundled in lib/extension since version 8.5
-    cleanDirectory(new File(homeDir, "lib/extensions"));
+    cleanDirectory(new File(homeDir, "lib/extensions"), bundledPluginNamePrefixesToKeep);
   }
 
-  private static void cleanDirectory(File dir) {
+  private static void cleanDirectory(File dir, Collection<String> bundledPluginNamePrefixesToKeep) {
     try {
-      if (dir.exists()) {
-        FileUtils.cleanDirectory(dir);
+      if (!dir.exists()) {
+        return;
+      }
+      try (Stream<Path> files = Files.list(dir.toPath())) {
+        files.forEach(file -> {
+          if (shouldDeletePlugin(file, bundledPluginNamePrefixesToKeep)) {
+            try {
+              Files.delete(file);
+            } catch (IOException e) {
+              throw new IllegalStateException("Fail to delete file: " + file, e);
+            }
+          } else {
+            LOG.info("  Keeping: " + file.getFileName().toString());
+          }
+        });
       }
     } catch (IOException e) {
       throw new IllegalStateException("Fail to clean directory: " + dir, e);
     }
+  }
+
+  private static boolean shouldDeletePlugin(Path pluginFile, Collection<String> bundledPluginNamePrefixesToKeep) {
+    return bundledPluginNamePrefixesToKeep
+      .stream()
+      .noneMatch(prefix -> pluginFile.getFileName().toString().startsWith(prefix));
   }
 
   private void copyExternalPlugins(Packaging packaging, List<Location> plugins, File homeDir) {
@@ -176,17 +203,17 @@ public class ServerInstaller {
     Version sqVersion = packaging.getVersion();
     if (packaging.getEdition() != Edition.COMMUNITY && !sqVersion.isGreaterThanOrEquals(7, 2)) {
       boolean hasLicensePlugin = plugins.stream()
-          .filter(p -> p instanceof MavenLocation)
-          .map(p -> (MavenLocation) p)
-          .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId()
-              .equals("sonar-dev-license-plugin"));
+        .filter(p -> p instanceof MavenLocation)
+        .map(p -> (MavenLocation) p)
+        .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId()
+          .equals("sonar-dev-license-plugin"));
       if (!hasLicensePlugin) {
         String licenseVersion = "LATEST_RELEASE[3.3]";
         if (sqVersion.getMajor() == 6 && sqVersion.getMinor() == 7 && sqVersion.getPatch() >= 5) {
           licenseVersion = "LATEST_RELEASE[3]";
         }
         installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion),
-            toDir);
+          toDir);
       }
     }
   }
@@ -273,14 +300,14 @@ public class ServerInstaller {
     if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
       setIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
       properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY,
-          String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
+        String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
       setIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
       properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY,
-          String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+        String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
     } else if (!useNewDCESearchClusterConfiguration) {
       setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
       properties.setProperty(SEARCH_PORT_PROPERTY,
-          String.valueOf(loadPort(SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+        String.valueOf(loadPort(SEARCH_PORT_PROPERTY, properties, loopbackHost)));
     }
   }
 
@@ -294,10 +321,10 @@ public class ServerInstaller {
 
   private int loadWebPort(Properties properties, InetAddress webHost) {
     int webPort = Integer.parseInt(
-        Stream.of(properties.getProperty(WEB_PORT_PROPERTY), configuration.getString("orchestrator.container.port"))
-            .filter(s -> !isEmpty(s))
-            .findFirst()
-            .orElse("0"));
+      Stream.of(properties.getProperty(WEB_PORT_PROPERTY), configuration.getString("orchestrator.container.port"))
+        .filter(s -> !isEmpty(s))
+        .findFirst()
+        .orElse("0"));
     if (webPort == 0) {
       webPort = getNextAvailablePort(webHost);
     }
@@ -325,9 +352,9 @@ public class ServerInstaller {
 
   private static int loadPort(String portProperty, Properties definedProperties, InetAddress webHost) {
     return Optional.ofNullable(definedProperties.getProperty(portProperty))
-        .filter(s -> !isEmpty(s))
-        .map(Integer::parseInt)
-        .orElseGet(() -> getNextAvailablePort(webHost));
+      .filter(s -> !isEmpty(s))
+      .map(Integer::parseInt)
+      .orElseGet(() -> getNextAvailablePort(webHost));
   }
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {

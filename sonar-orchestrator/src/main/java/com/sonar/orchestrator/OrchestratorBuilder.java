@@ -267,8 +267,22 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
     return (BUILDER) this;
   }
 
+  /**
+   * Keeps all bundled plugins
+   */
   public BUILDER keepBundledPlugins() {
     distribution.setKeepBundledPlugins(true);
+    return (BUILDER) this;
+  }
+
+  /**
+   * Add a bundled plugin to be kept.
+   * By default, all bundled plugins are removed, unless {@link #keepBundledPlugins()} is called,
+   * in which case all plugins are kept.
+   * @param pluginJarNamePrefix File name prefix of the plugin jar file to be kept. For example, 'sonar-java'.
+   */
+  public BUILDER addBundledPluginToKeep(String pluginJarNamePrefix) {
+    distribution.addBundledPluginToKeep(pluginJarNamePrefix);
     return (BUILDER) this;
   }
 

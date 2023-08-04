@@ -19,16 +19,18 @@
  */
 package com.sonar.orchestrator.container;
 
-import static java.util.Objects.requireNonNull;
-
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import javax.annotation.Nullable;
+
+import static java.util.Objects.requireNonNull;
 
 public final class SonarDistribution {
 
@@ -41,6 +43,8 @@ public final class SonarDistribution {
   private boolean activateLicense;
   private boolean emptySonarProperties = false;
   private boolean keepBundledPlugins = false;
+
+  private Set<String> bundledPluginNamePrefixesToKeep = new HashSet<>();
   private boolean defaultForceAuthentication = false;
   private boolean forceDefaultAdminCredentialsRedirect = false;
   private boolean useDefaultAdminCredentialsForBuilds = false;
@@ -189,5 +193,14 @@ public final class SonarDistribution {
   public SonarDistribution setKeepBundledPlugins(boolean b) {
     this.keepBundledPlugins = b;
     return this;
+  }
+
+  public SonarDistribution addBundledPluginToKeep(String pluginJarNamePrefix) {
+    this.bundledPluginNamePrefixesToKeep.add(pluginJarNamePrefix);
+    return this;
+  }
+
+  public Set<String> getBundledPluginNamePrefixesToKeep() {
+    return this.bundledPluginNamePrefixesToKeep;
   }
 }
