@@ -153,6 +153,19 @@ public class OrchestratorBuilderTest {
   }
 
   @Test
+  public void add_bundled_plugins_to_keep() {
+    Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
+      .setSonarVersion("DEV")
+      .addBundledPluginToKeep("sonar-java-")
+      .build();
+
+    orchestrator.install();
+    File dir = new File(orchestrator.getServer().getHome(), "lib/extensions");
+    assertThat(dir).exists();
+    assertThat(dir.listFiles()).hasSize(1);
+  }
+
+  @Test
   public void enable_default_force_authentication() throws Exception {
     Orchestrator orchestrator = new VanillaOrchestratorBuilder(Configuration.create())
       .setSonarVersion("DEV")

@@ -60,6 +60,17 @@ public class SonarDistributionTest {
   }
 
   @Test
+  public void shouldAddBundledPluginsToKeep() {
+    SonarDistribution distribution = new SonarDistribution();
+    assertThat(distribution.getBundledPluginNamePrefixesToKeep()).isEmpty();
+
+    distribution.addBundledPluginToKeep("plugin1");
+    distribution.addBundledPluginToKeep("plugin2");
+
+    assertThat(distribution.getBundledPluginNamePrefixesToKeep()).containsOnly("plugin1", "plugin2");
+  }
+
+  @Test
   public void shouldDefineServerProperties() {
     SonarDistribution distribution = new SonarDistribution();
     assertThat(distribution.getServerProperties().size()).isEqualTo(0);
