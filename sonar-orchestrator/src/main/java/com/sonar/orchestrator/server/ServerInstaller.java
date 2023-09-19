@@ -328,6 +328,7 @@ public class ServerInstaller {
     if (webPort == 0) {
       webPort = getNextAvailablePort(webHost);
     }
+    LOG.info("Port allocated for the WebServer: {}", webPort);
     return webPort;
   }
 
@@ -351,10 +352,12 @@ public class ServerInstaller {
   }
 
   private static int loadPort(String portProperty, Properties definedProperties, InetAddress webHost) {
-    return Optional.ofNullable(definedProperties.getProperty(portProperty))
+    Integer port = Optional.ofNullable(definedProperties.getProperty(portProperty))
       .filter(s -> !isEmpty(s))
       .map(Integer::parseInt)
       .orElseGet(() -> getNextAvailablePort(webHost));
+    LOG.info("Port allocated for {}: {}", portProperty, port);
+    return port;
   }
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {
