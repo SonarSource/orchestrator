@@ -22,11 +22,16 @@ package com.sonar.orchestrator.db;
 import java.io.File;
 import java.net.InetAddress;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
 import static java.lang.String.format;
 
 public final class H2 extends DatabaseClient {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(H2.class);
+
 
   private H2(Builder builder) {
     super(builder);
@@ -63,6 +68,7 @@ public final class H2 extends DatabaseClient {
 
       InetAddress address = InetAddress.getLoopbackAddress();
       int port = getNextAvailablePort(address);
+      LOGGER.info("Port allocated for H2: {}", port);
       setUrl(format("jdbc:h2:tcp://%s:%d/sonar;USER=sonar;PASSWORD=sonar", address.getHostAddress(), port));
     }
 
