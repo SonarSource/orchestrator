@@ -67,7 +67,8 @@ public class ServerInstaller {
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
 
   private static final String SEARCH_HOST_PROPERTY = "sonar.search.host";
-  private static final String SEARCH_PORT_PROPERTY = "sonar.search.port";
+  private static final String SEARCH_HTTP_PORT_PROPERTY = "sonar.search.port";
+  private static final String SEARCH_TCP_PORT_PROPERTY = "sonar.es.port";
   private static final String CLUSTER_ENABLED_PROPERTY = "sonar.cluster.enabled";
   private static final String CLUSTER_NODE_TYPE_PROPERTY = "sonar.cluster.node.type";
   private static final String CLUSTER_NODE_SEARCH_HOST_PROPERTY = "sonar.cluster.node.search.host";
@@ -298,16 +299,14 @@ public class ServerInstaller {
   private static void configureSearchProperties(Properties properties, InetAddress loopbackHost, Packaging packaging) {
     boolean useNewDCESearchClusterConfiguration = useNewDCESearchClusterConfiguration(packaging, properties);
     if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
-      setIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY,
-        String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
-      setIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY,
-        String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
+      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
     } else if (!useNewDCESearchClusterConfiguration) {
-      setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(SEARCH_PORT_PROPERTY,
-        String.valueOf(loadPort(SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+      properties.setProperty(SEARCH_HTTP_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_HTTP_PORT_PROPERTY, properties, loopbackHost)));
+      properties.setProperty(SEARCH_TCP_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_TCP_PORT_PROPERTY, properties, loopbackHost)));
     }
   }
 
@@ -335,8 +334,8 @@ public class ServerInstaller {
   private static int getSearchPort(Properties properties, Packaging packaging) {
     if (useNewDCESearchClusterConfiguration(packaging, properties)) {
       return getForDCESearchCluster(properties);
-    } else if (properties.getProperty(SEARCH_PORT_PROPERTY) != null) {
-      return Integer.parseInt(properties.getProperty(SEARCH_PORT_PROPERTY));
+    } else if (properties.getProperty(SEARCH_HTTP_PORT_PROPERTY) != null) {
+      return Integer.parseInt(properties.getProperty(SEARCH_HTTP_PORT_PROPERTY));
     } else {
       //SonarQube's default
       return 9001;

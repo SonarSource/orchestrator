@@ -245,13 +245,17 @@ public class ServerInstallerTest {
       .setServerProperty("sonar.web.port", "9999")
       .setServerProperty("sonar.web.context", "/foo")
       .setServerProperty("sonar.search.port", "6666")
+      .setServerProperty("sonar.es.port", "7777")
     ;
     Server server = newInstaller().install(distribution);
 
     URL serverUrl = new URL(server.getUrl());
     assertThat(serverUrl.getPort()).isEqualTo(9999);
     assertThat(serverUrl.getPath()).isEqualTo("/foo");
-    assertThat(server.getSearchPort()).isEqualTo(6666);
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.search.port")).isEqualTo("6666");
+    assertThat(props.getProperty("sonar.es.port")).isEqualTo("7777");
   }
 
   @Test
