@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>68.0.0.247</version>
+    <version>70.0.0.268</version>
   </parent>
   <groupId>org.sonarsource.orchestrator</groupId>
   <artifactId>orchestrator-parent</artifactId>
@@ -40,7 +40,6 @@
 
   <properties>
     <version.surefire.plugin>3.0.0</version.surefire.plugin>
-    <version.artifactory.plugin>3.6.1</version.artifactory.plugin>
     <commonsIO.version>2.7</commonsIO.version>
     <commonsLang.version>2.6</commonsLang.version>
     <commonsExec.version>1.3</commonsExec.version>
