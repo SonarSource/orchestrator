@@ -12,9 +12,9 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v5
+    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@5.1.1
     with:
       publishToBinaries: true  # disabled by default
-      downloadExclusions: "*echo*"
       mavenCentralSync: true   # disabled by default
+      mavenCentralSyncExclusions: "*echo*"
       slackChannel: team-sonarqube-build
