@@ -106,7 +106,7 @@ public class ServerInstaller {
     String url = format("http://%s:%s%s", resolvedHost, properties.getProperty(WEB_PORT_PROPERTY, "9000"),
       properties.getProperty(WEB_CONTEXT_PROPERTY, ""));
     return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
-      getSearchPort(properties, packaging),
+      getSearchPort(properties),
       (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
@@ -259,7 +259,7 @@ public class ServerInstaller {
     properties.putAll(databaseClient.getAdditionalProperties());
     setIfNotPresent(properties, "sonar.log.console", "true");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
-    configureSearchProperties(properties, loopbackHost, packaging);
+    configureSearchProperties(properties, loopbackHost);
     properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
     setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
@@ -280,15 +280,8 @@ public class ServerInstaller {
     return properties;
   }
 
-  /**
-   * A new way of configuring ElasticSearch in cluster mode is required since SonarQube 8.6 (see SONAR-13971 for
-   * details). We still have to support the old configuration so that orchestrator can work with SonarQube DCE versions
-   * < 8.6.
-   */
-  private static boolean useNewDCESearchClusterConfiguration(Packaging packaging, Properties properties) {
-    boolean clusterEnabled = Boolean.parseBoolean(properties.getProperty(CLUSTER_ENABLED_PROPERTY));
-    Version sqVersion = packaging.getVersion();
-    return clusterEnabled && sqVersion.isGreaterThanOrEquals(8, 6);
+  private static boolean isCluster(Properties properties) {
+   return Boolean.parseBoolean(properties.getProperty(CLUSTER_ENABLED_PROPERTY));
   }
 
   private static boolean isSearchNode(Properties properties) {
@@ -296,15 +289,16 @@ public class ServerInstaller {
     return "search".equals(nodeType);
   }
 
-  private static void configureSearchProperties(Properties properties, InetAddress loopbackHost, Packaging packaging) {
-    boolean useNewDCESearchClusterConfiguration = useNewDCESearchClusterConfiguration(packaging, properties);
-    if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
-      properties.setProperty(CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
-      properties.setProperty(CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
-    } else if (!useNewDCESearchClusterConfiguration) {
-      properties.setProperty(SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+  private static void configureSearchProperties(Properties properties, InetAddress loopbackHost) {
+    if (isCluster(properties)) {
+      if (isSearchNode(properties)) {
+        setIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
+        setIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+        properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
+        properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+      }
+    } else {
+      setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
       properties.setProperty(SEARCH_HTTP_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_HTTP_PORT_PROPERTY, properties, loopbackHost)));
       properties.setProperty(SEARCH_TCP_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_TCP_PORT_PROPERTY, properties, loopbackHost)));
     }
@@ -331,8 +325,8 @@ public class ServerInstaller {
     return webPort;
   }
 
-  private static int getSearchPort(Properties properties, Packaging packaging) {
-    if (useNewDCESearchClusterConfiguration(packaging, properties)) {
+  private static int getSearchPort(Properties properties) {
+    if (isCluster(properties)) {
       return getForDCESearchCluster(properties);
     } else if (properties.getProperty(SEARCH_HTTP_PORT_PROPERTY) != null) {
       return Integer.parseInt(properties.getProperty(SEARCH_HTTP_PORT_PROPERTY));
