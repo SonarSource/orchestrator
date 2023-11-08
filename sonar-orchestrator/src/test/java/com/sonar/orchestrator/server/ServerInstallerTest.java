@@ -214,13 +214,15 @@ public class ServerInstallerTest {
   }
 
   @Test
-  public void use_random_search_port_on_loopback_address_if_not_defined_in_new_SQ_DCE_search_node() {
+  public void use_random_search_port_if_not_defined_in_new_SQ_DCE_search_node() {
     prepareResolutionOfPackaging(Edition.DATACENTER, Version.create(VERSION_8_6), SQ_ZIP);
 
     Server server = newInstaller().install(new SonarDistribution()
       .setVersion(VERSION_8_6)
       .setServerProperty("sonar.cluster.enabled", "true")
-      .setServerProperty("sonar.cluster.node.type", "search"));
+      .setServerProperty("sonar.cluster.node.type", "search")
+      .setServerProperty("sonar.cluster.node.search.host", "0.0.0.0")
+      .setServerProperty("sonar.cluster.node.es.host", "0.0.0.0"));
 
     assertThat(server.getSearchPort()).isGreaterThan(1023);
   }
