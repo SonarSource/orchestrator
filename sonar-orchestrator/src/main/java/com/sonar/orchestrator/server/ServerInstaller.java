@@ -41,7 +41,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -55,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static java.lang.String.format;
+import static java.lang.String.valueOf;
 
 public class ServerInstaller {
 
@@ -127,7 +127,7 @@ public class ServerInstaller {
   }
 
   private File unzip(Packaging packaging) {
-    File toDir = new File(configuration.fileSystem().workspace(), String.valueOf(sharedDirId.addAndGet(1)));
+    File toDir = new File(configuration.fileSystem().workspace(), valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {
@@ -299,15 +299,28 @@ public class ServerInstaller {
   private static void configureSearchProperties(Properties properties, InetAddress loopbackHost, Packaging packaging) {
     boolean useNewDCESearchClusterConfiguration = useNewDCESearchClusterConfiguration(packaging, properties);
     if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
-      properties.setProperty(CLUSTER_NODE_ES_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_ES_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_ES_PORT_PROPERTY, properties, loopbackHost)));
-      properties.setProperty(CLUSTER_NODE_SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY, String.valueOf(loadPort(CLUSTER_NODE_SEARCH_PORT_PROPERTY, properties, loopbackHost)));
+      throwIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, format("Cluster configuration must provide the property %s upfront", CLUSTER_NODE_ES_HOST_PROPERTY));
+      throwIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, format("Cluster configuration must provide the property %s upfront", CLUSTER_NODE_SEARCH_HOST_PROPERTY));
+      setPortPropertyIfNotPresent(properties, CLUSTER_NODE_ES_PORT_PROPERTY, loopbackHost);
+      setPortPropertyIfNotPresent(properties, CLUSTER_NODE_SEARCH_PORT_PROPERTY, loopbackHost);
     } else if (!useNewDCESearchClusterConfiguration) {
-      properties.setProperty(SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
-      properties.setProperty(SEARCH_HTTP_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_HTTP_PORT_PROPERTY, properties, loopbackHost)));
-      properties.setProperty(SEARCH_TCP_PORT_PROPERTY, String.valueOf(loadPort(SEARCH_TCP_PORT_PROPERTY, properties, loopbackHost)));
+      setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
+      setPortPropertyIfNotPresent(properties, SEARCH_HTTP_PORT_PROPERTY, loopbackHost);
+      setPortPropertyIfNotPresent(properties, SEARCH_TCP_PORT_PROPERTY, loopbackHost);
     }
+  }
+
+  private static void throwIfNotPresent(Properties properties, String key, String errorMessage) {
+    if (properties.getProperty(key) == null) {
+      throw new IllegalStateException(errorMessage);
+    }
+  }
+
+  private static void setPortPropertyIfNotPresent(Properties properties, String key, InetAddress loopbackHost) {
+    if (properties.getProperty(key) == null) {
+      properties.setProperty(key, valueOf(getNextAvailablePort(loopbackHost)));
+    }
+    LOG.info("Port allocated for {}: {}", key, properties.get(key));
   }
 
   private static InetAddress loadWebHost(Properties serverProperties, InetAddress loopbackAddress) {
@@ -348,15 +361,6 @@ public class ServerInstaller {
     } else {
       return 0;
     }
-  }
-
-  private static int loadPort(String portProperty, Properties definedProperties, InetAddress webHost) {
-    Integer port = Optional.ofNullable(definedProperties.getProperty(portProperty))
-      .filter(s -> !isEmpty(s))
-      .map(Integer::parseInt)
-      .orElseGet(() -> getNextAvailablePort(webHost));
-    LOG.info("Port allocated for {}: {}", portProperty, port);
-    return port;
   }
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {
