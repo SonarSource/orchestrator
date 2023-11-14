@@ -42,17 +42,6 @@ public class LicensesTest {
   public ExpectedException expectedException = ExpectedException.none();
 
   @Test
-  public void getLicense_should_fail_if_version_less_than_7_9() throws Exception {
-    Licenses underTest = newLicenses(true);
-
-    Throwable thrown = catchThrowable(() -> underTest.getLicense(Edition.DEVELOPER, Version.create("7.2.0.10000")));
-    assertThat(thrown).hasMessage("Commercial licenses of SonarQube 7.2.0.10000 are no longer supported").isInstanceOf(IllegalArgumentException.class);
-
-    thrown = catchThrowable(() -> underTest.getLicense(Edition.DEVELOPER, Version.create("6.7")));
-    assertThat(thrown).hasMessage("Commercial licenses of SonarQube 6.7 are no longer supported").isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
   public void download_edition_license_and_remove_header_if_present() {
     Licenses underTest = newLicenses(true);
     github.enqueue(new MockResponse().setBody("-----\nheader\n----\nabcde\n\r\n"));

@@ -20,17 +20,14 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.util.OrchestratorUtils;
 import com.sonar.orchestrator.util.ZipUtils;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -38,7 +35,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -60,8 +56,7 @@ public class ServerInstaller {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerInstaller.class);
   private static final AtomicInteger sharedDirId = new AtomicInteger(0);
-  private static final String FORCE_AUTHENTICATION_PROPERTY = "sonar.forceAuthentication";
-  private static final String FORCE_REDIRECT_DEFAULT_ADMIN_CREDENTIALS = "sonar.forceRedirectOnDefaultAdminCredentials";
+
   private static final String WEB_HOST_PROPERTY = "sonar.web.host";
   private static final String WEB_PORT_PROPERTY = "sonar.web.port";
   private static final String WEB_CONTEXT_PROPERTY = "sonar.web.context";
@@ -96,9 +91,9 @@ public class ServerInstaller {
     Packaging packaging = packagingResolver.resolve(distrib);
 
     File homeDir = unzip(packaging);
-    preparePlugins(distrib, packaging, homeDir);
+    preparePlugins(distrib, homeDir);
     copyJdbcDriver(homeDir);
-    Properties properties = configureProperties(distrib, packaging);
+    Properties properties = configureProperties(distrib);
     writePropertiesFile(properties, homeDir);
     String host = properties.getProperty(WEB_HOST_PROPERTY, "localhost");
     // ORCH-422 Like SQ, if host is 0.0.0.0, simply return localhost as URL
@@ -106,24 +101,16 @@ public class ServerInstaller {
     String url = format("http://%s:%s%s", resolvedHost, properties.getProperty(WEB_PORT_PROPERTY, "9000"),
       properties.getProperty(WEB_CONTEXT_PROPERTY, ""));
     return new Server(locators, homeDir, packaging.getEdition(), packaging.getVersion(), HttpUrl.parse(url),
-      getSearchPort(properties, packaging),
+      getSearchPort(properties),
       (String) properties.get(SONAR_CLUSTER_NODE_NAME));
   }
 
-  private void preparePlugins(SonarDistribution distrib, Packaging packaging, File homeDir) {
+  private void preparePlugins(SonarDistribution distrib, File homeDir) {
     if (!distrib.isKeepBundledPlugins()) {
       removeBundledPlugins(homeDir, distrib.getBundledPluginNamePrefixesToKeep());
     }
-
-    if (packaging.getVersion().isGreaterThanOrEquals(8, 5)) {
-      copyBundledPlugins(distrib.getBundledPluginLocations(), homeDir);
-      copyExternalPlugins(packaging, distrib.getPluginLocations(), homeDir);
-    } else {
-      List<Location> plugins = new ArrayList<>();
-      plugins.addAll(distrib.getBundledPluginLocations());
-      plugins.addAll(distrib.getPluginLocations());
-      copyExternalPlugins(packaging, plugins, homeDir);
-    }
+    copyBundledPlugins(distrib.getBundledPluginLocations(), homeDir);
+    copyExternalPlugins(distrib.getPluginLocations(), homeDir);
   }
 
   private File unzip(Packaging packaging) {
@@ -196,27 +183,9 @@ public class ServerInstaller {
       .noneMatch(prefix -> pluginFile.getFileName().toString().startsWith(prefix));
   }
 
-  private void copyExternalPlugins(Packaging packaging, List<Location> plugins, File homeDir) {
+  private void copyExternalPlugins(List<Location> plugins, File homeDir) {
     File toDir = new File(homeDir, "extensions/downloads");
-
     copyPlugins(plugins, toDir);
-
-    Version sqVersion = packaging.getVersion();
-    if (packaging.getEdition() != Edition.COMMUNITY && !sqVersion.isGreaterThanOrEquals(7, 2)) {
-      boolean hasLicensePlugin = plugins.stream()
-        .filter(p -> p instanceof MavenLocation)
-        .map(p -> (MavenLocation) p)
-        .anyMatch(p -> p.getArtifactId().equals("sonar-license-plugin") || p.getArtifactId()
-          .equals("sonar-dev-license-plugin"));
-      if (!hasLicensePlugin) {
-        String licenseVersion = "LATEST_RELEASE[3.3]";
-        if (sqVersion.getMajor() == 6 && sqVersion.getMinor() == 7 && sqVersion.getPatch() >= 5) {
-          licenseVersion = "LATEST_RELEASE[3]";
-        }
-        installPluginIntoDir(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", licenseVersion),
-          toDir);
-      }
-    }
   }
 
   private void copyBundledPlugins(List<Location> plugins, File homeDir) {
@@ -244,7 +213,7 @@ public class ServerInstaller {
     LOG.info("Installed plugin: {}", pluginFile.getName());
   }
 
-  private Properties configureProperties(SonarDistribution distribution, Packaging packaging) {
+  private Properties configureProperties(SonarDistribution distribution) {
     Properties properties = new Properties();
     properties.putAll(distribution.getServerProperties());
 
@@ -259,51 +228,31 @@ public class ServerInstaller {
     properties.putAll(databaseClient.getAdditionalProperties());
     setIfNotPresent(properties, "sonar.log.console", "true");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
-    configureSearchProperties(properties, loopbackHost, packaging);
+    configureSearchProperties(properties, loopbackHost);
     properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
     setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
     completeJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
     completeJavaOptions(properties, "sonar.search.javaAdditionalOpts");
     completeJavaOptions(properties, "sonar.web.javaAdditionalOpts");
-
-    if (!distribution.isDefaultForceAuthentication() && packaging.getVersion().isGreaterThanOrEquals(8, 6)) {
-      //disable enforcing authentication, as it has been enabled by default starting from 8.6
-      setIfNotPresent(properties, FORCE_AUTHENTICATION_PROPERTY, "false");
+    if (!distribution.isDefaultForceAuthentication()) {
+      setIfNotPresent(properties, "sonar.forceAuthentication", "false");
     }
-
-    if (!distribution.isForceDefaultAdminCredentialsRedirect() && packaging.getVersion().isGreaterThanOrEquals(8, 8)) {
-      //disable enforcing the redirect to change the default admin password, as it has been enabled by default starting from 8.8
-      setIfNotPresent(properties, FORCE_REDIRECT_DEFAULT_ADMIN_CREDENTIALS, "false");
+    if (!distribution.isForceDefaultAdminCredentialsRedirect()) {
+      setIfNotPresent(properties, "sonar.forceRedirectOnDefaultAdminCredentials", "false");
     }
 
     return properties;
   }
 
-  /**
-   * A new way of configuring ElasticSearch in cluster mode is required since SonarQube 8.6 (see SONAR-13971 for
-   * details). We still have to support the old configuration so that orchestrator can work with SonarQube DCE versions
-   * < 8.6.
-   */
-  private static boolean useNewDCESearchClusterConfiguration(Packaging packaging, Properties properties) {
-    boolean clusterEnabled = Boolean.parseBoolean(properties.getProperty(CLUSTER_ENABLED_PROPERTY));
-    Version sqVersion = packaging.getVersion();
-    return clusterEnabled && sqVersion.isGreaterThanOrEquals(8, 6);
-  }
 
-  private static boolean isSearchNode(Properties properties) {
-    String nodeType = properties.getProperty(CLUSTER_NODE_TYPE_PROPERTY);
-    return "search".equals(nodeType);
-  }
-
-  private static void configureSearchProperties(Properties properties, InetAddress loopbackHost, Packaging packaging) {
-    boolean useNewDCESearchClusterConfiguration = useNewDCESearchClusterConfiguration(packaging, properties);
-    if (useNewDCESearchClusterConfiguration && isSearchNode(properties)) {
+  private static void configureSearchProperties(Properties properties, InetAddress loopbackHost) {
+    if (isClusterEnabled(properties) && isSearchNode(properties)) {
       throwIfNotPresent(properties, CLUSTER_NODE_ES_HOST_PROPERTY, format("Cluster configuration must provide the property %s upfront", CLUSTER_NODE_ES_HOST_PROPERTY));
       throwIfNotPresent(properties, CLUSTER_NODE_SEARCH_HOST_PROPERTY, format("Cluster configuration must provide the property %s upfront", CLUSTER_NODE_SEARCH_HOST_PROPERTY));
       setPortPropertyIfNotPresent(properties, CLUSTER_NODE_ES_PORT_PROPERTY, loopbackHost);
       setPortPropertyIfNotPresent(properties, CLUSTER_NODE_SEARCH_PORT_PROPERTY, loopbackHost);
-    } else if (!useNewDCESearchClusterConfiguration) {
+    } else {
       setIfNotPresent(properties, SEARCH_HOST_PROPERTY, loopbackHost.getHostAddress());
       setPortPropertyIfNotPresent(properties, SEARCH_HTTP_PORT_PROPERTY, loopbackHost);
       setPortPropertyIfNotPresent(properties, SEARCH_TCP_PORT_PROPERTY, loopbackHost);
@@ -344,9 +293,9 @@ public class ServerInstaller {
     return webPort;
   }
 
-  private static int getSearchPort(Properties properties, Packaging packaging) {
-    if (useNewDCESearchClusterConfiguration(packaging, properties)) {
-      return getForDCESearchCluster(properties);
+  private static int getSearchPort(Properties properties) {
+    if (isClusterEnabled(properties) && isSearchNode(properties)) {
+      return Integer.parseInt(properties.getProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY));
     } else if (properties.getProperty(SEARCH_HTTP_PORT_PROPERTY) != null) {
       return Integer.parseInt(properties.getProperty(SEARCH_HTTP_PORT_PROPERTY));
     } else {
@@ -355,12 +304,13 @@ public class ServerInstaller {
     }
   }
 
-  private static int getForDCESearchCluster(Properties properties) {
-    if (isSearchNode(properties)) {
-      return Integer.parseInt(properties.getProperty(CLUSTER_NODE_SEARCH_PORT_PROPERTY));
-    } else {
-      return 0;
-    }
+  private static boolean isClusterEnabled(Properties properties) {
+    return Boolean.parseBoolean(properties.getProperty(CLUSTER_ENABLED_PROPERTY));
+  }
+
+  private static boolean isSearchNode(Properties properties) {
+    String nodeType = properties.getProperty(CLUSTER_NODE_TYPE_PROPERTY);
+    return "search".equals(nodeType);
   }
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {
