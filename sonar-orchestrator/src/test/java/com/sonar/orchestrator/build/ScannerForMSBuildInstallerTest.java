@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.build;
 
+import com.sonar.orchestrator.build.dotnet.scanner.PackageDetails;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -60,7 +61,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + "-" + ScannerForMSBuildInstaller.NET_46);
+    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + "-" + "net46");
 
     verify(locators, never()).locate(any(MavenLocation.class));
   }
@@ -75,7 +76,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild");
+    assertThat(script.getParentFile()).hasName("sonar-scanner");
   }
 
   @Test
@@ -88,7 +89,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild");
+    assertThat(script.getParentFile()).hasName("sonar-scanner");
   }
 
   @Test
@@ -101,7 +102,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild");
+    assertThat(script.getParentFile()).hasName("sonar-scanner");
   }
 
   @Test
@@ -113,7 +114,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-4.2.0.1214" + "-" + ScannerForMSBuildInstaller.NET_46);
+    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-4.2.0.1214-net46");
   }
 
   @Test
@@ -125,7 +126,31 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-4.2.0.1214" + "-" + ScannerForMSBuildInstaller.NETCOREAPP_2_0);
+    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-4.2.0.1214-netcoreapp2.0");
+  }
+
+  @Test
+  public void install_zip_after_package_renaming_dotnet_core() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-6.0.0.81631-net.zip");
+    when(locators.locate(any())).thenReturn(new File(zip.toURI()));
+    File script = installer.install(Version.create("6.0.0.81631"), null, toDir, true);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
+    assertThat(script.getParentFile()).hasName("sonar-scanner-6.0.0.81631-net");
+  }
+
+  @Test
+  public void install_zip_after_package_renaming_dotnet_framework() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-6.0.0.81631-net-framework.zip");
+    when(locators.locate(any())).thenReturn(new File(zip.toURI()));
+    File script = installer.install(Version.create("6.0.0.81631"), null, toDir, false);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarScanner.MSBuild.exe");
+    assertThat(script.getParentFile()).hasName("sonar-scanner-6.0.0.81631-net-framework");
   }
 
   @Test
@@ -135,7 +160,7 @@ public class ScannerForMSBuildInstallerTest {
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
-    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + "-" + ScannerForMSBuildInstaller.NETCOREAPP_2_0);
+    assertThat(script.getParentFile()).hasName("sonar-scanner-msbuild-" + ScannerForMSBuildInstaller.DEFAULT_SCANNER_VERSION + "-netcoreapp2.0");
   }
 
   @Test
@@ -157,7 +182,6 @@ public class ScannerForMSBuildInstallerTest {
     FileLocation zipLocation = FileLocation.of(new File(zip.toURI()));
     when(locators.locate(zipLocation)).thenReturn(new File(zip.toURI()));
 
-
     File script = installer.install(null, zipLocation, toDir, false);
     File txt = new File(script.getParentFile(), "text.txt");
     txt.createNewFile();
@@ -178,7 +202,7 @@ public class ScannerForMSBuildInstallerTest {
 
   @Test
   public void maven_location() {
-    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("2.1-SNAPSHOT"));
+    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("2.1-SNAPSHOT"), new PackageDetails("org.sonarsource.scanner.msbuild", "sonar-scanner-msbuild", "not used", "not used", "not used"));
     assertThat(location.getPackaging()).isEqualTo("zip");
     assertThat(location.getVersion()).isEqualTo("2.1-SNAPSHOT");
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
@@ -188,7 +212,7 @@ public class ScannerForMSBuildInstallerTest {
 
   @Test
   public void maven_location_after_dot_net_core_support() {
-    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("4.2"), false);
+    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("4.2"), new PackageDetails("org.sonarsource.scanner.msbuild", "sonar-scanner-msbuild", "net46", "not used", "not used"));
     assertThat(location.getPackaging()).isEqualTo("zip");
     assertThat(location.getVersion()).isEqualTo("4.2");
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");
@@ -198,7 +222,7 @@ public class ScannerForMSBuildInstallerTest {
 
   @Test
   public void maven_location_after_dot_net_core_support_with_dot_net_core() {
-    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("4.2"), true);
+    MavenLocation location = ScannerForMSBuildInstaller.mavenLocation(Version.create("4.2"), new PackageDetails("org.sonarsource.scanner.msbuild", "sonar-scanner-msbuild", "netcoreapp2.0", "not used", "not used"));
     assertThat(location.getPackaging()).isEqualTo("zip");
     assertThat(location.getVersion()).isEqualTo("4.2");
     assertThat(location.getGroupId()).isEqualTo("org.sonarsource.scanner.msbuild");

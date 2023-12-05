@@ -135,7 +135,7 @@ public class ScannerForMSBuildExecutorTest {
   @Test
   public void execute_command_throws_any_exception_should_throw_ISE() {
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Fail to execute SonarScanner for MSBuild");
+    expectedException.expectMessage("Fail to execute SonarScanner for .NET");
 
     ScannerForMSBuild build = ScannerForMSBuild.create()
       .setProjectDir(new File("."))
