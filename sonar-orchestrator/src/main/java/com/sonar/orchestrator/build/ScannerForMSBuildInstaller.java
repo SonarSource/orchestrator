@@ -78,7 +78,7 @@ public class ScannerForMSBuildInstaller {
     // When installing from specific location, the folder is always the same and the cache directory is always deleted.
     String scannerFolderName = "sonar-scanner";
     String executableFileName = useDotNetCore ? "SonarScanner.MSBuild.dll" : "SonarScanner.MSBuild.exe";
-    clearCachedSnapshot(toDir, scannerFolderName, true);
+    clearCachedSnapshot(toDir, scannerFolderName);
 
     LOG.info("Installing Scanner for .NET from {}", location);
     File zipFile = locators.locate(location);
@@ -90,7 +90,10 @@ public class ScannerForMSBuildInstaller {
   }
 
   private File install(Version scannerVersion, File toDir, PackageDetails packageDetails) {
-    clearCachedSnapshot(toDir, packageDetails.getPackageName(), scannerVersion.isSnapshot());
+    if (scannerVersion.isSnapshot()) {
+      clearCachedSnapshot(toDir, packageDetails.getPackageName());
+    }
+
     if (!isInstalled(toDir, packageDetails.getPackageName())) {
       LOG.info("Installing Scanner for MSBuild {}", scannerVersion);
       File zipFile = locateZip(scannerVersion, packageDetails);
@@ -101,6 +104,7 @@ public class ScannerForMSBuildInstaller {
 
       doInstall(zipFile, toDir, scannerVersion, packageDetails.getPackageName());
     }
+
     return locateInstalledScript(toDir, packageDetails.getPackageName(), packageDetails.getExecutableName());
   }
 
@@ -166,9 +170,9 @@ public class ScannerForMSBuildInstaller {
     return location.build();
   }
 
-  private static void clearCachedSnapshot(@Nonnull File toDir, @Nonnull String scannerFolderName, boolean shouldDelete) {
+  private static void clearCachedSnapshot(@Nonnull File toDir, @Nonnull String scannerFolderName) {
     File scannerDir = new File(toDir, scannerFolderName);
-    if (shouldDelete && scannerDir.exists()) {
+    if (scannerDir.exists()) {
       LOG.info("Delete Scanner for MSBuild cache: {}", scannerDir);
       FileUtils.deleteQuietly(scannerDir);
     }
