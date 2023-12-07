@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermissions;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -64,9 +63,7 @@ public class ScannerForMSBuildInstaller {
    */
   public File install(@Nullable Version scannerVersion, @Nullable Location location, File toDir, boolean useDotNetCore) {
     if (location == null) {
-      scannerVersion = scannerVersion == null
-              ? Version.create(DEFAULT_SCANNER_VERSION)
-              : scannerVersion;
+      scannerVersion = scannerVersion == null ? Version.create(DEFAULT_SCANNER_VERSION) : scannerVersion;
       PackageDetails packageDetails = packageDetailsFactory.create(scannerVersion, useDotNetCore);
       return install(scannerVersion, toDir, packageDetails);
     } else {
@@ -90,10 +87,6 @@ public class ScannerForMSBuildInstaller {
   }
 
   private File install(Version scannerVersion, File toDir, PackageDetails packageDetails) {
-    if (scannerVersion.isSnapshot()) {
-      clearCachedSnapshot(toDir, packageDetails.getPackageName());
-    }
-
     if (!isInstalled(toDir, packageDetails.getPackageName())) {
       LOG.info("Installing Scanner for MSBuild {}", scannerVersion);
       File zipFile = locateZip(scannerVersion, packageDetails);
@@ -108,7 +101,7 @@ public class ScannerForMSBuildInstaller {
     return locateInstalledScript(toDir, packageDetails.getPackageName(), packageDetails.getExecutableName());
   }
 
-  void doInstall(File zipFile, File toDir, @Nullable Version scannerVersion, @Nonnull String scannerFolderName) {
+  void doInstall(File zipFile, File toDir, @Nullable Version scannerVersion, String scannerFolderName) {
     try {
       File scannerDir = new File(toDir, scannerFolderName);
       scannerDir.mkdirs();
@@ -170,7 +163,7 @@ public class ScannerForMSBuildInstaller {
     return location.build();
   }
 
-  private static void clearCachedSnapshot(@Nonnull File toDir, @Nonnull String scannerFolderName) {
+  private static void clearCachedSnapshot(File toDir, String scannerFolderName) {
     File scannerDir = new File(toDir, scannerFolderName);
     if (scannerDir.exists()) {
       LOG.info("Delete Scanner for MSBuild cache: {}", scannerDir);
@@ -178,7 +171,7 @@ public class ScannerForMSBuildInstaller {
     }
   }
 
-  private static boolean isInstalled(@Nonnull File toDir, @Nonnull String scannerFolderName) {
+  private static boolean isInstalled(File toDir, String scannerFolderName) {
     File scannerDir = new File(toDir, scannerFolderName);
     if (scannerDir.isDirectory() && scannerDir.exists()) {
       LOG.debug("SonarScanner for .NET {} already exists at {}", scannerDir, scannerDir);
@@ -187,7 +180,7 @@ public class ScannerForMSBuildInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(@Nonnull File toDir, @Nonnull String scannerDir, @Nonnull String executableFileName) {
+  private static File locateInstalledScript(File toDir, String scannerDir, String executableFileName) {
     File script = new File(toDir, scannerDir + File.separator + executableFileName);
     if (!script.exists()) {
       throw new IllegalStateException("File does not exist: " + script);

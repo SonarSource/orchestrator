@@ -32,15 +32,13 @@ public class PackageDetailsFactory {
 
   public PackageDetails create(@NotNull Version scannerVersion, boolean useDotNetCore) {
     // Depending on the version of the scanner, the file names, the artifactId and the classifiers can be different.
-    // Before 6.0.0.81631, the file names had the following format:
+    // For versions 5.x and below, the file names had the following format:
     //  - sonar-scanner-msbuild-<ver>-netcoreapp2.0
     //  - sonar-scanner-msbuild-<ver>-net46
-    // After 6.0.0.81631, they are:
+    // Starting version 6.x, they are:
     //  - sonar-scanner-<ver>-net
     //  - sonar-scanner-<ver>-net-framework
-    String executableName = useDotNetCore
-            ? "SonarScanner.MSBuild.dll"
-            : "SonarScanner.MSBuild.exe";
+    String executableName = useDotNetCore ? "SonarScanner.MSBuild.dll" : "SonarScanner.MSBuild.exe";
     if (hasNewPackageNames(scannerVersion)) {
       final String classifier = useDotNetCore ? "net" : "net-framework";
       final String filePath = String.format("sonar-scanner-%s-%s", scannerVersion, classifier);
