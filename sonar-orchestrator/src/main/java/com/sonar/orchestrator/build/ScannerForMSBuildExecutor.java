@@ -53,7 +53,7 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
       return result;
 
     } catch (Exception e) {
-      throw new IllegalStateException("Fail to execute SonarScanner for MSBuild", e);
+      throw new IllegalStateException("Fail to execute SonarScanner for .NET", e);
     }
   }
 
