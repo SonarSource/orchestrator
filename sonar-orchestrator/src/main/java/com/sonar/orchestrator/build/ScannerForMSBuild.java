@@ -20,8 +20,13 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.GitHub;
+import com.sonar.orchestrator.locator.GitHubImpl;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.version.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.Map;
 import javax.annotation.CheckForNull;
@@ -42,6 +47,9 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   static final int DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION = 4;
   static final int DOT_NET_CORE_INTRODUCTION_MINOR_VERSION = 1;
   public static final String DOT_NET_CORE_INTRODUCTION_VERSION = DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION + "." + DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
+  public static final String LATEST_RELEASE = "LATEST_RELEASE";
+  private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuild.class);
+  private final GitHub gitHub;
 
   private Version scannerVersion = null;
   private File projectDir;
@@ -54,6 +62,11 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   private Location location;
 
   ScannerForMSBuild() {
+    this(new GitHubImpl());
+  }
+
+  ScannerForMSBuild(GitHub gitHub) {
+    this.gitHub = gitHub;
   }
 
   @CheckForNull
@@ -121,6 +134,10 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
 
   public ScannerForMSBuild setScannerVersion(String s) {
     checkArgument(!isEmpty(s), "version must be set");
+    if (s.equals(LATEST_RELEASE)) {
+      s = gitHub.getLatestScannerReleaseVersion().orElse(s);
+    }
+    LOG.info("Setting the scanner version to {}", s);
     this.scannerVersion = Version.create(s);
     return this;
   }
