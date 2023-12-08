@@ -32,11 +32,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Optional;
 
 public class GitHubImpl implements GitHub {
   private static final Logger LOG = LoggerFactory.getLogger(GitHubImpl.class);
-  private static String cachedVersion;
+  private static final Object cacheLock = new Object();
+  private static volatile String cachedVersion;
   private final String baseUrl;
 
   public GitHubImpl() {
@@ -48,11 +48,13 @@ public class GitHubImpl implements GitHub {
   }
 
   @Override
-  public synchronized Optional<String> getLatestScannerReleaseVersion() {
+  public synchronized String getLatestScannerReleaseVersion() {
     // GitHub API has a rate limit of 60 requests per hour for unauthenticated users.
     // To avoid reaching that limit when running integration tests, the returned value needs to be cached.
-    if (cachedVersion != null) {
-      return Optional.of(cachedVersion);
+    synchronized (cacheLock) {
+      if (cachedVersion != null) {
+        return cachedVersion;
+      }
     }
     LOG.info("Retrieving the latest scanner release.");
     HttpUrl url = HttpUrl
@@ -79,13 +81,15 @@ public class GitHubImpl implements GitHub {
       JsonValue response = Json.parse(jsonContent);
       Files.delete(jsonFile.toPath());
       cachedVersion = response.asObject().getString("tag_name", null);
-      return Optional.of(cachedVersion);
+      return cachedVersion;
   } catch (Exception exception) {
-      LOG.warn("Downloading SonarScanner for .Net release details failed", exception);
-      return Optional.empty();
+      throw new IllegalStateException("Fail to download the latest release details for SonarScanner for .Net", exception);
     }
   }
+
   public static synchronized void resetCache() {
-    cachedVersion = null;
+    synchronized (cacheLock) {
+      cachedVersion = null;
+    }
   }
 }

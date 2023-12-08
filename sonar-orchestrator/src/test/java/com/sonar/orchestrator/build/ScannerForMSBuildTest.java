@@ -23,7 +23,6 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.GitHub;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.util.Optional;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,7 +117,7 @@ public class ScannerForMSBuildTest {
   public void test_setScannerVersion_with_latest_version() {
     String version = "6.0.0.0";
     GitHub gitHub = mock(GitHub.class);
-    when(gitHub.getLatestScannerReleaseVersion()).thenReturn(Optional.of(version));
+    when(gitHub.getLatestScannerReleaseVersion()).thenReturn(version);
     ScannerForMSBuild sut = new ScannerForMSBuild(gitHub);
     ScannerForMSBuild build = sut.setScannerVersion(ScannerForMSBuild.LATEST_RELEASE);
     assertThat(build.scannerVersion()).isEqualTo(Version.create(version));

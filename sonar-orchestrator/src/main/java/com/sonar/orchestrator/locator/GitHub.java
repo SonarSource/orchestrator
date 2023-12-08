@@ -20,8 +20,6 @@
 
 package com.sonar.orchestrator.locator;
 
-import java.util.Optional;
-
 public interface GitHub {
-  Optional<String> getLatestScannerReleaseVersion();
+  String getLatestScannerReleaseVersion();
 }

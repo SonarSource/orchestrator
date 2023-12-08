@@ -49,8 +49,8 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   public static final String DOT_NET_CORE_INTRODUCTION_VERSION = DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION + "." + DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
   public static final String LATEST_RELEASE = "LATEST_RELEASE";
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuild.class);
-  private final GitHub gitHub;
 
+  private final GitHub gitHub;
   private Version scannerVersion = null;
   private File projectDir;
   private File dotNetCoreExecutable = null;
@@ -135,7 +135,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   public ScannerForMSBuild setScannerVersion(String s) {
     checkArgument(!isEmpty(s), "version must be set");
     if (s.equals(LATEST_RELEASE)) {
-      s = gitHub.getLatestScannerReleaseVersion().orElse(s);
+      s = gitHub.getLatestScannerReleaseVersion();
     }
     LOG.info("Setting the scanner version to {}", s);
     this.scannerVersion = Version.create(s);

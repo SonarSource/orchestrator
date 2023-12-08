@@ -25,8 +25,6 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GitHubImplTest {
@@ -38,8 +36,8 @@ public class GitHubImplTest {
     prepareResponse("1.2.3.4");
 
     GitHubImpl sut = new GitHubImpl(server.url("/").toString());
-    Optional<String> latestVersion = sut.getLatestScannerReleaseVersion();
-    assertThat(latestVersion).contains("1.2.3.4");
+    String latestVersion = sut.getLatestScannerReleaseVersion();
+    assertThat(latestVersion).isEqualTo("1.2.3.4");
   }
 
   @Test
@@ -47,10 +45,10 @@ public class GitHubImplTest {
     prepareResponse("version");
 
     GitHubImpl sut = new GitHubImpl(server.url("/").toString());
-    Optional<String> first = sut.getLatestScannerReleaseVersion();
-    assertThat(first).contains("version");
-    Optional<String> second = sut.getLatestScannerReleaseVersion();
-    assertThat(second).contains("version");
+    String first = sut.getLatestScannerReleaseVersion();
+    assertThat(first).isEqualTo("version");
+    String second = sut.getLatestScannerReleaseVersion();
+    assertThat(second).isEqualTo("version");
     assertThat(server.getRequestCount()).isEqualTo(1);
   }
 
