@@ -20,14 +20,19 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.GitHub;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ScannerForMSBuildTest {
 
@@ -99,5 +104,28 @@ public class ScannerForMSBuildTest {
     thrown.expectMessage("Version of ScannerForMSBuild should be greater than or equals to 4.1 to be able to use .Net Core.");
 
     build.check();
+  }
+
+  @Test
+  public void test_setScannerVersion_with_specific_version() {
+    String version = "6.0.0.0";
+    ScannerForMSBuild build = ScannerForMSBuild.create().setScannerVersion(version);
+    assertThat(build.scannerVersion()).isEqualTo(Version.create(version));
+  }
+
+  @Test
+  public void test_setScannerVersion_with_latest_version() {
+    String version = "6.0.0.0";
+    GitHub gitHub = mock(GitHub.class);
+    when(gitHub.getLatestScannerReleaseVersion()).thenReturn(version);
+    ScannerForMSBuild sut = new ScannerForMSBuild(gitHub);
+    ScannerForMSBuild build = sut.setScannerVersion(ScannerForMSBuild.LATEST_RELEASE);
+    assertThat(build.scannerVersion()).isEqualTo(Version.create(version));
+  }
+
+  @Test
+  public void test_setScannerVersion_with_wrong_version() {
+    ScannerForMSBuild build = ScannerForMSBuild.create();
+    assertThatThrownBy(() -> build.setScannerVersion("wrong version")).isInstanceOf(Version.VersionParsingException.class);
   }
 }

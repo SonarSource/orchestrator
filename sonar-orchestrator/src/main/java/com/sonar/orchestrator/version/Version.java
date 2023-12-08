@@ -191,7 +191,7 @@ public class Version implements Comparable<Version> {
     return asString.endsWith("-SNAPSHOT");
   }
 
-  static class VersionParsingException extends RuntimeException {
+  public static class VersionParsingException extends RuntimeException {
     private static final String PARSE_ERR_MSG = "Version string cannot be parsed.";
 
     VersionParsingException() {
