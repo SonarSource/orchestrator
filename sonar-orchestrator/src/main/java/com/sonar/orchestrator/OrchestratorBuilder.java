@@ -144,7 +144,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    * </ul>
    * <p/>
    * Downloading and resolving aliases of commercial plugins requires the Artifactory credentials to be set
-   * (see parameter "orchestrator.artifactory.apiKey").
+   * (see parameter "orchestrator.artifactory.accessToken").
    */
   public BUILDER addPlugin(Location location) {
     distribution.addPluginLocation(requireNonNull(location));
