@@ -125,6 +125,6 @@ For running Orchestrator behind a corporate proxy, add Java properties :
 
 ## License
 
-Copyright 2011-2023 SonarSource.
+Copyright 2011-2024 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
