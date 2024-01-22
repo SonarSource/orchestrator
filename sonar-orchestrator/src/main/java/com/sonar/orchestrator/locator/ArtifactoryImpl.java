@@ -71,6 +71,9 @@ public class ArtifactoryImpl implements Artifactory {
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
+    System.out.println("##################################################");
+    System.out.println("accessToken" + accessToken);
+    System.out.println("##################################################");
     return new ArtifactoryImpl(downloadTempDir, baseUrl, accessToken, apiKey);
   }
 
