@@ -49,7 +49,10 @@ public class AbstractBuildExecutorTest {
     Map<String, String> env = new HashMap<>();
     env.put("SONAR_OPTS", "foo");
 
-    Configuration config = Configuration.create(singletonMap("orchestrator.computeCoverage", "true"));
+    Configuration config = Configuration.builder()
+      .addProperties(singletonMap("orchestrator.computeCoverage", "true"))
+      .addEnvVariables()
+      .build();
 
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
 
@@ -60,7 +63,10 @@ public class AbstractBuildExecutorTest {
   public void shouldCreateEnvironmentVariableIfNeeded() {
     Map<String, String> env = new HashMap<>();
 
-    Configuration config = Configuration.create(singletonMap("orchestrator.computeCoverage", "true"));
+    Configuration config = Configuration.builder()
+      .addProperties(singletonMap("orchestrator.computeCoverage", "true"))
+      .addEnvVariables()
+      .build();
 
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
 

@@ -91,7 +91,10 @@ public class JaCoCoArgumentsBuilderTest {
     Map<String, String> props = new HashMap<>();
     props.put("orchestrator.computeCoverage", "true");
     props.put("orchestrator.coverageReportPath", output.getAbsolutePath());
-    Configuration config = Configuration.create(props);
+    Configuration config = Configuration.builder()
+      .addProperties(props)
+      .addEnvVariables()
+      .build();
 
     String argument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
 
