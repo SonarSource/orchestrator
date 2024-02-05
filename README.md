@@ -71,6 +71,9 @@ Aliases can be used to define the versions of SonarQube and plugins to be instal
 
 The alias `LTS` is no more supported for SonarQube since Orchestrator 3.17. It should be replaced by `LATEST_RELEASE[6.7]`.
 
+Please note that since Orchestrator 4.7, if the default value of `orchestrator.artifactory.url` (https://repox.jfrog.io/repox) is _not_ used, 
+the `DEV` and `DOGFOOD` aliases will not work.
+
 ## Local Cache
 
 The artifacts downloaded from Artifactory (SonarQube, plugins) are copied to the local directory `~/.sonar/orchestrator/cache`.
@@ -103,9 +106,11 @@ The test environment is configured in the file `~/.sonar/orchestrator/orchestrat
     # Default is ~/.m2/repository
     #maven.localRepository=/path/to/maven/repository
 
-    # Instance of Artifactory. Default is SonarSource's instance.
+    # Instance of Artifactory. Default is SonarSource's instance (https://repox.jfrog.io/repox).
     # This property can be replaced by the environment variable ARTIFACTORY_URL.
-    #orchestrator.artifactory.url=https://repox.jfrog.io/repox
+    # To use maven central instead, use https://repo1.maven.org/maven2
+    # To use a custom instance, use your own URL that points to a Maven repository.
+    #orchestrator.artifactory.url=https://repo1.maven.org/maven2
 
 The path to configuration file can be overridden with the system property `orchestrator.configUrl`
 or the environment variable `ORCHESTRATOR_CONFIG_URL`.

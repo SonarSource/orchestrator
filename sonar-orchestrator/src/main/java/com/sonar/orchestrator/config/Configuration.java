@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.locator.ArtifactoryImpl;
+import com.sonar.orchestrator.locator.ArtifactoryFactory;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
@@ -56,7 +56,7 @@ public class Configuration {
   private Configuration(File homeDir, Map<String, String> props) {
     this.props = Collections.unmodifiableMap(new HashMap<>(props));
     this.fileSystem = new FileSystem(homeDir, this);
-    this.locators = new Locators(this.fileSystem, ArtifactoryImpl.create(this));
+    this.locators = new Locators(this.fileSystem, ArtifactoryFactory.createArtifactory(this));
   }
 
   public FileSystem fileSystem() {

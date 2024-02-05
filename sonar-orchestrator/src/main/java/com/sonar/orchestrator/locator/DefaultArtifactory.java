@@ -24,107 +24,43 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.http.HttpCall;
-import com.sonar.orchestrator.http.HttpClientFactory;
-import com.sonar.orchestrator.http.HttpException;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
-import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
+import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 
-public class ArtifactoryImpl implements Artifactory {
+public class DefaultArtifactory extends Artifactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ArtifactoryImpl.class);
-
-  private final File tempDir;
-  private final String baseUrl;
-  @Nullable
-  private final String apiKey;
-  @Nullable
-  private final String accessToken;
-
-
-  public ArtifactoryImpl(File tempDir, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
-    this.tempDir = tempDir;
-    this.baseUrl = baseUrl;
-    this.apiKey = apiKey;
-    this.accessToken = accessToken;
+  protected DefaultArtifactory(File tempDir, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
+    super(tempDir, baseUrl, accessToken, apiKey);
   }
 
-  public static ArtifactoryImpl create(Configuration configuration) {
+  protected static DefaultArtifactory create(Configuration configuration) {
     File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
-    return new ArtifactoryImpl(downloadTempDir, baseUrl, accessToken, apiKey);
+    return new DefaultArtifactory(downloadTempDir, baseUrl, accessToken, apiKey);
   }
 
   @Override
   public boolean downloadToFile(MavenLocation location, File toFile) {
-    Optional<File> tempFile = downloadToDir(location, tempDir);
-    if (tempFile.isPresent()) {
-      try {
-        FileUtils.deleteQuietly(toFile);
-        FileUtils.moveFile(tempFile.get(), toFile);
-        return true;
-      } catch (IOException e) {
-        throw new IllegalStateException("Fail to move file " + toFile, e);
-      }
-    }
-    return false;
+    Optional<File> tempFile = this.downloadToDir(location, tempDir);
+    return tempFile.filter(file -> super.moveFile(file, toFile)).isPresent();
   }
 
   @Override
   public Optional<File> downloadToDir(MavenLocation location, File toDir) {
     for (String repository : asList("sonarsource", "sonarsource-qa", "sonarsource-dogfood-builds")) {
-      HttpUrl url = HttpUrl.parse(baseUrl).newBuilder()
-        .addPathSegment(repository)
-        .addEncodedPathSegments(StringUtils.replace(location.getGroupId(), ".", "/"))
-        .addPathSegment(location.getArtifactId())
-        .addPathSegment(location.getVersion())
-        .addPathSegment(location.getFilename())
-        .build();
-
-      HttpCall call = newArtifactoryCall(url);
-      try {
-        LOG.info("Downloading {}", url);
-        File toFile = call.downloadToDirectory(toDir);
-        LOG.info("Found {} at {}", location, url);
-        return Optional.of(toFile);
-      } catch (HttpException e) {
-        if (e.getCode() != HTTP_NOT_FOUND && e.getCode() != HTTP_UNAUTHORIZED && e.getCode() != HTTP_FORBIDDEN) {
-          throw new IllegalStateException("Failed to request " + url, e);
-        } else {
-          String errorMessage;
-          try {
-            JsonArray errors = Json.parse(e.getBody()).asObject().get("errors").asArray();
-            errorMessage = StreamSupport.stream(errors.spliterator(), false)
-                    .map(item -> item.asObject().get("message").asString())
-                    .collect(Collectors.joining(", "));
-          } catch (Exception ignored) {
-            errorMessage = "--- Failed to parse response body -- ";
-          }
-          LOG.warn("Could not download artifact from repository '{}': {} - {}",
-                  repository,
-                  e.getCode(),
-                  errorMessage
-          );
-        }
+      Optional<File> optionalFile = super.downloadToDir(location, toDir, repository);
+      if (optionalFile.isPresent()) {
+        return optionalFile;
       }
     }
     return Optional.empty();
@@ -169,32 +105,6 @@ public class ArtifactoryImpl implements Artifactory {
     } catch (Exception e) {
       throw new IllegalStateException("Fail to request versions at " + url, e);
     }
-  }
-
-  private HttpCall newArtifactoryCall(HttpUrl url) {
-    HttpCall call = HttpClientFactory.create().newCall(url);
-    if (!isEmpty(accessToken)) {
-      call.setHeader("Authorization", "Bearer " + accessToken);
-    } else if (!isEmpty(apiKey)) {
-      call.setHeader("X-JFrog-Art-Api", apiKey);
-    }
-    return call;
-  }
-
-  /**
-   * Examples:
-   * "LATEST_RELEASE" -> ""
-   * "LATEST_RELEASE[7]" -> "7"
-   * "LATEST_RELEASE[7.1]" -> "7.1"
-   * "LATEST_RELEASE[7.1.2]" -> "7.1.2"
-   */
-  private static String extractVersionFromAlias(String s) {
-    int start = s.indexOf('[');
-    int end = s.indexOf(']');
-    if (start >= 0 && end > start) {
-      return s.substring(start + 1, end);
-    }
-    return "";
   }
 
 }

@@ -43,7 +43,7 @@ import org.junit.rules.Timeout;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ArtifactoryImplTest {
+public class DefaultArtifactoryTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -66,7 +66,7 @@ public class ArtifactoryImplTest {
     Configuration configuration = newConfiguration()
       .setProperty("orchestrator.artifactory.apiKey", "")
       .build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
 
     File targetFile = temp.newFile();
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
@@ -88,7 +88,7 @@ public class ArtifactoryImplTest {
     Configuration configuration = newConfiguration()
       .setProperty("orchestrator.artifactory.apiKey", "")
       .build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
 
     File targetFile = temp.newFile();
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
@@ -114,7 +114,7 @@ public class ArtifactoryImplTest {
     Configuration configuration = newConfiguration()
       .setProperty("orchestrator.artifactory.apiKey", "abcde")
       .build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
 
     File targetFile = temp.newFile();
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
@@ -135,7 +135,7 @@ public class ArtifactoryImplTest {
             .setProperty("orchestrator.artifactory.accessToken", "abcde")
             .setProperty("orchestrator.artifactory.apiKey", "defgh")
             .build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
 
     File targetFile = temp.newFile();
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
@@ -158,7 +158,7 @@ public class ArtifactoryImplTest {
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isFalse();
@@ -172,7 +172,7 @@ public class ArtifactoryImplTest {
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isFalse();
@@ -186,7 +186,7 @@ public class ArtifactoryImplTest {
     Configuration configuration = newConfiguration().build();
 
     File targetFile = temp.newFile();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isFalse();
@@ -197,7 +197,7 @@ public class ArtifactoryImplTest {
     prepareResponseError(500);
     Configuration configuration = newConfiguration().build();
     File targetFile = temp.newFile();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
 
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
@@ -218,7 +218,7 @@ public class ArtifactoryImplTest {
   @Test
   public void resolveVersion_returns_version_if_not_an_alias() throws Exception {
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
 
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "7.1.0.1234");
     Optional<String> version = underTest.resolveVersion(location);
@@ -229,7 +229,7 @@ public class ArtifactoryImplTest {
   @Test
   public void resolveVersion_throws_ISE_if_deprecated_LTS_alias() throws Exception {
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LTS");
 
     expectedException.expect(IllegalStateException.class);
@@ -241,7 +241,7 @@ public class ArtifactoryImplTest {
   @Test
   public void resolveVersion_throws_ISE_if_deprecated_OLDEST_COMPATIBLE_alias() throws Exception {
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "OLDEST_COMPATIBLE");
 
     expectedException.expect(IllegalStateException.class);
@@ -255,7 +255,7 @@ public class ArtifactoryImplTest {
     prepareVersions("6.7", "7.0", "7.1", "7.1.1", "6.7.3");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -269,7 +269,7 @@ public class ArtifactoryImplTest {
     prepareVersions();
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -281,7 +281,7 @@ public class ArtifactoryImplTest {
     prepareVersions("7.1.0.1000", "7.1.1.1500", "7.1.0.1400");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE[7.1]");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -295,7 +295,7 @@ public class ArtifactoryImplTest {
     prepareVersions("7.1.0.1000", "7.2.1.1500", "7.1.0.1400");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE[7]");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -309,7 +309,7 @@ public class ArtifactoryImplTest {
     prepareVersions("6.7.0.1000", "7.0.0.1010", "7.1.0.1030", "7.1.0.1020");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DEV");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -323,7 +323,7 @@ public class ArtifactoryImplTest {
     prepareVersions("7.1.0.1030", "7.1.0.1020");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DEV[7.1]");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -337,7 +337,7 @@ public class ArtifactoryImplTest {
     prepareVersions("8.8.0.9999", "8.8.0.10000");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DEV");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -351,7 +351,7 @@ public class ArtifactoryImplTest {
     prepareVersions("8.8.0-M1.9999", "8.8.0-M1.10000");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DEV");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -365,7 +365,7 @@ public class ArtifactoryImplTest {
     prepareVersions("6.7.0.1000", "7.0.0.1010", "7.1.0.1030", "7.1.0.1020");
 
     Configuration configuration = newConfiguration().build();
-    ArtifactoryImpl underTest = ArtifactoryImpl.create(configuration);
+    Artifactory underTest = DefaultArtifactory.create(configuration);
     MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "DOGFOOD");
 
     Optional<String> version = underTest.resolveVersion(location);
@@ -381,7 +381,7 @@ public class ArtifactoryImplTest {
       .setProperty("orchestrator.artifactory.apiKey", "abcde")
       .build();
 
-    ArtifactoryImpl.create(configuration).resolveVersion(MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE"));
+    DefaultArtifactory.create(configuration).resolveVersion(MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE"));
 
     RecordedRequest request = server.takeRequest();
     assertThat(request.getHeader("X-JFrog-Art-Api")).isEqualTo("abcde");
@@ -405,7 +405,7 @@ public class ArtifactoryImplTest {
       }
     });
 
-    ArtifactoryImpl.create(configuration).resolveVersion(MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE"));
+    DefaultArtifactory.create(configuration).resolveVersion(MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE"));
   }
 
   private void verifyVersionsRequest(String groupId, String artifactId, String versionLayout, String repositories) throws InterruptedException {
