@@ -12,7 +12,7 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <okhttp.version>4.5.0</okhttp.version>
-
+    <jupiter.version>5.9.1</jupiter.version>
     <jacoco.version>0.8.10</jacoco.version>
   </properties>
 
@@ -51,6 +51,11 @@
       <groupId>com.eclipsesource.minimal-json</groupId>
       <artifactId>minimal-json</artifactId>
       <version>0.9.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <version>2.13.2</version>
     </dependency>
 
     <!-- Apache HTTP Client is kept for deprecated methods Server#getWsClient()
@@ -154,7 +159,12 @@
       <version>${okhttp.version}</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
