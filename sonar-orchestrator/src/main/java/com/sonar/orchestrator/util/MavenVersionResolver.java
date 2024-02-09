@@ -42,7 +42,7 @@ public class MavenVersionResolver {
   private final String baseUrl;
   private final String groupId;
   private final String artifactId;
-  private List<String> versions;
+  private List<Version> versions;
 
   public MavenVersionResolver(String baseUrl, String groupId, String artifactId) {
     this.baseUrl = baseUrl;
@@ -53,7 +53,10 @@ public class MavenVersionResolver {
   public void loadVersions() {
     try {
       MavenRepositoryVersion mavenMetadata = downloadVersions();
-      this.versions = mavenMetadata.getVersioning().getVersions();
+      this.versions = mavenMetadata.getVersioning().getVersions()
+        .stream()
+        .map(Version::create)
+        .collect(Collectors.toList());
       this.versions.sort(Comparator.naturalOrder());
     } catch (IOException e) {
       throw new IllegalStateException("Fail to load versions of " + groupId + ":" + artifactId, e);
@@ -62,16 +65,16 @@ public class MavenVersionResolver {
 
   public Optional<String> getLatestVersion(@Nullable String majorMinorVersion) {
     if (isEmpty(majorMinorVersion)) {
-      return Optional.of(this.versions.get(versions.size() - 1));
+      Version version = this.versions.get(versions.size() - 1);
+      return Optional.of(version.toString());
     }
 
-    List<String> filteredVersions = versions.stream()
-      .filter(version -> version.startsWith(majorMinorVersion))
+    List<Version> filteredVersions = versions.stream()
+      .filter(version -> version.toString().startsWith(majorMinorVersion))
       .collect(Collectors.toList());
 
     if (!filteredVersions.isEmpty()) {
       return filteredVersions.stream()
-        .map(Version::create)
         .max(Comparator.naturalOrder())
         .map(Version::toString);
     } else {
@@ -79,7 +82,7 @@ public class MavenVersionResolver {
     }
   }
 
-  public MavenRepositoryVersion downloadVersions() throws IOException {
+  protected MavenRepositoryVersion downloadVersions() throws IOException {
     URL url = getUrl();
     return new XmlMapper().readValue(url, MavenRepositoryVersion.class);
   }

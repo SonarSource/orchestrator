@@ -39,7 +39,7 @@ class MavenVersionResolverTest {
 
   @ParameterizedTest
   @MethodSource("params")
-  void loadVersions_whenProvidedEmptyString_shouldReturnLatest(String input, String output) throws IOException {
+  void loadVersions(String input, String output) throws IOException {
     MavenVersionResolver versionResolver = spy(new MavenVersionResolver("https://repo1.maven.org/maven2", "org.sonarsource.sonarqube", "sonar-plugin-api"));
     when(versionResolver.downloadVersions()).thenReturn(getMavenRepositoryVersion());
     versionResolver.loadVersions();
@@ -75,6 +75,13 @@ class MavenVersionResolverTest {
     versions.add("1.0");
     versions.add("2.0");
     versions.add("2.0.1");
+    versions.add("2.0.2");
+    versions.add("2.0.10");
+    versions.add("10.9.1");
+    versions.add("11.4.5");
+    versions.add("11.0.3");
+    versions.add("10.4.2");
+    versions.add("10.10.0");
     versions.add("3.1");
     versions.add("4.0");
     versions.add("5.0");
@@ -88,8 +95,10 @@ class MavenVersionResolverTest {
 
   private static Stream<Arguments> params() {
     return Stream.of(
-      Arguments.of("", "6.0"),
-      Arguments.of("2.0", "2.0.1"),
+      Arguments.of("", "11.4.5"),
+      Arguments.of("10", "10.10.0"),
+      Arguments.of("5.", "5.0.1.9324"),
+      Arguments.of("2.0", "2.0.10"),
       Arguments.of("5.0.1", "5.0.1.9324")
     );
   }
