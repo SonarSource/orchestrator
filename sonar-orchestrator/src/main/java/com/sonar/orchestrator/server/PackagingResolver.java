@@ -24,16 +24,20 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.util.VersionUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+
+import static com.sonar.orchestrator.util.VersionUtils.newMavenLocationOfZip;
 
 public class PackagingResolver {
 
   private static final String PRIVATE_GROUP_ID = "com.sonarsource.sonarqube";
-  private static final String PUBLIC_GROUP_ID = "org.sonarsource.sonarqube";
+  public static final String PUBLIC_GROUP_ID = "org.sonarsource.sonarqube";
   private static final Pattern ZIP_VERSION_PATTERN = Pattern.compile("^.*-(\\d++.*)\\.zip$");
 
   private final Locators locators;
@@ -95,14 +99,7 @@ public class PackagingResolver {
     return Version.create(matcher.group(1));
   }
 
-  private static MavenLocation newMavenLocationOfZip(String groupId, String artifactId, String version) {
-    return MavenLocation.builder()
-      .setGroupId(groupId)
-      .setArtifactId(artifactId)
-      .setVersion(version)
-      .withPackaging("zip")
-      .build();
-  }
+
 
   private Version resolveVersion(Optional<String> versionOrAlias) {
     if (!versionOrAlias.isPresent()) {
@@ -110,15 +107,7 @@ public class PackagingResolver {
     }
 
     String version = versionOrAlias.get();
-    if (version.startsWith("DEV") || version.startsWith("LATEST_RELEASE") || version.startsWith("DOGFOOD")) {
-      MavenLocation location = newMavenLocationOfZip(PUBLIC_GROUP_ID, "sonar-application", version);
-      Optional<String> resolvedVersion = locators.maven().resolveVersion(location);
-      if (!resolvedVersion.isPresent()) {
-        throw new IllegalStateException("Version can not be resolved: " + location);
-      }
-      return Version.create(resolvedVersion.get());
-    }
-
-    return Version.create(version);
+    return VersionUtils.getVersion(version, this.locators);
   }
+
 }
