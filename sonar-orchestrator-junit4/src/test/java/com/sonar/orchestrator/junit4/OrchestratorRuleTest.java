@@ -20,9 +20,11 @@
 package com.sonar.orchestrator.junit4;
 
 import com.sonar.orchestrator.Orchestrator;
+import org.assertj.core.api.Assertions;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -100,7 +102,7 @@ public class OrchestratorRuleTest {
 
     reset(proxied);
 
-
+    assertThat(proxy.getOrchestrator()).isEqualTo(proxied);
   }
 
 }
