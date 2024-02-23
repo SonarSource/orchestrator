@@ -177,4 +177,8 @@ public class OrchestratorRule extends SingleStartExternalResource {
   public static OrchestratorRuleBuilder builder(Configuration config) {
     return new OrchestratorRuleBuilder(config);
   }
+
+  public Orchestrator getOrchestrator() {
+    return orchestrator;
+  }
 }
