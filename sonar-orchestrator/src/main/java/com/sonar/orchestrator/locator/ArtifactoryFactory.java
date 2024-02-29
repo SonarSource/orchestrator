@@ -26,7 +26,8 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 
 public class ArtifactoryFactory {
 
-  private static final String DEFAULT_ARTIFACTORY_URL = "https://repox.jfrog.io/repox";
+  private static final String DEFAULT_ARTIFACTORY_PREFIX = "https://repox.jfrog.io";
+  private static final String DEFAULT_ARTIFACTORY_URL = DEFAULT_ARTIFACTORY_PREFIX + "/repox";
 
   /**
    * Two types of Artifactory are supported: Maven and Default.
@@ -40,7 +41,7 @@ public class ArtifactoryFactory {
     File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), DEFAULT_ARTIFACTORY_URL);
 
-    if (baseUrl.startsWith(DEFAULT_ARTIFACTORY_URL)) {
+    if (baseUrl.startsWith(DEFAULT_ARTIFACTORY_PREFIX)) {
       String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
       String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
       return new DefaultArtifactory(downloadTempDir, baseUrl, accessToken, apiKey);
