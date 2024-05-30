@@ -42,6 +42,8 @@ import org.slf4j.LoggerFactory;
  */
 public class SonarScannerInstaller {
   private static final Logger LOG = LoggerFactory.getLogger(SonarScannerInstaller.class);
+  public static final String GROUP_ID = "org.sonarsource.scanner.cli";
+  public static final String ARTIFACT_ID = "sonar-scanner-cli";
 
   private final Locators locators;
 
@@ -50,19 +52,22 @@ public class SonarScannerInstaller {
   }
 
   /**
-   * Installs an ephemeral sonar-runner and returns the path to the script to execute
+   * Installs an ephemeral sonar-scanner-cli and returns the path to the script to execute
    */
-  public File install(Version scannerVersion, File toDir, boolean useOldScript) {
-    return install(scannerVersion, null, toDir, useOldScript);
+  public File install(Version scannerVersion, File toDir) {
+    return install(scannerVersion, null, toDir);
   }
 
-  public File install(Version scannerVersion, @Nullable String classifier, File toDir, boolean useOldScript) {
+  public File install(Version scannerVersion, @Nullable String classifier, File toDir) {
+    if (!scannerVersion.isGreaterThanOrEquals(2, 5)) {
+      throw new IllegalArgumentException("Unsupported sonar-scanner version: " + scannerVersion);
+    }
     clearCachedSnapshot(scannerVersion, classifier, toDir);
     if (!isInstalled(scannerVersion, classifier, toDir)) {
-      LOG.info("Installing sonar-scanner {}", scannerVersion);
+      LOG.info("Installing SonarScanner CLI {}", scannerVersion);
       doInstall(scannerVersion, classifier, toDir);
     }
-    return locateInstalledScript(scannerVersion, classifier, toDir, useOldScript);
+    return locateInstalledScript(scannerVersion, classifier, toDir);
   }
 
   void doInstall(Version scannerVersion, @Nullable String classifier, File toDir) {
@@ -82,7 +87,7 @@ public class SonarScannerInstaller {
   private File locateZip(Version scannerVersion, @Nullable String classifier) {
     File zipFile = null;
     String cl = classifier == null ? "" : ("-" + classifier);
-    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-" + scannerVersion.toString() + cl + ".zip");
+    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-cli-" + scannerVersion.toString() + cl + ".zip");
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
@@ -103,21 +108,9 @@ public class SonarScannerInstaller {
   }
 
   static MavenLocation mavenLocation(Version scannerVersion, @Nullable String classifier) {
-    String groupId;
-    String artifactId;
-    if (scannerVersion.isGreaterThanOrEquals(2, 5)) {
-      groupId = "org.sonarsource.scanner.cli";
-      artifactId = "sonar-scanner-cli";
-    } else if (scannerVersion.isGreaterThan(2, 0)) {
-      groupId = "org.codehaus.sonar.runner";
-      artifactId = "sonar-runner-dist";
-    } else {
-      groupId = "org.codehaus.sonar-plugins";
-      artifactId = "sonar-runner";
-    }
     MavenLocation.Builder builder = MavenLocation.builder()
-      .setGroupId(groupId)
-      .setArtifactId(artifactId)
+      .setGroupId(GROUP_ID)
+      .setArtifactId(ARTIFACT_ID)
       .setVersion(scannerVersion.toString())
       .withPackaging("zip");
     if (classifier != null) {
@@ -143,41 +136,28 @@ public class SonarScannerInstaller {
     return false;
   }
 
-  private static File locateInstalledScript(Version runnerVersion, @Nullable String classifier, File toDir, boolean useOldScript) {
-    String filename = basename(runnerVersion, useOldScript);
-    File script = new File(toDir, directoryName(runnerVersion, classifier) + "/bin/" + filename);
+  private static File locateInstalledScript(Version scannerVersion, @Nullable String classifier, File toDir) {
+    File script = new File(toDir, directoryName(scannerVersion, classifier) + "/bin/" + scriptName());
     if (!script.exists()) {
       throw new IllegalStateException("File does not exist: " + script);
     }
     return script;
   }
 
-  private static String directoryName(Version runnerVersion, @Nullable String classifier) {
-    return basename(runnerVersion) + "-" + runnerVersion + suffix(classifier);
+  private static String directoryName(Version scannerVersion, @Nullable String classifier) {
+    return "sonar-scanner-" + scannerVersion + suffix(classifier);
   }
 
   private static String suffix(@Nullable String classifier) {
     return classifier == null ? "" : ("-" + classifier);
   }
 
-  private static String basename(Version runnerVersion, boolean useOldScript) {
-    String basename;
-    if (useOldScript) {
-      basename = "sonar-runner";
-    } else {
-      basename = basename(runnerVersion);
-    }
-
+  private static String scriptName() {
+    String basename = "sonar-scanner";
     if (SystemUtils.IS_OS_WINDOWS) {
       return basename + ".bat";
     }
     return basename;
   }
 
-  private static String basename(Version runnerVersion) {
-    if (runnerVersion.isGreaterThanOrEquals(2, 5)) {
-      return "sonar-scanner";
-    }
-    return "sonar-runner";
-  }
 }

@@ -41,18 +41,18 @@ import static org.mockito.Mockito.when;
 public class SonarScannerExecutorTest {
   @Test
   public void execute_command() {
-    SonarRunner build = SonarRunner.create()
+    SonarScanner build = SonarScanner.create()
       .setProjectDir(new File("."))
       .setProjectKey("SAMPLE")
       .setTimeoutSeconds(30)
       .setDebugLogs(true)
-      .setRunnerVersion("1.3");
+      .setScannerVersion("1.3");
     Map<String, String> props = new TreeMap<>();
     props.put("sonar.jdbc.dialect", "h2");
     props.put("sonar.projectKey", "SAMPLE");
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("1.3")), eq(null), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
+    when(installer.install(eq(Version.create("1.3")), eq(null), any(File.class))).thenReturn(new File("sonar-runner.sh"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
@@ -66,82 +66,23 @@ public class SonarScannerExecutorTest {
   }
 
   @Test
-  public void execute_task() {
-    SonarRunner build = SonarRunner.create()
-      .setProjectDir(new File("."))
-      .setProjectKey("SAMPLE")
-      .setTimeoutSeconds(30)
-      .setRunnerVersion("2.1")
-      .setTask("my-task");
-    Map<String, String> props = new TreeMap<>();
-    props.put("sonar.jdbc.dialect", "h2");
-    props.put("sonar.projectKey", "SAMPLE");
-
-    SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("2.1")), eq(null), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
-    CommandExecutor executor = mock(CommandExecutor.class);
-    when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
-
-    new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
-
-    verify(executor).execute(argThat(c -> {
-      // Windows directory with space use case
-      String quote = "";
-      if (c.getDirectory().getAbsolutePath().contains(" ")) {
-        quote = "\"";
-      }
-      return c.getDirectory().equals(new File("."))
-        && c.toCommandLine().contains("sonar-runner.sh" + quote + " my-task")
-        && c.toCommandLine().contains("-e")
-        && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
-        && c.toCommandLine().contains("-Dsonar.projectKey");
-    }), any(), eq(30000L));
-  }
-
-  @Test
-  public void execute_command_with_task_old_syntax() {
-    SonarRunner build = SonarRunner.create()
-      .setProjectDir(new File("."))
-      .setProjectKey("SAMPLE")
-      .setTimeoutSeconds(30)
-      .setRunnerVersion("2.0")
-      .setTask("my-task");
-    Map<String, String> props = new TreeMap<>();
-    props.put("sonar.jdbc.dialect", "h2");
-    props.put("sonar.projectKey", "SAMPLE");
-
-    SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("2.0")), eq(null), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
-    CommandExecutor executor = mock(CommandExecutor.class);
-    when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
-
-    new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
-
-    verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
-      && c.toCommandLine().contains("sonar-runner")
-      && c.toCommandLine().contains("-Dsonar.jdbc.dialect")
-      && c.toCommandLine().contains("-Dsonar.projectKey")
-      && c.toCommandLine().contains("-Dsonar.task")), any(), eq(30000L));
-  }
-
-  @Test
   public void execute_command_with_additional_args() {
-    SonarRunner build = SonarRunner.create()
+    SonarScanner build = SonarScanner.create()
       .setProjectDir(new File("."))
       .setTimeoutSeconds(30)
-      .setRunnerVersion("2.0")
+      .setScannerVersion("2.0")
       .addArguments("--help");
     Map<String, String> props = new TreeMap<>();
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(Version.create("2.0")), eq(null), any(File.class), eq(true))).thenReturn(new File("sonar-runner.sh"));
+    when(installer.install(eq(Version.create("2.0")), eq(null), any(File.class))).thenReturn(new File("sonar-scanner.sh"));
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
 
     verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
-      && c.toCommandLine().contains("sonar-runner.sh")
+      && c.toCommandLine().contains("sonar-scanner.sh")
       && c.toCommandLine().contains("--help")), any(), eq(30000L));
   }
 
@@ -154,12 +95,12 @@ public class SonarScannerExecutorTest {
     Map<String, String> props = new TreeMap<>();
 
     SonarScannerInstaller installer = mock(SonarScannerInstaller.class);
-    when(installer.install(eq(build.scannerVersion()), eq(classifier), any(), eq(false)))
+    when(installer.install(eq(build.scannerVersion()), eq(classifier), any()))
       .thenReturn(new File("dummy.sh"));
 
     CommandExecutor executor = mock(CommandExecutor.class);
 
     new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
-    verify(installer).install(eq(build.scannerVersion()), eq(classifier), any(), eq(false));
+    verify(installer).install(eq(build.scannerVersion()), eq(classifier), any());
   }
 }
