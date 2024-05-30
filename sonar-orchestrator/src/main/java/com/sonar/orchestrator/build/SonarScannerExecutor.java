@@ -27,26 +27,23 @@ import java.io.File;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+class SonarScannerExecutor extends AbstractBuildExecutor<SonarScanner> {
 
-class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
-
-  private static final String SONAR_RUNNER_OPTS = "SONAR_RUNNER_OPTS";
   private static final String SONAR_SCANNER_OPTS = "SONAR_SCANNER_OPTS";
 
   @Override
-  BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
+  BuildResult execute(SonarScanner build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
     return execute(build, config, adjustedProperties, new SonarScannerInstaller(config.locators()), create);
   }
 
-  BuildResult execute(SonarRunner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
+  BuildResult execute(SonarScanner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
     CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
-    File runnerScript = installer.install(build.runnerVersion(), build.classifier(), config.fileSystem().workspace(), build.isUseOldSonarRunnerScript());
+    File scannerScript = installer.install(build.scannerVersion(), build.classifier(), config.fileSystem().workspace());
     try {
-      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, build.isUseOldSonarRunnerScript() ? SONAR_RUNNER_OPTS : SONAR_SCANNER_OPTS);
-      Command command = createCommand(build, adjustedProperties, runnerScript);
-      LoggerFactory.getLogger(SonarRunner.class).info("Execute: {}", command);
+      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, SONAR_SCANNER_OPTS);
+      Command command = createCommand(build, adjustedProperties, scannerScript);
+      LoggerFactory.getLogger(SonarScanner.class).info("Execute: {}", command);
       StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);
@@ -57,22 +54,15 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarRunner> {
     }
   }
 
-  private static Command createCommand(SonarRunner build, Map<String, String> adjustedProperties, File runnerScript) {
+  private static Command createCommand(SonarScanner build, Map<String, String> adjustedProperties, File runnerScript) {
     Command command = Command.create(runnerScript.getAbsolutePath());
     command.setDirectory(build.getProjectDir());
     for (Map.Entry<String, String> env : build.getEffectiveEnvironmentVariables().entrySet()) {
       command.setEnvironmentVariable(env.getKey(), env.getValue());
     }
-    if (!isEmpty(build.getTask())) {
-      if (build.runnerVersion().isGreaterThanOrEquals(2, 1)) {
-        command.addArgument(build.getTask());
-      } else {
-        adjustedProperties.put("sonar.task", build.getTask());
-      }
-    }
     if (build.isDebugLogs()) {
       command.addArgument("-X");
-    } else if (build.isShowErrors() && build.runnerVersion().isGreaterThanOrEquals(2, 1)) {
+    } else if (build.isShowErrors()) {
       command.addArgument("-e");
     }
 

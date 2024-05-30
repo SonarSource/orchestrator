@@ -34,77 +34,63 @@ public class SonarScannerTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @Test
-  public void test_create() {
-    SonarScanner build = SonarScanner.create()
-      .setProjectDir(new File("."))
-      .setProjectKey("SAMPLE")
-      .setProjectName("Sample")
-      .setProjectVersion("1.2.3")
-      .setSourceDirs("src/main/java,src/java")
-      .setTestDirs("src/test/java,test/java")
-      .setBinaries("target/classes")
-      .setDebugLogs(true)
-      .setShowErrors(false)
-      .setTask("task")
-      .addArgument("-X")
-      .addArguments("--help")
-      .setLibraries("lib/guava.jar")
-      .setProperty("foo", "bar")
-      .setProperty("no_value", null)
-      .setProperties(ImmutableMap.of("one", "1"))
-      .setRunnerVersion("1.4")
-      .setLanguage("java")
-      .setSourceEncoding("UTF-8")
-      .setUseOldSonarRunnerScript(true)
-      .setProfile("my profile");
+public void test_create() {
+  SonarScanner build = SonarScanner.create()
+    .setProjectDir(new File("."))
+    .setProjectKey("SAMPLE")
+    .setProjectName("Sample")
+    .setProjectVersion("1.2.3")
+    .setSourceDirs("src/main/java,src/java")
+    .setTestDirs("src/test/java,test/java")
+    .setDebugLogs(true)
+    .setShowErrors(false)
+    .addArgument("-X")
+    .addArguments("--help")
+    .setProperty("foo", "bar")
+    .setProperty("no_value", null)
+    .setProperties(ImmutableMap.of("one", "1"))
+    .setScannerVersion("1.4")
+    .setSourceEncoding("UTF-8")
+    .setProfile("my profile");
 
-    assertThat(build.getProjectDir()).isEqualTo(new File("."));
-    assertThat(build.runnerVersion()).isEqualTo(Version.create("1.4"));
-    assertThat(build.getTask()).isEqualTo("task");
-    assertThat(build.arguments()).containsExactly("-X", "--help");
-    assertThat(build.getProperties().get("sonar.projectKey")).isEqualTo("SAMPLE");
-    assertThat(build.getProperties().get("sonar.projectName")).isEqualTo("Sample");
-    assertThat(build.getProperties().get("sonar.projectVersion")).isEqualTo("1.2.3");
-    assertThat(build.getProperties().get("sonar.language")).isEqualTo("java");
-    assertThat(build.getProperties().get("sonar.sources")).isEqualTo("src/main/java,src/java");
-    assertThat(build.getProperties().get("sonar.tests")).isEqualTo("src/test/java,test/java");
-    assertThat(build.getProperties().get("sonar.binaries")).isEqualTo("target/classes");
-    assertThat(build.getProperties().get("sonar.libraries")).isEqualTo("lib/guava.jar");
-    assertThat(build.getProperties().get("foo")).isEqualTo("bar");
-    assertThat(build.getProperties().get("one")).isEqualTo("1");
-    assertThat(build.getProperties().get("no_value")).isNull();
-    assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo("UTF-8");
-    assertThat(build.getProperties().get("sonar.profile")).isEqualTo("my profile");
-    assertThat(build.isDebugLogs()).isTrue();
-    assertThat(build.isShowErrors()).isFalse();
-    assertThat(build.isUseOldSonarRunnerScript()).isTrue();
+  assertThat(build.getProjectDir()).isEqualTo(new File("."));
+  assertThat(build.scannerVersion()).isEqualTo(Version.create("1.4"));
+  assertThat(build.arguments()).containsExactly("-X", "--help");
+  assertThat(build.getProperties()).containsEntry("sonar.projectKey", "SAMPLE");
+  assertThat(build.getProperties()).containsEntry("sonar.projectName", "Sample");
+  assertThat(build.getProperties()).containsEntry("sonar.projectVersion", "1.2.3");
+  assertThat(build.getProperties()).containsEntry("sonar.sources", "src/main/java,src/java");
+  assertThat(build.getProperties()).containsEntry("sonar.tests", "src/test/java,test/java");
+  assertThat(build.getProperties()).containsEntry("foo", "bar");
+  assertThat(build.getProperties()).containsEntry("one", "1");
+  assertThat(build.getProperties()).doesNotContainKey("no_value");
+  assertThat(build.getProperties()).containsEntry("sonar.profile", "my profile");
+  assertThat(build.isDebugLogs()).isTrue();
+  assertThat(build.isShowErrors()).isFalse();
 
-    build.setScannerVersion("2.5");
-    assertThat(build.scannerVersion()).isEqualTo(Version.create("2.5"));
-  }
+  build.setScannerVersion("2.5");
+  assertThat(build.scannerVersion()).isEqualTo(Version.create("2.5"));
+}
 
   @Test
-  public void test_enhanced_create() {
-    SonarScanner build = SonarScanner.create(new File("."),
-      "sonar.projectKey", "SAMPLE",
-      "sonar.projectName", "Sample").setDebugLogs(true);
+public void test_enhanced_create() {
+  SonarScanner build = SonarScanner.create(new File("."),
+    "sonar.projectKey", "SAMPLE",
+    "sonar.projectName", "Sample").setDebugLogs(true);
 
-    assertThat(build.getProjectDir()).isEqualTo(new File("."));
-    // check default values
-    assertThat(build.runnerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION));
-    assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo(SonarScanner.DEFAULT_SOURCE_ENCODING);
-    // check assigned values
-    assertThat(build.getProperties().get("sonar.projectKey")).isEqualTo("SAMPLE");
-    assertThat(build.getProperties().get("sonar.projectName")).isEqualTo("Sample");
-    assertThat(build.getProperties().get("sonar.projectVersion")).isNull();
-    assertThat(build.isDebugLogs()).isTrue();
-    assertThat(build.isShowErrors()).isTrue();
-    // check reset default value for source encoding
-    build.setSourceEncoding("CP-1252");
-    assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo("CP-1252");
-    build.setSourceEncoding(null);
-    assertThat(build.getProperties().get("sonar.sourceEncoding")).isEqualTo(SonarScanner.DEFAULT_SOURCE_ENCODING);
-  }
+  assertThat(build.getProjectDir()).isEqualTo(new File("."));
+  // check default values
+  assertThat(build.scannerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION));
+  // check assigned values
+  assertThat(build.getProperties()).containsEntry("sonar.projectKey", "SAMPLE");
+  assertThat(build.getProperties()).containsEntry("sonar.projectName", "Sample");
+  assertThat(build.getProperties()).doesNotContainKey("sonar.projectVersion");
+  assertThat(build.isDebugLogs()).isTrue();
+  assertThat(build.isShowErrors()).isTrue();
+
+  build.setSourceEncoding("CP-1252");
+  assertThat(build.getProperties()).containsEntry("sonar.sourceEncoding", "CP-1252");
+}
 
   @Test
   public void test_classifier() {
@@ -137,30 +123,25 @@ public class SonarScannerTest {
       .setProjectDir(new File("."));
 
     assertThat(build.getProjectDir()).isEqualTo(new File("."));
-    assertThat(build.runnerVersion().toString()).isNotEmpty();
     assertThat(build.getProperties().get("sonar.projectKey")).isNull();
     assertThat(build.getProperties().get("sonar.projectName")).isNull();
     assertThat(build.getProperties().get("sonar.projectVersion")).isNull();
   }
 
   @Test
-  public void runner_version_must_be_set() {
+  public void scanner_version_must_be_set() {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("version must be set");
 
-    SonarScanner.create().setRunnerVersion("");
+    SonarScanner.create().setScannerVersion("");
   }
 
   @Test
   public void environment_variables() {
     SonarScanner build = SonarScanner.create();
 
-    // defaults
+    build.setEnvironmentVariable("SOME_ENV", "aValue");
     assertThat(build.getEffectiveEnvironmentVariables())
-      .containsOnly(MapEntry.entry("SONAR_RUNNER_OPTS", "-Djava.awt.headless=true"));
-
-    build.setEnvironmentVariable("SONAR_RUNNER_OPTS", "-Xmx128m");
-    assertThat(build.getEffectiveEnvironmentVariables())
-      .containsOnly(MapEntry.entry("SONAR_RUNNER_OPTS", "-Djava.awt.headless=true -Xmx128m"));
+      .containsOnly(MapEntry.entry("SOME_ENV", "aValue"));
   }
 }

@@ -50,43 +50,43 @@ public class SonarScannerInstallerTest {
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
-  private Locators locators = mock(Locators.class);
-  private SonarScannerInstaller installer = spy(new SonarScannerInstaller(locators));
+  private final Locators locators = mock(Locators.class);
+  private final SonarScannerInstaller installer = spy(new SonarScannerInstaller(locators));
 
   @Test
   public void unsupported_version() throws Exception {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Unsupported sonar-scanner version: 1.0");
-    installer.install(Version.create("1.0"), temp.newFolder(), true);
+    installer.install(Version.create("1.0"), temp.newFolder());
   }
 
   @Test
   public void install_embedded_version() throws Exception {
     File toDir = temp.newFolder();
-    File script = installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, false);
+    File script = installer.install(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION), toDir);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-scanner");
-    assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + SonarRunner.DEFAULT_SCANNER_VERSION);
+    assertThat(script.getParentFile()).hasName("bin");
+    assertThat(script.getParentFile().getParentFile()).hasName("sonar-scanner-" + SonarScanner.DEFAULT_SCANNER_VERSION);
 
     verify(locators, never()).locate(any(MavenLocation.class));
   }
 
   @Test
-  public void install_self_contained() throws Exception {
+  public void install_platform_specific_flavor() throws Exception {
     File toDir = temp.newFolder();
 
     String classifier = "linux";
     String versionString = "2.9";
     Version version = Version.create(versionString);
 
-    File script = installer.install(version, classifier, toDir, false);
+    File script = installer.install(version, classifier, toDir);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-scanner");
-    assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-" + versionString + "-linux");
+    assertThat(script.getParentFile()).hasName("bin");
+    assertThat(script.getParentFile().getParentFile()).hasName("sonar-scanner-" + versionString + "-linux");
 
     Path javaPath = script.toPath().getParent().resolve("../lib/jre/bin/java");
     assertThat(javaPath).isRegularFile();
@@ -97,74 +97,42 @@ public class SonarScannerInstallerTest {
   @Test
   public void find_version_available_in_maven_repositories() throws Exception {
     File toDir = temp.newFolder();
-    when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
-      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
+    when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("6.0-SNAPSHOT")))).thenReturn(
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarScannerInstallerTest/sonar-scanner-6.0-SNAPSHOT.zip").toURI()));
 
-    // we're sure that SNAPSHOT versions are not embedded in sonar-runner
-    File script = installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
-
-    assertThat(script).isFile().exists();
-    assertThat(script.getName()).contains("sonar-runner");
-    assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-runner-1.4-SNAPSHOT");
-  }
-
-  @Test
-  public void new_sonar_scanner_script() throws Exception {
-    File toDir = temp.newFolder();
-    when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("2.6-SNAPSHOT")))).thenReturn(
-      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-scanner-2.6-SNAPSHOT.zip").toURI()));
-
-    File script = installer.install(Version.create("2.6-SNAPSHOT"), toDir, false);
+    // we're sure that SNAPSHOT versions are not embedded in sonar-scanner
+    File script = installer.install(Version.create("6.0-SNAPSHOT"), toDir);
 
     assertThat(script).isFile().exists();
     assertThat(script.getName()).contains("sonar-scanner");
-    assertThat(script.getParentFile().getName()).isEqualTo("bin");
-    assertThat(script.getParentFile().getParentFile().getName()).isEqualTo("sonar-scanner-2.6-SNAPSHOT");
+    assertThat(script.getParentFile()).hasName("bin");
+    assertThat(script.getParentFile().getParentFile()).hasName("sonar-scanner-6.0-SNAPSHOT");
   }
 
   @Test
   public void do_not_install_twice() throws Exception {
     File toDir = temp.newFolder();
 
-    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, false);
-    installer.install(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), toDir, false);
+    installer.install(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION), toDir);
+    installer.install(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION), toDir);
 
-    verify(installer, times(1)).doInstall(Version.create(SonarRunner.DEFAULT_SCANNER_VERSION), null, toDir);
+    verify(installer, times(1)).doInstall(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION), null, toDir);
   }
 
   @Test
   public void should_not_keep_cache_of_snapshot_versions() throws Exception {
     File toDir = temp.newFolder();
-    when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("1.4-SNAPSHOT")))).thenReturn(
-      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarRunnerInstallerTest/sonar-runner-1.4-SNAPSHOT.zip").toURI()));
+    when(locators.locate(SonarScannerInstaller.mavenLocation(Version.create("6.0-SNAPSHOT")))).thenReturn(
+      new File(getClass().getResource("/com/sonar/orchestrator/build/SonarScannerInstallerTest/sonar-scanner-6.0-SNAPSHOT.zip").toURI()));
 
-    installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
-    installer.install(Version.create("1.4-SNAPSHOT"), toDir, true);
+    installer.install(Version.create("6.0-SNAPSHOT"), toDir);
+    installer.install(Version.create("6.0-SNAPSHOT"), toDir);
 
-    verify(installer, times(2)).doInstall(Version.create("1.4-SNAPSHOT"), null, toDir);
-  }
-
-  @Test
-  public void maven_location_before_2_1() {
-    MavenLocation location = SonarScannerInstaller.mavenLocation(Version.create("1.2.3"));
-    assertThat(location.getPackaging()).isEqualTo("zip");
-    assertThat(location.getVersion()).isEqualTo("1.2.3");
-    assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar-plugins");
-    assertThat(location.getArtifactId()).isEqualTo("sonar-runner");
+    verify(installer, times(2)).doInstall(Version.create("6.0-SNAPSHOT"), null, toDir);
   }
 
   @Test
   public void maven_location() {
-    MavenLocation location = SonarScannerInstaller.mavenLocation(Version.create("2.1-SNAPSHOT"));
-    assertThat(location.getPackaging()).isEqualTo("zip");
-    assertThat(location.getVersion()).isEqualTo("2.1-SNAPSHOT");
-    assertThat(location.getGroupId()).isEqualTo("org.codehaus.sonar.runner");
-    assertThat(location.getArtifactId()).isEqualTo("sonar-runner-dist");
-  }
-
-  @Test
-  public void maven_location_of_2_5() {
     MavenLocation location = SonarScannerInstaller.mavenLocation(Version.create("2.5"));
     assertThat(location.getPackaging()).isEqualTo("zip");
     assertThat(location.getVersion()).isEqualTo("2.5");
