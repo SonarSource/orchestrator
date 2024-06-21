@@ -162,7 +162,11 @@ public class OrchestratorBuilderTest {
     orchestrator.install();
     File dir = new File(orchestrator.getServer().getHome(), "lib/extensions");
     assertThat(dir).exists();
-    assertThat(dir.listFiles()).hasSize(1);
+
+    // SonarJava consists of two plug-ins since SQ 10.6!
+    // - sonar-java-plugin-<version>.jar
+    // - sonar-java-symbolic-execution-plugin-<version>.jar
+    assertThat(dir.listFiles()).hasSize(2);
   }
 
   @Test
