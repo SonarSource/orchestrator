@@ -23,6 +23,8 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.SystemUtils;
 
@@ -154,15 +156,45 @@ public class SonarScanner extends Build<SonarScanner> {
     return this;
   }
 
-  private static String determineClassifier() {
-    if (SystemUtils.IS_OS_LINUX) {
+  private String determineClassifier() {
+    if (scannerVersion.isGreaterThanOrEquals(6, 1)) {
+      return determineOs() + "-" + determineArchitecture();
+    } else {
+      return determineOs();
+    }
+  }
+
+  private static String determineOs() {
+    return determineOs(() -> SystemUtils.IS_OS_LINUX, () -> SystemUtils.IS_OS_WINDOWS, () -> SystemUtils.IS_OS_MAC_OSX);
+  }
+
+  static String determineOs(BooleanSupplier isOsLinux, BooleanSupplier isOsWindows, BooleanSupplier isOsMacOsx) {
+    if (isOsLinux.getAsBoolean()) {
       return "linux";
     }
-    if (SystemUtils.IS_OS_WINDOWS) {
+    if (isOsWindows.getAsBoolean()) {
       return "windows";
     }
-    if (SystemUtils.IS_OS_MAC_OSX) {
+    if (isOsMacOsx.getAsBoolean()) {
       return "macosx";
+    }
+    throw new IllegalStateException("Unsupported OS: only Linux, Windows and Mac OS X are supported");
+  }
+
+  private static String determineArchitecture() {
+    return determineArchitecture(() -> SystemUtils.IS_OS_LINUX, () -> SystemUtils.IS_OS_WINDOWS, () -> SystemUtils.IS_OS_MAC_OSX, () -> SystemUtils.OS_ARCH);
+  }
+
+  static String determineArchitecture(BooleanSupplier isOsLinux, BooleanSupplier isOsWindows, BooleanSupplier isOsMacOsx, Supplier<String> archSupplier) {
+    if (isOsLinux.getAsBoolean() || isOsMacOsx.getAsBoolean()) {
+      if (archSupplier.get().equals("aarch64")) {
+        return "aarch64";
+      } else {
+        return "x64";
+      }
+    }
+    if (isOsWindows.getAsBoolean()) {
+      return "x64";
     }
     throw new IllegalStateException("Unsupported OS: only Linux, Windows and Mac OS X are supported");
   }
@@ -171,4 +203,8 @@ public class SonarScanner extends Build<SonarScanner> {
     return classifier;
   }
 
+  public SonarScanner setClassifier(String classifier) {
+    this.classifier = classifier;
+    return this;
+  }
 }
