@@ -34,71 +34,101 @@ public class SonarScannerTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @Test
-public void test_create() {
-  SonarScanner build = SonarScanner.create()
-    .setProjectDir(new File("."))
-    .setProjectKey("SAMPLE")
-    .setProjectName("Sample")
-    .setProjectVersion("1.2.3")
-    .setSourceDirs("src/main/java,src/java")
-    .setTestDirs("src/test/java,test/java")
-    .setDebugLogs(true)
-    .setShowErrors(false)
-    .addArgument("-X")
-    .addArguments("--help")
-    .setProperty("foo", "bar")
-    .setProperty("no_value", null)
-    .setProperties(ImmutableMap.of("one", "1"))
-    .setScannerVersion("1.4")
-    .setSourceEncoding("UTF-8")
-    .setProfile("my profile");
+  public void test_create() {
+    SonarScanner build = SonarScanner.create()
+      .setProjectDir(new File("."))
+      .setProjectKey("SAMPLE")
+      .setProjectName("Sample")
+      .setProjectVersion("1.2.3")
+      .setSourceDirs("src/main/java,src/java")
+      .setTestDirs("src/test/java,test/java")
+      .setDebugLogs(true)
+      .setShowErrors(false)
+      .addArgument("-X")
+      .addArguments("--help")
+      .setProperty("foo", "bar")
+      .setProperty("no_value", null)
+      .setProperties(ImmutableMap.of("one", "1"))
+      .setScannerVersion("1.4")
+      .setSourceEncoding("UTF-8")
+      .setProfile("my profile")
+      .setClassifier("linux-x64");
 
-  assertThat(build.getProjectDir()).isEqualTo(new File("."));
-  assertThat(build.scannerVersion()).isEqualTo(Version.create("1.4"));
-  assertThat(build.arguments()).containsExactly("-X", "--help");
-  assertThat(build.getProperties()).containsEntry("sonar.projectKey", "SAMPLE");
-  assertThat(build.getProperties()).containsEntry("sonar.projectName", "Sample");
-  assertThat(build.getProperties()).containsEntry("sonar.projectVersion", "1.2.3");
-  assertThat(build.getProperties()).containsEntry("sonar.sources", "src/main/java,src/java");
-  assertThat(build.getProperties()).containsEntry("sonar.tests", "src/test/java,test/java");
-  assertThat(build.getProperties()).containsEntry("foo", "bar");
-  assertThat(build.getProperties()).containsEntry("one", "1");
-  assertThat(build.getProperties()).doesNotContainKey("no_value");
-  assertThat(build.getProperties()).containsEntry("sonar.profile", "my profile");
-  assertThat(build.isDebugLogs()).isTrue();
-  assertThat(build.isShowErrors()).isFalse();
+    assertThat(build.getProjectDir()).isEqualTo(new File("."));
+    assertThat(build.scannerVersion()).isEqualTo(Version.create("1.4"));
+    assertThat(build.arguments()).containsExactly("-X", "--help");
+    assertThat(build.getProperties()).containsEntry("sonar.projectKey", "SAMPLE");
+    assertThat(build.getProperties()).containsEntry("sonar.projectName", "Sample");
+    assertThat(build.getProperties()).containsEntry("sonar.projectVersion", "1.2.3");
+    assertThat(build.getProperties()).containsEntry("sonar.sources", "src/main/java,src/java");
+    assertThat(build.getProperties()).containsEntry("sonar.tests", "src/test/java,test/java");
+    assertThat(build.getProperties()).containsEntry("foo", "bar");
+    assertThat(build.getProperties()).containsEntry("one", "1");
+    assertThat(build.getProperties()).doesNotContainKey("no_value");
+    assertThat(build.getProperties()).containsEntry("sonar.profile", "my profile");
+    assertThat(build.isDebugLogs()).isTrue();
+    assertThat(build.isShowErrors()).isFalse();
+    assertThat(build.classifier()).isEqualTo("linux-x64");
 
-  build.setScannerVersion("2.5");
-  assertThat(build.scannerVersion()).isEqualTo(Version.create("2.5"));
-}
-
-  @Test
-public void test_enhanced_create() {
-  SonarScanner build = SonarScanner.create(new File("."),
-    "sonar.projectKey", "SAMPLE",
-    "sonar.projectName", "Sample").setDebugLogs(true);
-
-  assertThat(build.getProjectDir()).isEqualTo(new File("."));
-  // check default values
-  assertThat(build.scannerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION));
-  // check assigned values
-  assertThat(build.getProperties()).containsEntry("sonar.projectKey", "SAMPLE");
-  assertThat(build.getProperties()).containsEntry("sonar.projectName", "Sample");
-  assertThat(build.getProperties()).doesNotContainKey("sonar.projectVersion");
-  assertThat(build.isDebugLogs()).isTrue();
-  assertThat(build.isShowErrors()).isTrue();
-
-  build.setSourceEncoding("CP-1252");
-  assertThat(build.getProperties()).containsEntry("sonar.sourceEncoding", "CP-1252");
-}
+    build.setScannerVersion("2.5");
+    assertThat(build.scannerVersion()).isEqualTo(Version.create("2.5"));
+  }
 
   @Test
-  public void test_classifier() {
-    SonarScanner build = SonarScanner.create(new File("."));
+  public void test_enhanced_create() {
+    SonarScanner build = SonarScanner.create(new File("."),
+      "sonar.projectKey", "SAMPLE",
+      "sonar.projectName", "Sample").setDebugLogs(true);
+
+    assertThat(build.getProjectDir()).isEqualTo(new File("."));
+    // check default values
+    assertThat(build.scannerVersion()).isEqualTo(Version.create(SonarScanner.DEFAULT_SCANNER_VERSION));
+    // check assigned values
+    assertThat(build.getProperties()).containsEntry("sonar.projectKey", "SAMPLE");
+    assertThat(build.getProperties()).containsEntry("sonar.projectName", "Sample");
+    assertThat(build.getProperties()).doesNotContainKey("sonar.projectVersion");
+    assertThat(build.isDebugLogs()).isTrue();
+    assertThat(build.isShowErrors()).isTrue();
+
+    build.setSourceEncoding("CP-1252");
+    assertThat(build.getProperties()).containsEntry("sonar.sourceEncoding", "CP-1252");
+  }
+
+
+  @Test
+  public void test_classifier_autodetection_before_6_1() {
+    SonarScanner build = SonarScanner.create(new File("."))
+      .setScannerVersion("6.0");
     assertThat(build.classifier()).isNull();
 
     build.useNative();
-    assertThat(build.classifier()).isNotEmpty();
+    assertThat(build.classifier()).isNotEmpty().doesNotContain("-");
+  }
+
+  @Test
+  public void test_classifier_autodetection_after_6_1() {
+    SonarScanner build = SonarScanner.create(new File("."))
+      .setScannerVersion("6.1");
+    assertThat(build.classifier()).isNull();
+
+    build.useNative();
+    assertThat(build.classifier()).isNotEmpty().contains("-");
+  }
+
+  @Test
+  public void test_os_detection() {
+    assertThat(SonarScanner.determineOs(() -> true, () -> false, () -> false)).isEqualTo("linux");
+    assertThat(SonarScanner.determineOs(() -> false, () -> true, () -> false)).isEqualTo("windows");
+    assertThat(SonarScanner.determineOs(() -> false, () -> false, () -> true)).isEqualTo("macosx");
+  }
+
+  @Test
+  public void test_arch_detection() {
+    assertThat(SonarScanner.determineArchitecture(() -> true, () -> false, () -> false, () -> "aarch64")).isEqualTo("aarch64");
+    assertThat(SonarScanner.determineArchitecture(() -> true, () -> false, () -> false, () -> "notaarch64")).isEqualTo("x64");
+    assertThat(SonarScanner.determineArchitecture(() -> false, () -> true, () -> false, () -> "ignored")).isEqualTo("x64");
+    assertThat(SonarScanner.determineArchitecture(() -> false, () -> false, () -> true, () -> "aarch64")).isEqualTo("aarch64");
+    assertThat(SonarScanner.determineArchitecture(() -> false, () -> false, () -> true, () -> "notaarch64")).isEqualTo("x64");
   }
 
   @Test
