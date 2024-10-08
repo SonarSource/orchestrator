@@ -87,7 +87,7 @@ public class SonarScannerInstaller {
   private File locateZip(Version scannerVersion, @Nullable String classifier) {
     File zipFile = null;
     String cl = classifier == null ? "" : ("-" + classifier);
-    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-cli-" + scannerVersion.toString() + cl + ".zip");
+    URL zip = SonarScannerInstaller.class.getResource("/com/sonar/orchestrator/build/sonar-scanner-cli-" + scannerVersion + cl + ".zip");
     if (zip != null) {
       try {
         // can't unzip directly from jar resource. It has to be copied in a temp directory.
