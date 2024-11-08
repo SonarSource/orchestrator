@@ -15,7 +15,7 @@ env:
     org.sonarsource.orchestrator:sonar-orchestrator-junit4:jar,\
     org.sonarsource.orchestrator:sonar-orchestrator-junit5:jar"
 
-eks_container:
+eks_container_template: &EKS_CONTAINER_TEMPLATE
   image: ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j17-m3-latest
   cluster_name: ${CIRRUS_CLUSTER_NAME}
   region: eu-central-1
@@ -26,6 +26,7 @@ only_sonarsource_qa: &ONLY_SONARSOURCE_QA
 
 build_task:
   eks_container:
+    <<: *EKS_CONTAINER_TEMPLATE
     cpu: 4
     memory: 4G
   env:
@@ -52,6 +53,7 @@ promote_task:
     - build
   <<: *ONLY_SONARSOURCE_QA
   eks_container:
+    <<: *EKS_CONTAINER_TEMPLATE
     cpu: 1
     memory: 1G
   env:
