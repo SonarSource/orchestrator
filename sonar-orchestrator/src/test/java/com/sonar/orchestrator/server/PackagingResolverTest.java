@@ -24,6 +24,7 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -167,6 +168,12 @@ public class PackagingResolverTest {
     SonarDistribution distribution = new SonarDistribution().setVersion(versionOrAlias).setEdition(edition);
     // developer edition does not exist before 7.2, so the public group id must be used to resolve version alias
     prepareResolutionOfVersion("org.sonarsource.sonarqube", "sonar-application", versionOrAlias, Optional.of(returnedVersion));
+    if (Version.create(returnedVersion).isGreaterThanOrEquals(7, 2)) {
+      prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-developer", versionOrAlias, Optional.of(returnedVersion));
+      prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-enterprise", versionOrAlias, Optional.of(returnedVersion));
+      prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-datacenter", versionOrAlias, Optional.of(returnedVersion));
+    }
+
     File zip = prepareResolutionOfZip(editionGroupId, editionArtifactId, returnedVersion);
 
     Packaging packaging = underTest.resolve(distribution);

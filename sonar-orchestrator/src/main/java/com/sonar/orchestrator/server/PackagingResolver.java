@@ -29,12 +29,14 @@ import java.io.File;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 public class PackagingResolver {
 
   private static final String PRIVATE_GROUP_ID = "com.sonarsource.sonarqube";
   private static final String PUBLIC_GROUP_ID = "org.sonarsource.sonarqube";
   private static final Pattern ZIP_VERSION_PATTERN = Pattern.compile("^.*-(\\d++.*)\\.zip$");
+  private static final Pattern BRACKETS_PATTERN = Pattern.compile("[^\\[]*\\[[^\\]]*\\]$");
 
   private final Locators locators;
 
@@ -52,31 +54,9 @@ public class PackagingResolver {
         throw new IllegalStateException(String.format("SonarQube not found at %s", location.get()));
       }
     } else {
-      Version version = resolveVersion(distribution.getVersion());
-      String groupId;
-      String artifactId;
-      if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals(7, 2)) {
-        groupId = PUBLIC_GROUP_ID;
-        artifactId = "sonar-application";
-      } else {
-        switch (distribution.getEdition()) {
-          case DEVELOPER:
-            groupId = PRIVATE_GROUP_ID;
-            artifactId = "sonarqube-developer";
-            break;
-          case ENTERPRISE:
-            groupId = PRIVATE_GROUP_ID;
-            artifactId = "sonarqube-enterprise";
-            break;
-          case DATACENTER:
-            groupId = PRIVATE_GROUP_ID;
-            artifactId = "sonarqube-datacenter";
-            break;
-          default:
-            throw new IllegalStateException("Unknown SonarQube edition : " + distribution.getEdition());
-        }
-      }
-      MavenLocation mavenLocation = newMavenLocationOfZip(groupId, artifactId, version.toString());
+      Version version = resolveVersion(distribution);
+      MavenCoordinates mavenCoordinates = getMavenCoordinates(distribution, version);
+      MavenLocation mavenLocation = newMavenLocationOfZip(mavenCoordinates.groupId, mavenCoordinates.artifactId, version.toString());
       zip = locators.locate(mavenLocation);
       if (zip == null || !zip.exists()) {
         throw new IllegalStateException(String.format("SonarQube %s not found: %s", distribution.getVersion().get(), mavenLocation));
@@ -84,6 +64,74 @@ public class PackagingResolver {
     }
 
     return new Packaging(distribution.getEdition(), guessVersionFromZipName(zip), zip);
+  }
+
+  private Version resolveVersion(SonarDistribution sonarDistribution) {
+    Optional<String> versionOrAlias = sonarDistribution.getVersion();
+    if (!versionOrAlias.isPresent()) {
+      throw new IllegalStateException("Missing SonarQube version");
+    }
+
+    String version = versionOrAlias.get();
+    if (version.startsWith("DEV") || version.startsWith("LATEST_RELEASE") || version.startsWith("DOGFOOD")) {
+      MavenCoordinates mavenCoordinates = getMavenCoordinates(sonarDistribution, getVersionInBrackets(version));
+      MavenLocation location = newMavenLocationOfZip(mavenCoordinates.groupId, mavenCoordinates.artifactId, version);
+      Optional<String> resolvedVersion = locators.maven().resolveVersion(location);
+      if (!resolvedVersion.isPresent()) {
+        throw new IllegalStateException("Version can not be resolved: " + location);
+      }
+      return Version.create(resolvedVersion.get());
+    }
+
+    return Version.create(version);
+  }
+
+  private static Version getVersionInBrackets(String version) {
+    //7.2 is the first version that relies on the current groupId and artifactId structure
+    Version defaultVersion = Version.create("7.2");
+    Matcher matcher = BRACKETS_PATTERN.matcher(version);
+    if (!matcher.matches()) {
+      return defaultVersion;
+    }
+    String versionInBrackets = version.substring(version.indexOf("[") + 1, version.indexOf("]"));
+    return versionInBrackets.isEmpty() ? defaultVersion : Version.create(versionInBrackets);
+  }
+
+  private static @NotNull MavenCoordinates getMavenCoordinates(SonarDistribution distribution, Version version) {
+    String groupId;
+    String artifactId;
+    if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals(7, 2)) {
+      groupId = PUBLIC_GROUP_ID;
+      artifactId = "sonar-application";
+    } else {
+      switch (distribution.getEdition()) {
+        case DEVELOPER:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-developer";
+          break;
+        case ENTERPRISE:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-enterprise";
+          break;
+        case DATACENTER:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-datacenter";
+          break;
+        default:
+          throw new IllegalStateException("Unknown SonarQube edition : " + distribution.getEdition());
+      }
+    }
+    return new MavenCoordinates(groupId, artifactId);
+  }
+
+  private static class MavenCoordinates {
+    public final String groupId;
+    public final String artifactId;
+
+    public MavenCoordinates(String groupId, String artifactId) {
+      this.groupId = groupId;
+      this.artifactId = artifactId;
+    }
   }
 
   private static Version guessVersionFromZipName(File zip) {
@@ -104,21 +152,4 @@ public class PackagingResolver {
       .build();
   }
 
-  private Version resolveVersion(Optional<String> versionOrAlias) {
-    if (!versionOrAlias.isPresent()) {
-      throw new IllegalStateException("Missing SonarQube version");
-    }
-
-    String version = versionOrAlias.get();
-    if (version.startsWith("DEV") || version.startsWith("LATEST_RELEASE") || version.startsWith("DOGFOOD")) {
-      MavenLocation location = newMavenLocationOfZip(PUBLIC_GROUP_ID, "sonar-application", version);
-      Optional<String> resolvedVersion = locators.maven().resolveVersion(location);
-      if (!resolvedVersion.isPresent()) {
-        throw new IllegalStateException("Version can not be resolved: " + location);
-      }
-      return Version.create(resolvedVersion.get());
-    }
-
-    return Version.create(version);
-  }
 }
