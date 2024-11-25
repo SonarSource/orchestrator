@@ -85,7 +85,7 @@ public class MavenArtifactoryTest {
   public void resolveVersion_whenInvalidVersion_shouldThrowException() throws Exception {
     Artifactory underTest = getMavenArtifactory();
 
-    for (String input : new String[] {"DEV", "DOGFOOD", "LTS", "COMPATIBLE"}) {
+    for (String input : new String[] {"DEV", "LTS", "COMPATIBLE"}) {
       prepareServerResponse(getContent());
       MavenLocation location = MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", input);
       assertThrows(IllegalStateException.class, () -> underTest.resolveVersion(location));
