@@ -84,11 +84,11 @@ public class PackagingResolverTest {
 
   @Test
   public void fail_if_version_alias_cant_be_resolved() {
-    SonarDistribution distribution = new SonarDistribution().setVersion("DOGFOOD");
-    prepareResolutionOfVersion("org.sonarsource.sonarqube", "sonar-application", "DOGFOOD", Optional.empty());
+    SonarDistribution distribution = new SonarDistribution().setVersion("DEV");
+    prepareResolutionOfVersion("org.sonarsource.sonarqube", "sonar-application", "DEV", Optional.empty());
 
     expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Version can not be resolved: [org.sonarsource.sonarqube:sonar-application:DOGFOOD:zip]");
+    expectedException.expectMessage("Version can not be resolved: [org.sonarsource.sonarqube:sonar-application:DEV:zip]");
 
     underTest.resolve(distribution);
   }

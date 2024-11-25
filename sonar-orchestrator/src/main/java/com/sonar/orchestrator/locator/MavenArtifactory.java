@@ -59,6 +59,6 @@ public class MavenArtifactory extends Artifactory {
   }
 
   private static boolean isUnsupportedVersionAlias(String version) {
-    return version.startsWith("DEV") || version.startsWith("DOGFOOD") || version.startsWith("LTS") || version.contains("COMPATIBLE");
+    return version.startsWith("DEV") || version.startsWith("LTS") || version.contains("COMPATIBLE");
   }
 }

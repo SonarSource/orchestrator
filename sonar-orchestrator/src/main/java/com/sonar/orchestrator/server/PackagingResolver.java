@@ -73,7 +73,7 @@ public class PackagingResolver {
     }
 
     String version = versionOrAlias.get();
-    if (version.startsWith("DEV") || version.startsWith("LATEST_RELEASE") || version.startsWith("DOGFOOD")) {
+    if (version.startsWith("DEV") || version.startsWith("LATEST_RELEASE")) {
       MavenCoordinates mavenCoordinates = getMavenCoordinates(sonarDistribution, getVersionInBrackets(version));
       MavenLocation location = newMavenLocationOfZip(mavenCoordinates.groupId, mavenCoordinates.artifactId, version);
       Optional<String> resolvedVersion = locators.maven().resolveVersion(location);

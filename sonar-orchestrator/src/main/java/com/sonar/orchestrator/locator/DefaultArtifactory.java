@@ -57,7 +57,7 @@ public class DefaultArtifactory extends Artifactory {
 
   @Override
   public Optional<File> downloadToDir(MavenLocation location, File toDir) {
-    for (String repository : asList("sonarsource", "sonarsource-qa", "sonarsource-dogfood-builds")) {
+    for (String repository : asList("sonarsource", "sonarsource-qa")) {
       Optional<File> optionalFile = super.downloadToDir(location, toDir, repository);
       if (optionalFile.isPresent()) {
         return optionalFile;
@@ -75,8 +75,6 @@ public class DefaultArtifactory extends Artifactory {
     } else if (location.getVersion().startsWith("DEV")) {
       // only the artifacts that have been promoted (master + release branches)
       repositories = "sonarsource-builds";
-    } else if (location.getVersion().startsWith("DOGFOOD")) {
-      repositories = "sonarsource-dogfood-builds";
     } else if (location.getVersion().startsWith("LTS") || location.getVersion().contains("COMPATIBLE")) {
       throw new IllegalStateException("Unsupported version alias for " + location);
     } else {
