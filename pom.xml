@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>74.0.0.1768</version>
+    <version>82.0.0.2314</version>
   </parent>
   <groupId>org.sonarsource.orchestrator</groupId>
   <artifactId>orchestrator-parent</artifactId>
@@ -39,6 +39,7 @@
   </issueManagement>
 
   <properties>
+    <license.name>GNU LGPL v3</license.name>
     <version.surefire.plugin>3.0.0</version.surefire.plugin>
     <commonsIO.version>2.7</commonsIO.version>
     <commonsLang.version>2.6</commonsLang.version>
