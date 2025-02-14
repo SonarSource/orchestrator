@@ -315,9 +315,6 @@ public class ServerInstaller {
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {
     String javaOpts = OrchestratorUtils.defaultIfEmpty(properties.getProperty(propertyKey), "");
-    if (!javaOpts.contains("-Djava.net.preferIPv4Stack")) {
-      javaOpts += " -Djava.net.preferIPv4Stack=true";
-    }
     if (!javaOpts.contains("-Djava.security.egd") && SystemUtils.IS_OS_LINUX) {
       javaOpts += " -Djava.security.egd=file:/dev/./urandom";
     }
