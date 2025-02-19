@@ -38,7 +38,7 @@ public class ServerCommandLineFactory {
 
   public CommandLine create(Server server) {
     CommandLine command = createJavaCommandLine();
-    command.addArgument("-Xmx32m");
+    command.addArgument("-Xmx128m");
     command.addArgument("-server");
     command.addArgument("-Djava.awt.headless=true");
     command.addArgument("-Dsonar.enableStopCommand=true");
