@@ -39,7 +39,7 @@ import static java.util.Objects.requireNonNull;
  */
 public class SonarScanner extends Build<SonarScanner> {
 
-  public static final String DEFAULT_SCANNER_VERSION = "7.0.0.4796";
+  public static final String DEFAULT_SCANNER_VERSION = "7.0.2.4839";
   public static final String PROP_KEY_SOURCE_ENCODING = "sonar.sourceEncoding";
 
   private Version scannerVersion = Version.create(DEFAULT_SCANNER_VERSION);
