@@ -168,6 +168,19 @@ public class ServerInstallerTest {
   }
 
   @Test
+  public void show_ipv6Url_with_square_brackets() throws Exception {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+
+    SonarDistribution distribution = new SonarDistribution().setVersion(VERSION_9_9);
+    distribution
+      .setServerProperty("sonar.web.host", "::1");
+    Server server = newInstaller().install(distribution);
+
+    URL serverUrl = new URL(server.getUrl());
+    assertThat(serverUrl.getHost()).isEqualToIgnoringCase("[::1]");
+  }
+
+  @Test
   public void use_random_search_port_on_loopback_address_if_not_defined() {
     prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
 

@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -229,7 +230,7 @@ public class ServerInstaller {
     setIfNotPresent(properties, "sonar.log.console", "true");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
     configureSearchProperties(properties, loopbackHost);
-    properties.setProperty(WEB_HOST_PROPERTY, webHost.getHostAddress());
+    properties.setProperty(WEB_HOST_PROPERTY, webHost instanceof Inet6Address ? ("[" + webHost.getHostAddress() +  "]") : webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
     setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
     completeJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
@@ -315,9 +316,6 @@ public class ServerInstaller {
 
   private static void completeJavaOptions(Properties properties, String propertyKey) {
     String javaOpts = OrchestratorUtils.defaultIfEmpty(properties.getProperty(propertyKey), "");
-    if (!javaOpts.contains("-Djava.net.preferIPv4Stack")) {
-      javaOpts += " -Djava.net.preferIPv4Stack=true";
-    }
     if (!javaOpts.contains("-Djava.security.egd") && SystemUtils.IS_OS_LINUX) {
       javaOpts += " -Djava.security.egd=file:/dev/./urandom";
     }
