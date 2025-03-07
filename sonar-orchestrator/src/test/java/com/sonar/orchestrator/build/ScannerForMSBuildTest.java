@@ -124,6 +124,16 @@ public class ScannerForMSBuildTest {
   }
 
   @Test
+  public void test_whenTheCallToGithubFails_defaultToArtifactoryCall() {
+    GitHub gitHub = mock();
+    when(gitHub.getLatestScannerReleaseVersion())
+      .thenThrow(new IllegalStateException("Fail to download the latest release details for SonarScanner for .Net"));
+    ScannerForMSBuild sut = new ScannerForMSBuild(gitHub);
+    ScannerForMSBuild build = sut.setScannerVersion(ScannerForMSBuild.LATEST_RELEASE);
+    assertThat(build.scannerVersion()).isNotNull();
+  }
+
+  @Test
   public void test_setScannerVersion_with_wrong_version() {
     ScannerForMSBuild build = ScannerForMSBuild.create();
     assertThatThrownBy(() -> build.setScannerVersion("wrong version")).isInstanceOf(Version.VersionParsingException.class);
