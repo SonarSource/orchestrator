@@ -23,7 +23,10 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.GitHub;
 import com.sonar.orchestrator.locator.GitHubImpl;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,11 +138,27 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   public ScannerForMSBuild setScannerVersion(String s) {
     checkArgument(!isEmpty(s), "version must be set");
     if (s.equals(LATEST_RELEASE)) {
-      s = gitHub.getLatestScannerReleaseVersion();
+      try {
+        s = gitHub.getLatestScannerReleaseVersion();
+      } catch (IllegalStateException e) {
+        s = getLatestScannerVersionFromArtifactory()
+          .orElseThrow(() -> new IllegalStateException("Failed to resolve latest version of Scanner for MSBuild"));
+        LOG.debug("Failed to retrieve latest version from GitHub, using version from Artifactory", e);
+      }
     }
     LOG.info("Setting the scanner version to {}", s);
     this.scannerVersion = Version.create(s);
     return this;
+  }
+
+  private static Optional<String> getLatestScannerVersionFromArtifactory() {
+    Locators locators = Configuration.createEnv().locators();
+    MavenLocation build = MavenLocation.builder()
+      .setGroupId("org.sonarsource.scanner.msbuild")
+      .setArtifactId("sonar-scanner")
+      .setVersion(LATEST_RELEASE)
+      .build();
+    return locators.maven().resolveVersion(build);
   }
 
   public ScannerForMSBuild setScannerLocation(Location location) {
