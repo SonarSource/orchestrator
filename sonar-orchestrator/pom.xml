@@ -14,6 +14,7 @@
     <okhttp.version>4.5.0</okhttp.version>
     <jupiter.version>5.9.1</jupiter.version>
     <jacoco.version>0.8.10</jacoco.version>
+    <argLine/>
   </properties>
 
   <dependencies>
@@ -190,9 +191,7 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <configuration>
-            <argLine>
-                 -Xmx1G --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
-            </argLine>
+            <argLine>@{argLine} -Xmx1G --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
           </configuration>
         </plugin>
       </plugins>
