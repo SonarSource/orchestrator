@@ -276,6 +276,16 @@ public class ConfigurationTest extends PropertyAndEnvTest {
     testOrchestratorHome("ORCHESTRATOR_HOME");
   }
 
+  @Test
+  public void configure_shouldAddDefaultOrchestratorContextProperties() {
+    Configuration underTest = Configuration.builder().build();
+
+    Map<String, String> props = underTest.asMap();
+
+    assertThat(props).containsEntry("sonar.telemetry.url", "https://telemetry-staging.test-sonarsource.com/sonarqube");
+    assertThat(props).containsEntry("sonar.telemetry.metrics.url", "https://telemetry-staging.test-sonarsource.com/sonarqube/metrics");
+  }
+
   private void testOrchestratorHome(String property) throws IOException {
     File dir = temp.newFolder();
 

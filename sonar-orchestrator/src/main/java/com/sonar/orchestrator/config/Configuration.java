@@ -259,8 +259,14 @@ public class Configuration {
 
     public Configuration build() {
       File homeDir = loadProperties();
+      addDefaultOrchestratorContextProperties();
       Map<String, String> interpolatedProperties = interpolateProperties(props);
       return new Configuration(homeDir, interpolatedProperties);
+    }
+
+    private void addDefaultOrchestratorContextProperties() {
+      props.put("sonar.telemetry.url", "https://telemetry-staging.test-sonarsource.com/sonarqube");
+      props.put("sonar.telemetry.metrics.url", "https://telemetry-staging.test-sonarsource.com/sonarqube/metrics");
     }
   }
 }
