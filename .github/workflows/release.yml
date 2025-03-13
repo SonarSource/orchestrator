@@ -17,4 +17,4 @@ jobs:
       publishToBinaries: true  # disabled by default
       mavenCentralSync: true   # disabled by default
       mavenCentralSyncExclusions: "*echo*"
-      slackChannel: team-sonarqube-build
+      slackChannel: squad-sq-platform-build-notification
