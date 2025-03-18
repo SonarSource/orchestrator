@@ -228,9 +228,12 @@ public class ServerInstaller {
     setIfNotPresent(properties, "sonar.jdbc.password", databaseClient.getPassword());
     properties.putAll(databaseClient.getAdditionalProperties());
     setIfNotPresent(properties, "sonar.log.console", "true");
+    setAndFailIfForbiddenValuePresent(properties, "sonar.telemetry.url", "https://telemetry-staging.test-sonarsource.com/sonarqube", "https://telemetry.sonarsource.com/sonarqube");
+    setAndFailIfForbiddenValuePresent(properties, "sonar.telemetry.metrics.url", "https://telemetry-staging.test-sonarsource.com/sonarqube/metrics",
+      "https://telemetry.sonarsource.com/sonarqube/metrics");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
     configureSearchProperties(properties, loopbackHost);
-    properties.setProperty(WEB_HOST_PROPERTY, webHost instanceof Inet6Address ? ("[" + webHost.getHostAddress() +  "]") : webHost.getHostAddress());
+    properties.setProperty(WEB_HOST_PROPERTY, webHost instanceof Inet6Address ? ("[" + webHost.getHostAddress() + "]") : webHost.getHostAddress());
     properties.setProperty(WEB_PORT_PROPERTY, Integer.toString(loadWebPort(properties, webHost)));
     setIfNotPresent(properties, WEB_CONTEXT_PROPERTY, "");
     completeJavaOptions(properties, "sonar.ce.javaAdditionalOpts");
@@ -245,7 +248,6 @@ public class ServerInstaller {
 
     return properties;
   }
-
 
   private static void configureSearchProperties(Properties properties, InetAddress loopbackHost) {
     if (isClusterEnabled(properties) && isSearchNode(properties)) {
@@ -324,6 +326,16 @@ public class ServerInstaller {
 
   private static void setIfNotPresent(Properties properties, String key, String value) {
     String initialValue = properties.getProperty(key);
+    if (initialValue == null) {
+      properties.setProperty(key, value);
+    }
+  }
+
+  private static void setAndFailIfForbiddenValuePresent(Properties properties, String key, String value, String forbiddenValue) {
+    String initialValue = properties.getProperty(key);
+    if (initialValue != null && initialValue.contains(forbiddenValue)) {
+      throw new IllegalStateException(format("Property %s is forbidden to be set to %s", key, forbiddenValue));
+    }
     if (initialValue == null) {
       properties.setProperty(key, value);
     }

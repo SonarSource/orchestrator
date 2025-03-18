@@ -45,6 +45,7 @@ import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -388,6 +389,26 @@ public class ServerInstallerTest {
     Server server = newInstaller().install(distrib);
 
     assertThat(bundledPlugin(server)).isFile().exists();
+  }
+
+  @Test
+  public void install_shouldSetStagingTelemetryUrlByDefault() throws IOException {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution();
+
+    Server server = newInstaller().install(distribution);
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.telemetry.url")).isEqualTo("https://telemetry-staging.test-sonarsource.com/sonarqube");
+    assertThat(props.getProperty("sonar.telemetry.metrics.url")).isEqualTo("https://telemetry-staging.test-sonarsource.com/sonarqube/metrics");
+  }
+
+  @Test
+  public void install_whenTelemetryUrlSetToProduction_shouldFail() {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.telemetry.url", "https://telemetry.sonarsource.com/sonarqube");
+
+    assertThrows(IllegalStateException.class, () -> newInstaller().install(distribution));
   }
 
   private void prepareResolutionOfPackaging(Edition edition, Version version, File zip) {
