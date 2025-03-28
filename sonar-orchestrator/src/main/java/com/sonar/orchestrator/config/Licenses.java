@@ -47,7 +47,7 @@ public class Licenses {
   }
 
   public Licenses(Configuration configuration) {
-    this(configuration, "https://raw.githubusercontent.com/SonarSource/licenses/");
+    this(configuration, "https://raw.githubusercontent.com/SonarSource/licenses/refs/heads/");
   }
 
   public String getLicense(Edition edition, Version version) {
