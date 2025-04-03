@@ -411,6 +411,25 @@ public class ServerInstallerTest {
     assertThrows(IllegalStateException.class, () -> newInstaller().install(distribution));
   }
 
+  @Test
+  public void install_shouldSetEmptyAiCodeFixUrlByDefault() throws IOException {
+    prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution();
+
+    Server server = newInstaller().install(distribution);
+
+    Properties props = openPropertiesFile(server);
+    assertThat(props.getProperty("sonar.ai.suggestions.url")).isEmpty();
+  }
+
+  @Test
+  public void install_whenAiCodeFixUrlSetToProduction_shouldFail() {
+    prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.ai.suggestions.url", "https://api.sonarqube.io");
+
+    assertThrows(IllegalStateException.class, () -> newInstaller().install(distribution));
+  }
+
   private void prepareResolutionOfPackaging(Edition edition, Version version, File zip) {
     when(packagingResolver.resolve(any())).thenReturn(new Packaging(edition, version, zip));
   }
