@@ -231,6 +231,7 @@ public class ServerInstaller {
     setAndFailIfForbiddenValuePresent(properties, "sonar.telemetry.url", "https://telemetry-staging.test-sonarsource.com/sonarqube", "https://telemetry.sonarsource.com/sonarqube");
     setAndFailIfForbiddenValuePresent(properties, "sonar.telemetry.metrics.url", "https://telemetry-staging.test-sonarsource.com/sonarqube/metrics",
       "https://telemetry.sonarsource.com/sonarqube/metrics");
+    setAndFailIfForbiddenValuePresent(properties, "sonar.ai.suggestions.url", "", "https://api.sonarqube.io");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
     configureSearchProperties(properties, loopbackHost);
     properties.setProperty(WEB_HOST_PROPERTY, webHost instanceof Inet6Address ? ("[" + webHost.getHostAddress() + "]") : webHost.getHostAddress());
