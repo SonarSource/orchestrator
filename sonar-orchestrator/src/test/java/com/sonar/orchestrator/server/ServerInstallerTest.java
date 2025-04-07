@@ -408,7 +408,8 @@ public class ServerInstallerTest {
     prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
     SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.telemetry.url", "https://telemetry.sonarsource.com/sonarqube");
 
-    assertThrows(IllegalStateException.class, () -> newInstaller().install(distribution));
+    ServerInstaller serverInstaller = newInstaller();
+    assertThrows(IllegalStateException.class, () -> serverInstaller.install(distribution));
   }
 
   @Test
@@ -427,7 +428,8 @@ public class ServerInstallerTest {
     prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_9_9), SQ_LITE_ZIP);
     SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.ai.suggestions.url", "https://api.sonarqube.io");
 
-    assertThrows(IllegalStateException.class, () -> newInstaller().install(distribution));
+    ServerInstaller serverInstaller = newInstaller();
+    assertThrows(IllegalStateException.class, () -> serverInstaller.install(distribution));
   }
 
   private void prepareResolutionOfPackaging(Edition edition, Version version, File zip) {
