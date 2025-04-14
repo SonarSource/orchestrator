@@ -102,6 +102,15 @@ public class Command {
    * @see {@link Command#getEnvironmentVariables()}
    * @since 3.2
    */
+  public Command removeEnvironmentVariable(String name) {
+    this.env.remove(name);
+    return this;
+  }
+
+  /**
+   * @see {@link Command#getEnvironmentVariables()}
+   * @since 3.2
+   */
   public Command setEnvironmentVariable(String name, String value) {
     this.env.put(name, value);
     return this;

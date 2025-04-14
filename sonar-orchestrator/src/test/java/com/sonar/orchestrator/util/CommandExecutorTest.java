@@ -23,8 +23,11 @@ import com.sonar.orchestrator.TestModules;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Before;
@@ -164,6 +167,22 @@ public class CommandExecutorTest {
     assertThat(props.getProperty("prop.special")).isEqualTo("special;:&<characters>");
     assertThat(props.getProperty("prop.backslash")).isEqualTo("c:\\path");
     assertThat(props.getProperty("prop.quotes")).isEqualTo("single'quote");
+  }
+
+  @Test
+  public void should_not_contain_removed_environment_variable() throws IOException {
+    Set<String> outputEnv = new HashSet<>();
+    StreamConsumer streamConsumer = line -> {
+      outputEnv.add(line.split("=")[0]);
+    };
+    Command command = Command.create(getScript("env"));
+    Map<String, String> env = command.getEnvironmentVariables();
+    String varKey = env.keySet().iterator().next();
+    command.removeEnvironmentVariable(varKey);
+
+    CommandExecutor.create().execute(command, streamConsumer, 1000L);
+
+    assertThat(outputEnv).doesNotContain(varKey);
   }
 
   private static String getScript(String name) throws IOException {
