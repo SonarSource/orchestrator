@@ -71,6 +71,7 @@ public class CommandExecutor {
       if (command.getDirectory() != null) {
         builder.directory(command.getDirectory());
       }
+      builder.environment().clear();
       builder.environment().putAll(command.getEnvironmentVariables());
       builder.redirectErrorStream(true);
       process = builder.start();
@@ -175,7 +176,7 @@ public class CommandExecutor {
     @Override
     public void run() {
       try (InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr)) {
+           BufferedReader br = new BufferedReader(isr)) {
         String line;
         while ((line = br.readLine()) != null) {
           consumeLine(line);
