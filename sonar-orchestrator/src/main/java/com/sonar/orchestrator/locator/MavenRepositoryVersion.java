@@ -27,6 +27,8 @@ import java.util.List;
 @JacksonXmlRootElement(localName = "metadata")
 public class MavenRepositoryVersion {
 
+  @JacksonXmlProperty(localName = "modelVersion", isAttribute = true)
+  private String modelVersion;
   @JacksonXmlProperty(localName = "groupId")
   private String groupId;
   @JacksonXmlProperty(localName = "artifactId")
@@ -40,6 +42,10 @@ public class MavenRepositoryVersion {
 
   public void setVersioning(Versioning versioning) {
     this.versioning = versioning;
+  }
+  
+  public String getModelVersion() {
+    return modelVersion;
   }
 
   public String getGroupId() {

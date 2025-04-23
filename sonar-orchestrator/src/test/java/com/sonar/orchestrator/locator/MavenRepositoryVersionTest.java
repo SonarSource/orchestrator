@@ -35,6 +35,7 @@ public class MavenRepositoryVersionTest {
     String xmlInput = createValidXml();
     MavenRepositoryVersion deserialized = new XmlMapper().readValue(xmlInput, MavenRepositoryVersion.class);
 
+    assertEquals("1.1.0", deserialized.getModelVersion());
     assertEquals("org.sonarsource.sonarqube", deserialized.getGroupId());
     assertEquals("sonar-plugin-api", deserialized.getArtifactId());
     MavenRepositoryVersion.Versioning versioning = deserialized.getVersioning();
@@ -58,7 +59,7 @@ public class MavenRepositoryVersionTest {
   }
   
   private String createValidXml() {
-    return "<metadata>" +
+    return "<metadata modelVersion=\"1.1.0\">" +
         "<groupId>org.sonarsource.sonarqube</groupId>" +
         "<artifactId>sonar-plugin-api</artifactId>" +
         "<versioning>" +
