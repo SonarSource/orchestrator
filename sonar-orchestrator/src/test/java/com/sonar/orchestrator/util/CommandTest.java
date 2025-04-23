@@ -21,6 +21,7 @@ package com.sonar.orchestrator.util;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -64,7 +65,7 @@ public class CommandTest {
     Command command = new Command("java", WINDOWS);
     command.addArgument("-Xmx512m");
     command.addArguments(Arrays.asList("-a", "-b"));
-    command.addArguments(new String[] {"-x", "-y"});
+    command.addArguments(new String[]{"-x", "-y"});
     assertThat(command.getExecutable()).isEqualTo("java");
     assertThat(command.getArguments()).hasSize(5);
     assertThat(command.toCommandLine()).isEqualTo("cmd /c \"java -Xmx512m -a -b -x -y\"");
@@ -89,7 +90,7 @@ public class CommandTest {
     Command command = new Command("java", NON_WINDOWS);
     command.addArgument("-Xmx512m");
     command.addArguments(Arrays.asList("-a", "-b"));
-    command.addArguments(new String[] {"-x", "-y"});
+    command.addArguments(new String[]{"-x", "-y"});
     assertThat(command.getExecutable()).isEqualTo("java");
     assertThat(command.getArguments()).hasSize(5);
     assertThat(command.toCommandLine()).isEqualTo("java -Xmx512m -a -b -x -y");
@@ -148,5 +149,16 @@ public class CommandTest {
     Command command = Command.create("java");
     command.setEnvironmentVariable("JAVA_HOME", "/path/to/java");
     assertThat(command.getEnvironmentVariables().get("JAVA_HOME")).isEqualTo("/path/to/java");
+  }
+
+  @Test
+  public void remove_env_variables() {
+    Map<String, String> env = System.getenv();
+    String varKey = env.keySet().iterator().next();
+    Command command = Command.create("java");
+
+    assertThat(command.getEnvironmentVariables().get(varKey)).isNotNull();
+    command.removeEnvironmentVariable(varKey);
+    assertThat(command.getEnvironmentVariables().get(varKey)).isNull();
   }
 }
