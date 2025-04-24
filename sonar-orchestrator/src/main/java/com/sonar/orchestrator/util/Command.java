@@ -100,7 +100,17 @@ public class Command {
 
   /**
    * @see {@link Command#getEnvironmentVariables()}
-   * @since 3.2
+   * @since 5.6
+   */
+  public Command replaceEnvironment(Map<String, String> environment) {
+    this.env.clear();
+    this.env.putAll(environment);
+    return this;
+  }
+
+  /**
+   * @see {@link Command#getEnvironmentVariables()}
+   * @since 5.6
    */
   public Command removeEnvironmentVariable(String name) {
     this.env.remove(name);

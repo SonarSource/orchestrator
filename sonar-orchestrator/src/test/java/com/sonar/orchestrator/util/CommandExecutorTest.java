@@ -23,6 +23,7 @@ import com.sonar.orchestrator.TestModules;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -183,6 +184,25 @@ public class CommandExecutorTest {
     CommandExecutor.create().execute(command, streamConsumer, 1000L);
 
     assertThat(outputEnv).doesNotContain(varKey);
+  }
+
+  @Test
+  public void should_have_only_required_environment_variables() throws IOException {
+    Set<String> outputEnv = new HashSet<>();
+    StreamConsumer streamConsumer = line -> {
+      outputEnv.add(line.split("=")[0]);
+    };
+    Command command = Command.create(getScript("env"));
+    command.replaceEnvironment(new HashMap<>());
+
+    CommandExecutor.create().execute(command, streamConsumer, 1000L);
+    if (SystemUtils.IS_OS_WINDOWS) {
+      // On Windows, Java ensures a minimum set of environment variables
+      assertThat(outputEnv).containsExactlyInAnyOrder("PATHEXT", "SystemRoot", "COMSPEC", "PROMPT");
+    } else {
+      // On Linux, only PWD is set as a minimum requirement
+      assertThat(outputEnv).containsExactly("PWD");
+    }
   }
 
   private static String getScript(String name) throws IOException {
