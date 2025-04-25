@@ -21,6 +21,7 @@ package com.sonar.orchestrator.util;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
@@ -160,5 +161,14 @@ public class CommandTest {
     assertThat(command.getEnvironmentVariables().get(varKey)).isNotNull();
     command.removeEnvironmentVariable(varKey);
     assertThat(command.getEnvironmentVariables().get(varKey)).isNull();
+  }
+
+  @Test
+  public void replace_env_variables() {
+    Command command = Command.create("java");
+
+    assertThat(command.getEnvironmentVariables()).isNotEmpty();
+    command.replaceEnvironment(new HashMap<>());
+    assertThat(command.getEnvironmentVariables()).isEmpty();
   }
 }
