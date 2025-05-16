@@ -113,6 +113,10 @@ public class PackagingResolver {
           groupId = PRIVATE_GROUP_ID;
           artifactId = "sonarqube-enterprise";
           break;
+        case ENTERPRISE_LW:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-enterprise-lw";
+          break;
         case DATACENTER:
           groupId = PRIVATE_GROUP_ID;
           artifactId = "sonarqube-datacenter";

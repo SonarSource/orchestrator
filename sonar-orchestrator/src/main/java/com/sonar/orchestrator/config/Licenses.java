@@ -61,6 +61,7 @@ public class Licenses {
           filename = "de.txt";
           break;
         case ENTERPRISE:
+        case ENTERPRISE_LW:
           filename = "ee.txt";
           break;
         case DATACENTER:

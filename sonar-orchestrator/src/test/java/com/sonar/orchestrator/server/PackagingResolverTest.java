@@ -65,6 +65,11 @@ public class PackagingResolverTest {
     verifyLocalZip(temp.newFile("sonarqube-enterprise-7.3.1.zip"), "7.3.1");
     verifyLocalZip(temp.newFile("sonarqube-enterprise-7.3-SNAPSHOT.zip"), "7.3-SNAPSHOT");
 
+    verifyLocalZip(temp.newFile("sonarqube-enterprise-lw-7.3.zip"), "7.3");
+    verifyLocalZip(temp.newFile("sonarqube-enterprise-lw-7.3.1.zip"), "7.3.1");
+    verifyLocalZip(temp.newFile("sonarqube-enterprise-lw-7.3-SNAPSHOT.zip"), "7.3-SNAPSHOT");
+
+
     verifyLocalZip(temp.newFile("sonarqube-datacenter-7.3.zip"), "7.3");
     verifyLocalZip(temp.newFile("sonarqube-datacenter-7.3.1.zip"), "7.3.1");
     verifyLocalZip(temp.newFile("sonarqube-datacenter-7.3-SNAPSHOT.zip"), "7.3-SNAPSHOT");
@@ -98,21 +103,25 @@ public class PackagingResolverTest {
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000", "6.7.4.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000", "6.7.4.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000", "6.7.4.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000", "6.7.4.1000");
     testResolutionOfEdition(Edition.DATACENTER, "org.sonarsource.sonarqube", "sonar-application", "6.7.4.1000", "6.7.4.1000");
 
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[6.7]", "6.7.4.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[6.7]", "6.7.4.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[6.7]", "6.7.4.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[6.7]", "6.7.4.1000");
     testResolutionOfEdition(Edition.DATACENTER, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[6.7]", "6.7.4.1000");
 
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.0]", "7.0.0.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.0]", "7.0.0.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.0]", "7.0.0.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.0]", "7.0.0.1000");
     testResolutionOfEdition(Edition.DATACENTER, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.0]", "7.0.0.1000");
 
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.1]", "7.1.0.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.1]", "7.1.0.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.1]", "7.1.0.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.1]", "7.1.0.1000");
     testResolutionOfEdition(Edition.DATACENTER, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.1]", "7.1.0.1000");
   }
 
@@ -121,16 +130,19 @@ public class PackagingResolverTest {
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "7.2.0.1000", "7.2.0.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "com.sonarsource.sonarqube", "sonarqube-developer", "7.2.0.1000", "7.2.0.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "com.sonarsource.sonarqube", "sonarqube-enterprise", "7.2.0.1000", "7.2.0.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "com.sonarsource.sonarqube", "sonarqube-enterprise-lw", "7.2.0.1000", "7.2.0.1000");
     testResolutionOfEdition(Edition.DATACENTER, "com.sonarsource.sonarqube", "sonarqube-datacenter", "7.2.0.1000", "7.2.0.1000");
 
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "LATEST_RELEASE[7.2]", "7.2.0.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "com.sonarsource.sonarqube", "sonarqube-developer", "LATEST_RELEASE[7.2]", "7.2.0.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "com.sonarsource.sonarqube", "sonarqube-enterprise", "LATEST_RELEASE[7.2]", "7.2.0.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "com.sonarsource.sonarqube", "sonarqube-enterprise-lw", "LATEST_RELEASE[7.2]", "7.2.0.1000");
     testResolutionOfEdition(Edition.DATACENTER, "com.sonarsource.sonarqube", "sonarqube-datacenter", "LATEST_RELEASE[7.2]", "7.2.0.1000");
 
     testResolutionOfEdition(Edition.COMMUNITY, "org.sonarsource.sonarqube", "sonar-application", "DEV", "7.2.0.1000");
     testResolutionOfEdition(Edition.DEVELOPER, "com.sonarsource.sonarqube", "sonarqube-developer", "DEV", "7.2.0.1000");
     testResolutionOfEdition(Edition.ENTERPRISE, "com.sonarsource.sonarqube", "sonarqube-enterprise", "DEV", "7.2.0.1000");
+    testResolutionOfEdition(Edition.ENTERPRISE_LW, "com.sonarsource.sonarqube", "sonarqube-enterprise-lw", "DEV", "7.2.0.1000");
     testResolutionOfEdition(Edition.DATACENTER, "com.sonarsource.sonarqube", "sonarqube-datacenter", "DEV", "7.2.0.1000");
   }
 
@@ -171,6 +183,7 @@ public class PackagingResolverTest {
     if (Version.create(returnedVersion).isGreaterThanOrEquals(7, 2)) {
       prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-developer", versionOrAlias, Optional.of(returnedVersion));
       prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-enterprise", versionOrAlias, Optional.of(returnedVersion));
+      prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-enterprise-lw", versionOrAlias, Optional.of(returnedVersion));
       prepareResolutionOfVersion("com.sonarsource.sonarqube", "sonarqube-datacenter", versionOrAlias, Optional.of(returnedVersion));
     }
 
