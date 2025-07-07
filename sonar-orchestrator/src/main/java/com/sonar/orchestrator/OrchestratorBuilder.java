@@ -267,6 +267,16 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
     return (BUILDER) this;
   }
 
+  public BUILDER activateOnlineLicense() {
+    distribution.activateOnlineLicense();
+    return (BUILDER) this;
+  }
+
+  public BUILDER activateOfflineLicense() {
+    distribution.activateOfflineLicense();
+    return (BUILDER) this;
+  }
+
   /**
    * Keeps all bundled plugins
    */

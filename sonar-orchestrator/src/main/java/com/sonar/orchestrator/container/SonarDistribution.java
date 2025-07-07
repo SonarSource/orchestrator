@@ -41,6 +41,8 @@ public final class SonarDistribution {
   private final List<Location> profileBackups = new ArrayList<>();
   private final Properties serverProperties = new Properties();
   private boolean activateLicense;
+  private boolean activateOnlineLicense;
+  private boolean activateOfflineLicense;
   private boolean emptySonarProperties = false;
   private boolean keepBundledPlugins = false;
 
@@ -169,7 +171,20 @@ public final class SonarDistribution {
   }
 
   public SonarDistribution activateLicense() {
+    resetLicenseActivationFlags();
     activateLicense = true;
+    return this;
+  }
+
+  public SonarDistribution activateOnlineLicense() {
+    resetLicenseActivationFlags();
+    activateOnlineLicense = true;
+    return this;
+  }
+
+  public SonarDistribution activateOfflineLicense() {
+    resetLicenseActivationFlags();
+    activateOfflineLicense = true;
     return this;
   }
 
@@ -184,6 +199,14 @@ public final class SonarDistribution {
 
   public boolean isActivateLicense() {
     return activateLicense;
+  }
+
+  public boolean isActivateOnlineLicense() {
+    return activateOnlineLicense;
+  }
+
+  public boolean isActivateOfflineLicense() {
+    return activateOfflineLicense;
   }
 
   public boolean isKeepBundledPlugins() {
@@ -202,5 +225,11 @@ public final class SonarDistribution {
 
   public Set<String> getBundledPluginNamePrefixesToKeep() {
     return this.bundledPluginNamePrefixesToKeep;
+  }
+
+  private void resetLicenseActivationFlags() {
+    activateLicense = false;
+    activateOnlineLicense = false;
+    activateOfflineLicense = false;
   }
 }

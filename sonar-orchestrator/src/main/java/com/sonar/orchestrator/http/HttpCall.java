@@ -25,6 +25,7 @@ import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -32,12 +33,15 @@ import javax.annotation.Nullable;
 import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.h2.util.json.JSONObject;
 
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
@@ -55,6 +59,7 @@ public class HttpCall {
   private HttpMethod method = HttpMethod.GET;
   private final Map<String, String> parameters = new LinkedHashMap<>();
   private final Map<String, String> headers = new LinkedHashMap<>();
+  private String body;
   private Long timeoutMs = null;
 
   HttpCall(OkHttpClient okClient, HttpUrl baseUrl) {
@@ -128,6 +133,12 @@ public class HttpCall {
    */
   public HttpCall setTimeoutMs(long timeoutMs) {
     this.timeoutMs = timeoutMs;
+    return this;
+  }
+
+  public HttpCall setBody(String body) {
+    requireNonNull(body, "Body cannot be null");
+    this.body = body;
     return this;
   }
 
@@ -222,6 +233,9 @@ public class HttpCall {
           .filter(e -> e.getValue() != null)
           .forEach(e -> schwarzy.add(e.getKey(), e.getValue()));
         okRequest.post(schwarzy.build());
+        if (body != null) {
+          okRequest.setBody$okhttp(RequestBody.create(body, MediaType.parse(headers.get("Content-Type"))));
+        }
         break;
       case MULTIPART_POST:
         okRequest = new Request.Builder().url(baseUrl);

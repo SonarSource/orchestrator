@@ -33,6 +33,7 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
 import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.http.HttpCall;
+import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.http.HttpResponse;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -48,6 +49,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
+import okhttp3.HttpUrl;
+import org.h2.util.json.JSONValueTarget;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
@@ -127,6 +130,10 @@ public class Orchestrator {
 
     if (distribution.isActivateLicense()) {
       activateLicense();
+    } else if (distribution.isActivateOnlineLicense()) {
+      activateOnlineLicense();
+    } else if (distribution.isActivateOfflineLicense()) {
+      activateOfflineLicense();
     }
 
     buildRunner = new BuildRunner(config);
@@ -140,6 +147,68 @@ public class Orchestrator {
   public void activateLicense() {
     String license = licenses.getLicense(server.getEdition(), server.version());
     configureLicense(license);
+  }
+
+  /**
+   * Set a test license that work for all commercial products using 3rd party service.
+   */
+  private void activateOnlineLicense() {
+    //String activationCode = licenses.getActivationCode(server.getEdition(), server.version());
+    String activationCode = "95AA-2DB4-5JXY-HMSQ"; // Placeholder for actual activation code retrieval logic
+    JSONValueTarget json = new JSONValueTarget();
+    json.startObject();
+    json.member("activationCode");
+    json.valueString(activationCode);
+    json.endObject();
+
+    HttpCall httpCall = server.newHttpCall("api/v2/entitlements/online-activation")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials()
+      .setHeader("Content-Type", "application/json")
+      .setBody(json.getResult().toString());
+
+    httpCall.execute();
+  }
+
+  private void activateOfflineLicense() {
+    //String activationCode = licenses.getActivationCode(server.getEdition(), server.version());
+    String activationCode = "95AA-2DB4-5JXY-HMSQ"; // Placeholder for actual activation code retrieval logic
+
+    HttpCall httpCall = server.newHttpCall("api/v2/entitlements/offline-activation")
+      .setMethod(HttpMethod.GET)
+      .setAdminCredentials()
+      .setHeader("Activation-Code", activationCode);
+
+    HttpResponse execute = httpCall.execute();
+
+    String body = execute.getBodyAsString();
+
+    httpCall = server.newHttpCall("api/v2/entitlements/offline-activation")
+      .setMethod(HttpMethod.GET)
+      .setAdminCredentials()
+      .setHeader("Activation-Code", activationCode);
+
+    httpCall = HttpClientFactory.create().newCall(HttpUrl.get("https://saas.licensespring.com/api/v1/offline-license/"))
+      .setMethod(HttpMethod.GET)
+      .setHeader("Content-Type", "multipart/form-data")
+      .setParam()
+
+    JSONValueTarget json = new JSONValueTarget();
+    json.startObject();
+    json.member("activationCode");
+    json.valueString(activationCode);
+    json.member("activationFile");
+    json.valueString(body);
+    json.endObject();
+
+
+    httpCall = server.newHttpCall("api/v2/entitlements/offline-activation")
+      .setMethod(HttpMethod.POST)
+      .setAdminCredentials()
+      .setHeader("Activation-Code", activationCode)
+      .setHeader("Content-Type", "application/json")
+      .setBody(json.getResult().toString());
+
   }
 
   /**
