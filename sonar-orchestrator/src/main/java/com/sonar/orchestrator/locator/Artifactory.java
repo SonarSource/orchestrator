@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

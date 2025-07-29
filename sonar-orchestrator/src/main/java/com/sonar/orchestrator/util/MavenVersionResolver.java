@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;

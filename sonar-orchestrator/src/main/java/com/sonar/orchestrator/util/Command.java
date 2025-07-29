@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;

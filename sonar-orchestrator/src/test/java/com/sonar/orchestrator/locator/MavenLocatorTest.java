@@ -23,6 +23,7 @@ import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -41,23 +42,22 @@ import static org.mockito.Mockito.when;
 
 public class MavenLocatorTest {
 
+  private final FileSystem fileSystem = mock(FileSystem.class, Mockito.RETURNS_DEEP_STUBS);
+  private final Artifactory artifactory = mock(Artifactory.class, Mockito.RETURNS_DEEP_STUBS);
+  private final MavenLocator underTest = new MavenLocator(fileSystem, artifactory);
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
-
-  private FileSystem fileSystem = mock(FileSystem.class, Mockito.RETURNS_DEEP_STUBS);
-  private Artifactory artifactory = mock(Artifactory.class, Mockito.RETURNS_DEEP_STUBS);
-  private MavenLocator underTest = new MavenLocator(fileSystem, artifactory);
 
   @Before
   public void setUp() throws Exception {
     File cacheDir = temp.newFolder();
-    when(fileSystem.getCacheDir()).thenReturn(cacheDir);
+    when(fileSystem.getCacheDir()).thenReturn(cacheDir.toPath());
   }
 
   @Test
   public void find_in_cache() throws Exception {
     MavenLocation location = MavenLocation.of("foo", "bar", "1.0");
-    File cachedFile = new File(fileSystem.getCacheDir() + File.separator + MavenLocator.cacheKeyOf(location), "the_file.jar");
+    File cachedFile = fileSystem.getCacheDir().resolve(MavenLocator.cacheKeyOf(location)).resolve("the_file.jar").toFile();
     FileUtils.touch(cachedFile);
 
     File file = underTest.locateResolvedVersion(location);
@@ -70,7 +70,7 @@ public class MavenLocatorTest {
   public void find_in_maven_local_repository_if_defined() throws IOException {
     File localRepository = temp.newFolder();
     FileUtils.touch(new File(localRepository, "foo/bar/1.0/bar-1.0.jar"));
-    when(fileSystem.mavenLocalRepository()).thenReturn(localRepository);
+    when(fileSystem.mavenLocalRepository()).thenReturn(localRepository.toPath());
     markAsAbsentFromArtifactory();
 
     File file = underTest.locateResolvedVersion(MavenLocation.of("foo", "bar", "1.0"));
@@ -85,7 +85,7 @@ public class MavenLocatorTest {
   public void search_but_not_find_in_maven_local_repository_if_defined() throws IOException {
     File localRepository = temp.newFolder();
     FileUtils.touch(new File(localRepository, "foo/bar/1.0/bar-1.0.jar"));
-    when(fileSystem.mavenLocalRepository()).thenReturn(localRepository);
+    when(fileSystem.mavenLocalRepository()).thenReturn(localRepository.toPath());
     markAsAbsentFromArtifactory();
 
     File file = underTest.locateResolvedVersion(MavenLocation.of("foo", "bar", "1.1"));
@@ -97,7 +97,7 @@ public class MavenLocatorTest {
   public void download_from_artifactory_and_add_to_cache() throws Exception {
     when(artifactory.downloadToFile(any(), any())).thenAnswer((Answer<Boolean>) invocationOnMock -> {
       File file = (File) invocationOnMock.getArguments()[1];
-      FileUtils.write(file, "content of file");
+      FileUtils.write(file, "content of file", StandardCharsets.UTF_8);
       return true;
     });
 
@@ -105,12 +105,13 @@ public class MavenLocatorTest {
     assertThat(file)
       .exists()
       .isFile()
+      .usingCharset(StandardCharsets.UTF_8)
       .hasContent("content of file");
-    assertThat(file.getCanonicalPath()).startsWith(fileSystem.getCacheDir().getCanonicalPath());
+    assertThat(file.getAbsolutePath()).startsWith(fileSystem.getCacheDir().toFile().getCanonicalPath());
   }
 
   private void verifyEmptyCache() {
-    assertThat(FileUtils.listFiles(fileSystem.getCacheDir(), null, true)).hasSize(0);
+    assertThat(fileSystem.getCacheDir()).isEmptyDirectory();
   }
 
   private void markAsAbsentFromArtifactory() {
@@ -149,7 +150,7 @@ public class MavenLocatorTest {
     File result = underTest.copyToDirectory(location, toDir);
 
     assertThat(result).isNull();
-    assertThat(toDir.listFiles()).isEmpty();
+    assertThat(toDir).isEmptyDirectory();
   }
 
   @Test
@@ -182,12 +183,12 @@ public class MavenLocatorTest {
   public void openInputStream_existing_artifact() throws IOException {
     MavenLocation location = MavenLocation.of("foo", "bar", "1.0");
     File cachedFile = new File(fileSystem.getCacheDir() + File.separator + MavenLocator.cacheKeyOf(location), "the_file.jar");
-    FileUtils.write(cachedFile, "content");
+    FileUtils.write(cachedFile, "content", StandardCharsets.UTF_8);
     markVersionsAsResolved();
 
     try (InputStream result = underTest.openInputStream(location)) {
       assertThat(result).isNotNull();
-      assertThat(IOUtils.toString(result)).isEqualTo("content");
+      assertThat(IOUtils.toString(result, StandardCharsets.UTF_8)).isEqualTo("content");
     }
   }
 
@@ -197,10 +198,5 @@ public class MavenLocatorTest {
     markVersionsAsResolved();
 
     assertThat(underTest.openInputStream(location)).isNull();
-  }
-
-  @Test
-  public void resolveVersion() {
-
   }
 }

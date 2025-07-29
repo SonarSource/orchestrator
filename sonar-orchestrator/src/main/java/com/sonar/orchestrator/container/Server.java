@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

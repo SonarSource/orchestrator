@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import java.util.Arrays;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
@@ -141,7 +142,7 @@ public class BuildTest {
 
   static class FakeBuild extends Build<FakeBuild> {
     @Override
-    BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+    BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
       return null;
     }
   }

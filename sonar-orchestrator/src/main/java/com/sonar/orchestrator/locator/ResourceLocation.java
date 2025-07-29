@@ -20,7 +20,7 @@
 package com.sonar.orchestrator.locator;
 
 import java.net.URL;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static java.util.Objects.requireNonNull;

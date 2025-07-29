@@ -22,6 +22,7 @@ package com.sonar.orchestrator.build;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
@@ -45,10 +46,10 @@ import static org.mockito.Mockito.when;
 
 public class MavenBuildExecutorTest {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
   private final MavenBuildExecutor.Os os = mock(MavenBuildExecutor.Os.class);
   private final MavenBuildExecutor underTest = new MavenBuildExecutor(os);
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
 
   @Test
   public void configure_command_in_PATH_on_linux() throws Exception {
@@ -180,7 +181,8 @@ public class MavenBuildExecutorTest {
     Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
     MavenBuild build = MavenBuild.create(pom).addGoal("clean");
 
-    BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), new HashMap<>());
+    Configuration config = Configuration.createEnv();
+    BuildResult result = new MavenBuildExecutor().execute(build, config, new Locators(config), new HashMap<>());
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
     assertThat(result.getLogs()).containsSubsequence("[INFO] Scanning for projects...", "[INFO] Total time");
@@ -193,7 +195,8 @@ public class MavenBuildExecutorTest {
     Location pom = FileLocation.of(getClass().getResource("/com/sonar/orchestrator/build/MavenBuildTest/pom.xml"));
     MavenBuild build = MavenBuild.create(pom).addGoal("clean").addArguments("-PnotExists");
 
-    BuildResult result = new MavenBuildExecutor().execute(build, Configuration.createEnv(), new HashMap<>());
+    Configuration config = Configuration.createEnv();
+    BuildResult result = new MavenBuildExecutor().execute(build, config, new Locators(config), new HashMap<>());
 
     assertThat(result.getLogs().length()).isGreaterThan(0);
     assertThat(result.getLogs()).contains("[WARNING] The requested profile \"notExists\" could not be activated because it does not exist.");
@@ -213,7 +216,8 @@ public class MavenBuildExecutorTest {
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(), any(), anyLong())).thenReturn(2);
 
-    new MavenBuildExecutor().execute(build, Configuration.create(), props, executor);
+    Configuration config = Configuration.create();
+    new MavenBuildExecutor().execute(build, config, new Locators(config), props, executor);
 
     verify(executor).execute(argThat(mvnMatcher(pom, "clean")), any(), eq(30000L));
     verify(executor).execute(argThat(mvnMatcher(pom, "sonar:sonar")), any(), eq(30000L));

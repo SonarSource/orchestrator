@@ -38,7 +38,7 @@ public class ArtifactoryFactory {
    * </p>
    */
   public static Artifactory createArtifactory(Configuration configuration) {
-    File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
+    File downloadTempDir = new File(configuration.fileSystem().workspace().toFile(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), DEFAULT_ARTIFACTORY_URL);
 
     if (baseUrl.startsWith(DEFAULT_ARTIFACTORY_PREFIX)) {

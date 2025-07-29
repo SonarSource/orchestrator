@@ -62,7 +62,7 @@ public class ServerCommandLineFactoryTest {
   public void override_java_home() throws Exception {
     generateValidFileSystem();
     File javaHome = temp.newFolder();
-    when(fs.javaHome()).thenReturn(javaHome);
+    when(fs.javaHome()).thenReturn(javaHome.toPath());
 
     ServerCommandLineFactory underTest = new ServerCommandLineFactory(fs);
 

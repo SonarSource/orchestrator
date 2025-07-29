@@ -35,6 +35,7 @@ import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,12 +54,12 @@ public class BuildRunnerTest {
     Build build = mock(Build.class);
     when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
 
-    BuildRunner runner = new BuildRunner(config);
+    BuildRunner runner = new BuildRunner(config, null);
     runner.runQuietly(server, build);
 
     ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
 
-    verify(build).execute(eq(config), captor.capture());
+    verify(build).execute(eq(config), isNull(), captor.capture());
 
     assertThat(captor.getValue()).containsOnly(
       entry("sonar.projectKey", "SAMPLE"),
@@ -77,12 +78,12 @@ public class BuildRunnerTest {
     Build build = mock(ScannerForMSBuild.class);
     when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
 
-    BuildRunner runner = new BuildRunner(config);
+    BuildRunner runner = new BuildRunner(config, null);
     runner.runQuietly(server, build);
 
     ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
 
-    verify(build).execute(eq(config), captor.capture());
+    verify(build).execute(eq(config), isNull(), captor.capture());
 
     assertThat(captor.getValue()).containsOnly(
       entry("sonar.projectKey", "SAMPLE"),
@@ -101,12 +102,12 @@ public class BuildRunnerTest {
     Build build = mock(ScannerForMSBuild.class);
     when(build.arguments()).thenReturn(Arrays.asList("end"));
 
-    BuildRunner runner = new BuildRunner(config);
+    BuildRunner runner = new BuildRunner(config, null);
     runner.runQuietly(server, build);
 
     ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
 
-    verify(build).execute(eq(config), captor.capture());
+    verify(build).execute(eq(config), isNull(), captor.capture());
 
     assertThat(captor.getValue()).isEmpty();
 
@@ -118,9 +119,9 @@ public class BuildRunnerTest {
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.6"));
     Build build = mock(Build.class);
-    when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2));
+    when(build.execute(any(Configuration.class), any(), anyMap())).thenReturn(new BuildResult().addStatus(2));
 
-    BuildRunner runner = new BuildRunner(config);
+    BuildRunner runner = new BuildRunner(config, null);
     BuildResult result = runner.runQuietly(server, build);
 
     assertThat(result.getLastStatus()).isEqualTo(2);
@@ -137,9 +138,9 @@ public class BuildRunnerTest {
       Configuration config = Configuration.create();
       Server server = mock(Server.class);
       when(server.version()).thenReturn(Version.create("5.6"));
-      when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2));
+      when(build.execute(any(Configuration.class), any(), anyMap())).thenReturn(new BuildResult().addStatus(2));
 
-      BuildRunner runner = new BuildRunner(config);
+      BuildRunner runner = new BuildRunner(config, null);
       runner.run(server, build);
 
     } catch (BuildFailureException e) {
@@ -162,9 +163,9 @@ public class BuildRunnerTest {
       Configuration config = Configuration.create();
       Server server = mock(Server.class);
       when(server.version()).thenReturn(Version.create("5.6"));
-      when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(2).addStatus(0));
+      when(build.execute(any(Configuration.class), any(), anyMap())).thenReturn(new BuildResult().addStatus(2).addStatus(0));
 
-      BuildRunner runner = new BuildRunner(config);
+      BuildRunner runner = new BuildRunner(config, null);
       runner.run(server, build);
 
     } catch (BuildFailureException e) {
@@ -183,9 +184,9 @@ public class BuildRunnerTest {
     Server server = mock(Server.class);
     when(server.version()).thenReturn(Version.create("5.6"));
     Build build = mock(Build.class);
-    when(build.execute(any(Configuration.class), anyMap())).thenReturn(new BuildResult().addStatus(0));
+    when(build.execute(any(Configuration.class), any(), anyMap())).thenReturn(new BuildResult().addStatus(0));
 
-    BuildRunner runner = new BuildRunner(config);
+    BuildRunner runner = new BuildRunner(config, null);
     BuildResult result = runner.run(server, build);
 
     assertThat(result.isSuccess()).isTrue();
