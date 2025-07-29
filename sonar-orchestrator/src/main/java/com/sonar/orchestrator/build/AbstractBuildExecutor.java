@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.coverage.JaCoCoArgumentsBuilder;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -30,18 +31,18 @@ abstract class AbstractBuildExecutor<T extends Build<T>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractBuildExecutor.class);
 
-  final BuildResult execute(T build, Configuration config, Map<String, String> adjustedProperties) {
-    return execute(build, config, adjustedProperties, CommandExecutor.create());
+  final BuildResult execute(T build, Configuration config, Locators locators, Map<String, String> adjustedProperties) {
+    return execute(build, config, locators, adjustedProperties, CommandExecutor.create());
   }
 
-  abstract BuildResult execute(T build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create);
+  abstract BuildResult execute(T build, Configuration config, Locators locators, Map<String, String> adjustedProperties, CommandExecutor create);
 
   /**
    * Append JaCoCo agent JVM arguments to a given environment variable (SONAR_RUNNER_OPTS, MAVEN_OPTS, ...)
    * @param optsVariableName The name of the environment variable to append to
    */
-  static void appendCoverageArgumentToOpts(Map<String, String> environmentVariables, Configuration config, String optsVariableName) {
-    String jaCoCoArgument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
+  static void appendCoverageArgumentToOpts(Map<String, String> environmentVariables, Configuration config, Locators locators, String optsVariableName) {
+    String jaCoCoArgument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config, locators);
     if (jaCoCoArgument != null) {
       if (environmentVariables.containsKey(optsVariableName)) {
         String opts = environmentVariables.get(optsVariableName) + " " + jaCoCoArgument;

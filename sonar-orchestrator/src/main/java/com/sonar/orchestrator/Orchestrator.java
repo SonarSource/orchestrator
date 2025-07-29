@@ -27,7 +27,6 @@ import com.sonar.orchestrator.build.BuildRunner;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.config.Licenses;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.Database;
@@ -35,8 +34,10 @@ import com.sonar.orchestrator.db.DefaultDatabase;
 import com.sonar.orchestrator.http.HttpCall;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.http.HttpResponse;
+import com.sonar.orchestrator.licenses.Licenses;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.server.Packaging;
 import com.sonar.orchestrator.server.PackagingResolver;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
@@ -44,6 +45,7 @@ import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
+import com.sonar.orchestrator.util.SharedDir;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,6 +61,8 @@ public class Orchestrator {
   private static final String SONAR_TOKEN_PROPERTY_NAME = "sonar.token";
 
   private final Configuration config;
+  private final Locators locators;
+  private final SharedDir shareDir;
   private final SonarDistribution distribution;
   private final Licenses licenses;
   private final AtomicBoolean started = new AtomicBoolean(false);
@@ -76,6 +80,8 @@ public class Orchestrator {
    */
   public Orchestrator(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
     this.config = requireNonNull(config);
+    this.locators = new Locators(config);
+    this.shareDir = new SharedDir(config);
     this.distribution = requireNonNull(distribution);
     this.licenses = new Licenses(config);
     this.startupLogWatcher = startupLogWatcher;
@@ -89,12 +95,12 @@ public class Orchestrator {
    */
   public Server install() {
     if (server == null) {
-      database = new DefaultDatabase(config);
+      database = new DefaultDatabase(config, locators);
       database.start();
 
-      PackagingResolver packagingResolver = new PackagingResolver(config.locators());
+      PackagingResolver packagingResolver = new PackagingResolver(locators);
       packaging = packagingResolver.resolve(distribution);
-      ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, config.locators(), database.getClient());
+      ServerInstaller serverInstaller = new ServerInstaller(packagingResolver, config, locators, database.getClient());
       server = serverInstaller.install(distribution);
     }
     return server;
@@ -129,7 +135,7 @@ public class Orchestrator {
       activateLicense();
     }
 
-    buildRunner = new BuildRunner(config);
+    buildRunner = new BuildRunner(config, locators);
   }
 
   /**
@@ -199,6 +205,10 @@ public class Orchestrator {
     return config;
   }
 
+  public Locators getLocators() {
+    return locators;
+  }
+
   public Server getServer() {
     return server;
   }
@@ -208,7 +218,7 @@ public class Orchestrator {
    * Example : getFileLocationOfShared("javascript/performancing/pom.xml")
    */
   public FileLocation getFileLocationOfShared(String relativePath) {
-    return config.getFileLocationOfShared(relativePath);
+    return shareDir.getFileLocationOfShared(relativePath);
   }
 
   public SonarDistribution getDistribution() {
@@ -248,6 +258,13 @@ public class Orchestrator {
     return buildResult;
   }
 
+  public String getDefaultAdminToken() {
+    if (this.adminToken != null) {
+      return this.adminToken;
+    }
+    return generateDefaultAdminToken();
+  }
+
   private void setDefaultAdminToken(Build<?> build) {
     if (build.getProperties().containsKey(SONAR_LOGIN_PROPERTY_NAME) || build.getProperties().containsKey(SONAR_TOKEN_PROPERTY_NAME)) {
       return;
@@ -265,13 +282,6 @@ public class Orchestrator {
         build.setProperty(SONAR_LOGIN_PROPERTY_NAME, getDefaultAdminToken());
       }
     }
-  }
-
-  public String getDefaultAdminToken() {
-    if (this.adminToken != null) {
-      return this.adminToken;
-    }
-    return generateDefaultAdminToken();
   }
 
   private String generateDefaultAdminToken() {

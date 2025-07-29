@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Configuration
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -19,12 +19,10 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.sonar.orchestrator.locator.ArtifactoryFactory;
-import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.Locators;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,62 +33,45 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
-import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.FileUtils.getUserDirectory;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class Configuration {
-  private static final String ENV_SHARED_DIR = "SONAR_IT_SOURCES";
-  private static final String PROP_SHARED_DIR = "orchestrator.it_sources";
 
   private final Map<String, String> props;
   private final FileSystem fileSystem;
-  private final Locators locators;
 
-  private Configuration(File homeDir, Map<String, String> props) {
+  private Configuration(Path homeDir, Map<String, String> props) {
     this.props = Collections.unmodifiableMap(new HashMap<>(props));
     this.fileSystem = new FileSystem(homeDir, this);
-    this.locators = new Locators(this.fileSystem, ArtifactoryFactory.createArtifactory(this));
+  }
+
+  public static Configuration createEnv() {
+    return builder().addEnvVariables().addSystemProperties().build();
+  }
+
+  public static Configuration create(Properties properties) {
+    return builder().addProperties(properties).build();
+  }
+
+  public static Configuration create(Map<String, String> properties) {
+    return builder().addProperties(properties).build();
+  }
+
+  public static Configuration create() {
+    return builder().build();
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 
   public FileSystem fileSystem() {
     return fileSystem;
-  }
-
-  public Locators locators() {
-    return locators;
-  }
-
-  /**
-   * File located in the shared directory defined by the system property orchestrator.it_sources or environment variable SONAR_IT_SOURCES.
-   * Example : getFileLocationOfShared("javascript/performancing/pom.xml")
-   */
-  public FileLocation getFileLocationOfShared(String relativePath) {
-    // try to read it_sources
-    // in the System.getProperties
-    // in the prop file (from orchestrator.properties file)
-    // in the environment variable
-    String rootPath;
-    rootPath = System.getProperty(PROP_SHARED_DIR);
-    if (rootPath == null) {
-      rootPath = props.get(PROP_SHARED_DIR);
-    }
-    if (rootPath == null) {
-      rootPath = System.getenv(ENV_SHARED_DIR);
-    }
-    requireNonNull(rootPath, format("Property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
-
-    File rootDir = new File(rootPath);
-    checkState(rootDir.isDirectory() && rootDir.exists(),
-      "Please check the definition of it_sources (%s or %s) because the directory does not exist: %s", PROP_SHARED_DIR, ENV_SHARED_DIR, rootDir);
-
-    return FileLocation.of(new File(rootDir, relativePath));
   }
 
   public String getString(String key) {
@@ -102,7 +83,7 @@ public class Configuration {
   }
 
   public String getString(String key, @Nullable String defaultValue) {
-    return defaultIfNull(props.get(key), defaultValue);
+    return getIfNull(props.get(key), defaultValue);
   }
 
   @CheckForNull
@@ -133,30 +114,22 @@ public class Configuration {
     return props;
   }
 
-  public static Configuration createEnv() {
-    return builder().addEnvVariables().addSystemProperties().build();
-  }
-
-  public static Configuration create(Properties properties) {
-    return builder().addProperties(properties).build();
-  }
-
-  public static Configuration create(Map<String, String> properties) {
-    return builder().addProperties(properties).build();
-  }
-
-  public static Configuration create() {
-    return builder().build();
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
-
   public static final class Builder {
-    private Map<String, String> props = new HashMap<>();
+    private final Map<String, String> props = new HashMap<>();
 
     private Builder() {
+    }
+
+    private static Map<String, String> interpolateProperties(Map<String, String> map) {
+      Map<String, String> copy = new HashMap<>();
+      for (Map.Entry<String, String> entry : map.entrySet()) {
+        copy.put(entry.getKey(), interpolate(entry.getValue(), map));
+      }
+      return copy;
+    }
+
+    private static String interpolate(String prop, Map<String, String> with) {
+      return StringSubstitutor.replace(prop, with, "${", "}");
     }
 
     public Builder addConfiguration(Configuration c) {
@@ -180,9 +153,7 @@ public class Configuration {
     }
 
     public Builder addProperties(Map<String, String> p) {
-      for (Map.Entry<String, String> entry : p.entrySet()) {
-        props.put(entry.getKey(), entry.getValue());
-      }
+      props.putAll(p);
       return this;
     }
 
@@ -198,20 +169,20 @@ public class Configuration {
       return this;
     }
 
-    public Builder setProperty(String key, File file) {
-      props.put(key, file.getAbsolutePath());
+    public Builder setProperty(String key, Path file) {
+      props.put(key, file.toAbsolutePath().toString());
       return this;
     }
 
-    private File loadProperties() {
-      File homeDir = Stream.of(
+    private Path loadProperties() {
+      Path homeDir = Stream.of(
         props.get("orchestrator.home"),
         props.get("ORCHESTRATOR_HOME"),
         props.get("SONAR_USER_HOME"))
         .filter(s -> !isEmpty(s))
         .findFirst()
-        .map(File::new)
-        .orElse(new File(getUserDirectory(), ".sonar/orchestrator"));
+        .map(Path::of)
+        .orElse(getUserDirectory().toPath().resolve(".sonar/orchestrator"));
 
       String configUrl = Stream.of(
         props.get("orchestrator.configUrl"),
@@ -219,9 +190,9 @@ public class Configuration {
         .filter(s -> !isEmpty(s))
         .findFirst()
         .orElseGet(() -> {
-          File file = new File(homeDir, "orchestrator.properties");
+          Path file = homeDir.resolve("orchestrator.properties");
           try {
-            return file.exists() ? file.getAbsoluteFile().toURI().toURL().toString() : null;
+            return Files.exists(file) ? file.toAbsolutePath().toUri().toURL().toString() : null;
           } catch (MalformedURLException e) {
             throw new IllegalStateException("Unable to read configuration file", e);
           }
@@ -245,20 +216,8 @@ public class Configuration {
       return homeDir;
     }
 
-    private static Map<String, String> interpolateProperties(Map<String, String> map) {
-      Map<String, String> copy = new HashMap<>();
-      for (Map.Entry<String, String> entry : map.entrySet()) {
-        copy.put(entry.getKey(), interpolate(entry.getValue(), map));
-      }
-      return copy;
-    }
-
-    private static String interpolate(String prop, Map<String, String> with) {
-      return StrSubstitutor.replace(prop, with, "${", "}");
-    }
-
     public Configuration build() {
-      File homeDir = loadProperties();
+      Path homeDir = loadProperties();
       Map<String, String> interpolatedProperties = interpolateProperties(props);
       return new Configuration(homeDir, interpolatedProperties);
     }

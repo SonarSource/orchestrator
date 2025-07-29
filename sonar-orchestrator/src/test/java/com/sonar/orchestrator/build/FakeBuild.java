@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import java.util.Map;
 
 public class FakeBuild extends Build<FakeBuild> {
@@ -35,7 +36,7 @@ public class FakeBuild extends Build<FakeBuild> {
   }
 
   @Override
-  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+  BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
     return result;
   }
 }

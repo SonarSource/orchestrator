@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -51,7 +52,8 @@ public class AntBuildExecutorTest {
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
-    new AntBuildExecutor().execute(build, Configuration.create(), props, executor);
+    Configuration config = Configuration.create();
+    new AntBuildExecutor().execute(build, config, new Locators(config), props, executor);
 
     verify(executor).execute(argThat(c -> c.toCommandLine().contains("ant") &&
       c.toCommandLine().contains("-f") &&

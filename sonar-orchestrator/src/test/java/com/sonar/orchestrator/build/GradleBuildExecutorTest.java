@@ -22,6 +22,7 @@ package com.sonar.orchestrator.build;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -59,7 +60,8 @@ public class GradleBuildExecutorTest {
     GradleBuildExecutor.Os os = mock(GradleBuildExecutor.Os.class);
     when(os.isWindows()).thenReturn(false);
 
-    new GradleBuildExecutor(os).execute(build, Configuration.create(), props, executor);
+    Configuration config = Configuration.create();
+    new GradleBuildExecutor(os).execute(build, config, new Locators(config), props, executor);
 
     verify(executor).execute(argThat(gradlewMatcher(projectDir.getFile(), "gradlew", "clean")), any(), eq(30000L));
     verify(executor).execute(argThat(gradlewMatcher(projectDir.getFile(), "gradlew", "sonarqube")), any(), eq(30000L));
@@ -82,7 +84,8 @@ public class GradleBuildExecutorTest {
     GradleBuildExecutor.Os os = mock(GradleBuildExecutor.Os.class);
     when(os.isWindows()).thenReturn(true);
 
-    new GradleBuildExecutor(os).execute(build, Configuration.create(), props, executor);
+    Configuration config = Configuration.create();
+    new GradleBuildExecutor(os).execute(build, config, new Locators(config), props, executor);
 
     verify(executor).execute(argThat(gradlewMatcher(projectDir.getFile(), "gradlew.bat", "clean")), any(), eq(30000L));
     verify(executor).execute(argThat(gradlewMatcher(projectDir.getFile(), "gradlew.bat", "sonarqube")), any(), eq(30000L));
@@ -107,6 +110,7 @@ public class GradleBuildExecutorTest {
       .setTasks("clean", "sonarqube");
 
     CommandExecutor executor = mock(CommandExecutor.class);
-    new GradleBuildExecutor().execute(build, Configuration.create(), new HashMap<>(), executor);
+    Configuration config = Configuration.create();
+    new GradleBuildExecutor().execute(build, config, new Locators(config), new HashMap<>(), executor);
   }
 }

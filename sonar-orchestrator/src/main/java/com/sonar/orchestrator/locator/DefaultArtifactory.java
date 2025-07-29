@@ -42,7 +42,7 @@ public class DefaultArtifactory extends Artifactory {
   }
 
   protected static DefaultArtifactory create(Configuration configuration) {
-    File downloadTempDir = new File(configuration.fileSystem().workspace(), "temp-downloads");
+    File downloadTempDir = new File(configuration.fileSystem().workspace().toFile(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");

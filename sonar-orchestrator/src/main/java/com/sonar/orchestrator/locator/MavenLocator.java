@@ -23,13 +23,15 @@ import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +46,14 @@ public class MavenLocator implements Locator<MavenLocation> {
     this.artifactory = artifactory;
   }
 
+  private static String pathInMavenLocalRepository(MavenLocation location) {
+    return Strings.CS.replace(location.getGroupId(), ".", "/") + "/" + location.getArtifactId() + "/" + location.getVersion() + "/" + location.getFilename();
+  }
+
+  static String cacheKeyOf(MavenLocation location) {
+    return DigestUtils.md5Hex(location.toString());
+  }
+
   @Override
   public File locate(MavenLocation location) {
     // resolve the version alias if needed (requires to be online)
@@ -55,9 +65,9 @@ public class MavenLocator implements Locator<MavenLocation> {
   File locateResolvedVersion(MavenLocation resolvedLocation) {
     // check local cache
     String cacheKey = cacheKeyOf(resolvedLocation);
-    File cachedDir = new File(fileSystem.getCacheDir(), cacheKey);
-    if (cachedDir.exists()) {
-      Collection<File> files = FileUtils.listFiles(cachedDir, null, false);
+    Path cachedDir = fileSystem.getCacheDir().resolve(cacheKey);
+    if (Files.exists(cachedDir)) {
+      Collection<File> files = FileUtils.listFiles(cachedDir.toFile(), null, false);
       if (files.size() == 1) {
         File file = files.iterator().next();
         LOG.info("Found {} at {}", resolvedLocation, file);
@@ -77,9 +87,9 @@ public class MavenLocator implements Locator<MavenLocation> {
     if (resolvedLocation.getVersion().endsWith("-SNAPSHOT")) {
       return null;
     }
-    File cachedFile = new File(cachedDir, resolvedLocation.getFilename());
-    boolean found = artifactory.downloadToFile(resolvedLocation, cachedFile);
-    return found ? cachedFile : null;
+    Path cachedFile = cachedDir.resolve(resolvedLocation.getFilename());
+    boolean found = artifactory.downloadToFile(resolvedLocation, cachedFile.toFile());
+    return found ? cachedFile.toFile() : null;
   }
 
   private MavenLocation resolveLocation(MavenLocation location) {
@@ -105,10 +115,10 @@ public class MavenLocator implements Locator<MavenLocation> {
 
   @CheckForNull
   private File locateInLocalRepository(MavenLocation location) {
-    if (fileSystem.mavenLocalRepository() != null && fileSystem.mavenLocalRepository().exists()) {
-      File file = new File(fileSystem.mavenLocalRepository(), pathInMavenLocalRepository(location));
-      if (file.exists()) {
-        return file;
+    if (fileSystem.mavenLocalRepository() != null && Files.exists(fileSystem.mavenLocalRepository())) {
+      Path file = fileSystem.mavenLocalRepository().resolve(pathInMavenLocalRepository(location));
+      if (Files.exists(file)) {
+        return file.toFile();
       }
     }
     return null;
@@ -157,13 +167,5 @@ public class MavenLocator implements Locator<MavenLocation> {
     } catch (IOException e) {
       throw new IllegalStateException("Fail to open " + target, e);
     }
-  }
-
-  private static String pathInMavenLocalRepository(MavenLocation location) {
-    return StringUtils.replace(location.getGroupId(), ".", "/") + "/" + location.getArtifactId() + "/" + location.getVersion() + "/" + location.getFilename();
-  }
-
-  static String cacheKeyOf(MavenLocation location) {
-    return DigestUtils.md5Hex(location.toString());
   }
 }
