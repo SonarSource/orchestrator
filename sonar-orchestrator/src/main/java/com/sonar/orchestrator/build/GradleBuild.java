@@ -22,6 +22,7 @@ package com.sonar.orchestrator.build;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +38,8 @@ public final class GradleBuild extends Build<GradleBuild> {
   private List<String> tasks = new ArrayList<>();
 
   @Override
-  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
-    return new GradleBuildExecutor().execute(this, config, adjustedProperties);
+  BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
+    return new GradleBuildExecutor().execute(this, config, locators, adjustedProperties);
   }
 
   public GradleBuild setProjectDirectory(Location projectDirectory) {

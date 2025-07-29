@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.Locators;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,16 +34,16 @@ public final class AntBuild extends Build<AntBuild> {
   private Location buildLocation;
   private List<String> targets;
 
+  public static AntBuild create() {
+    return new AntBuild();
+  }
+
+  public static AntBuild create(Location buildFile, String[] targets, String... keyValueProperties) {
+    return new AntBuild().setBuildLocation(buildFile).setTargets(targets).setProperties(keyValueProperties);
+  }
+
   public File getAntHome() {
     return antHome;
-  }
-
-  public Location getBuildLocation() {
-    return buildLocation;
-  }
-
-  public List<String> getTargets() {
-    return targets;
   }
 
   public AntBuild setAntHome(File antHome) {
@@ -50,13 +51,26 @@ public final class AntBuild extends Build<AntBuild> {
     return this;
   }
 
+  public Location getBuildLocation() {
+    return buildLocation;
+  }
+
   public AntBuild setBuildLocation(Location buildLocation) {
     this.buildLocation = buildLocation;
     return this;
   }
 
+  public List<String> getTargets() {
+    return targets;
+  }
+
   public AntBuild setTargets(List<String> targets) {
     this.targets = targets;
+    return this;
+  }
+
+  public AntBuild setTargets(String... targets) {
+    this.targets = Arrays.asList(targets);
     return this;
   }
 
@@ -65,11 +79,6 @@ public final class AntBuild extends Build<AntBuild> {
       this.targets = new ArrayList<>();
     }
     this.targets.add(s);
-    return this;
-  }
-
-  public AntBuild setTargets(String... targets) {
-    this.targets = Arrays.asList(targets);
     return this;
   }
 
@@ -84,15 +93,7 @@ public final class AntBuild extends Build<AntBuild> {
   }
 
   @Override
-  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
-    return new AntBuildExecutor().execute(this, config, adjustedProperties);
-  }
-
-  public static AntBuild create() {
-    return new AntBuild();
-  }
-
-  public static AntBuild create(Location buildFile, String[] targets, String... keyValueProperties) {
-    return new AntBuild().setBuildLocation(buildFile).setTargets(targets).setProperties(keyValueProperties);
+  BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
+    return new AntBuildExecutor().execute(this, config, locators, adjustedProperties);
   }
 }

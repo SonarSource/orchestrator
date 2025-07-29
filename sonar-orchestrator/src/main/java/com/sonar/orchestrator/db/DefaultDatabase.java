@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.db;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -47,8 +48,8 @@ public final class DefaultDatabase implements Database {
   private DatabaseClient databaseClient;
   private boolean started = false;
 
-  public DefaultDatabase(Configuration config) {
-    this.databaseClient = DatabaseFactory.create(config, config.locators());
+  public DefaultDatabase(Configuration config, Locators locators) {
+    this.databaseClient = DatabaseFactory.create(config, locators);
   }
 
   public DefaultDatabase(DatabaseClient client) {
@@ -316,7 +317,7 @@ public final class DefaultDatabase implements Database {
     }
     List<String> spids = new ArrayList<>();
     try (Statement stmt = connection.createStatement();
-         ResultSet rs = stmt.executeQuery(sql)) {
+      ResultSet rs = stmt.executeQuery(sql)) {
       while (rs.next()) {
         String spid = rs.getString(1);
         if (!isEmpty(spid)) {

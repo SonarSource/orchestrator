@@ -46,7 +46,7 @@ public class DatabaseFactoryTest {
       .setProperty("sonar.jdbc.password", "password")
       .setProperty("sonar.jdbc.rootUsername", "new_root")
       .setProperty("sonar.jdbc.rootPassword", "new_pass")
-      .setProperty("sonar.jdbc.driverFile", driverFile)
+      .setProperty("sonar.jdbc.driverFile", driverFile.toPath())
       .setProperty("orchestrator.keepDatabase", "yes")
       .build();
 

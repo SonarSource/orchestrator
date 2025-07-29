@@ -17,8 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.config;
+package com.sonar.orchestrator.licenses;
 
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
@@ -26,7 +27,7 @@ import com.sonar.orchestrator.version.Version;
 import java.util.EnumMap;
 import java.util.Map;
 import okhttp3.HttpUrl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static java.lang.String.format;

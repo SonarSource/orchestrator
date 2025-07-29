@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.coverage;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import java.util.Properties;
@@ -36,10 +37,6 @@ public class JaCoCoArgumentsBuilder {
   static String jaCoCoVersion;
   static MavenLocation agentLocation;
 
-  private JaCoCoArgumentsBuilder() {
-    // prevents instantiation
-  }
-
   static {
     Properties props = readProperties("jacoco.properties");
     jaCoCoVersion = props.getProperty("jacoco.version");
@@ -49,6 +46,10 @@ public class JaCoCoArgumentsBuilder {
       .setVersion(jaCoCoVersion)
       .setClassifier("runtime")
       .build();
+  }
+
+  private JaCoCoArgumentsBuilder() {
+    // prevents instantiation
   }
 
   static Properties readProperties(String propertyFileName) {
@@ -66,7 +67,7 @@ public class JaCoCoArgumentsBuilder {
    * @param config
    * @return null if code coverage is not enabled
    */
-  public static String getJaCoCoArgument(Configuration config) {
+  public static String getJaCoCoArgument(Configuration config, Locators locators) {
     String computeCoverage = config.getString("orchestrator.computeCoverage", "false");
     if (!"true".equals(computeCoverage)) {
       return null;
@@ -75,7 +76,7 @@ public class JaCoCoArgumentsBuilder {
     String destFile = config.getString("orchestrator.coverageReportPath", "target/jacoco.exec");
     destFile = FilenameUtils.separatorsToUnix(destFile);
 
-    File jacocoLocation = config.locators().locate(agentLocation);
+    File jacocoLocation = locators.locate(agentLocation);
     if (jacocoLocation == null) {
       throw new IllegalStateException("Unable to locate jacoco: " + agentLocation + " in " + config.fileSystem().mavenLocalRepository());
     }

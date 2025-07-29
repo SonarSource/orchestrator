@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Configuration
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.config;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.CheckForNull;
@@ -30,69 +30,69 @@ import static java.util.Collections.singletonList;
 import static org.apache.commons.io.FileUtils.getUserDirectory;
 
 public class FileSystem {
-  private File orchestratorHome;
+  private final Path orchestratorHome;
   @Nullable
-  private File mavenHome;
-  private File mavenLocalRepository;
-  private File sonarQubeZipsDir;
-  private File workspace;
+  private final Path mavenHome;
+  private final Path mavenLocalRepository;
+  private final Path sonarQubeZipsDir;
+  private final Path workspace;
   @Nullable
-  private File javaHome;
+  private final Path javaHome;
   @Nullable
-  private File antHome;
+  private final Path antHome;
 
-  public FileSystem(File homeDir, Configuration config) {
+  public FileSystem(Path homeDir, Configuration config) {
     this.orchestratorHome = homeDir;
     this.mavenHome = initDir(config, asList("maven.home", "MAVEN_HOME"), null);
-    this.mavenLocalRepository = initDir(config, asList("maven.localRepository", "MAVEN_LOCAL_REPOSITORY"), new File(getUserDirectory(), ".m2/repository"));
-    this.sonarQubeZipsDir = initDir(config, singletonList("orchestrator.sonarInstallsDir"), new File(orchestratorHome, "zips"));
-    this.workspace = initDir(config, singletonList("orchestrator.workspaceDir"), new File("target"));
+    this.mavenLocalRepository = initDir(config, asList("maven.localRepository", "MAVEN_LOCAL_REPOSITORY"), getUserDirectory().toPath().resolve(".m2/repository"));
+    this.sonarQubeZipsDir = initDir(config, singletonList("orchestrator.sonarInstallsDir"), orchestratorHome.resolve("zips"));
+    this.workspace = initDir(config, singletonList("orchestrator.workspaceDir"), Path.of("target"));
     this.javaHome = initDir(config, asList("java.home", "JAVA_HOME"), null);
     this.antHome = initDir(config, asList("ant.home", "ANT_HOME"), null);
   }
 
-  public File mavenLocalRepository() {
-    return mavenLocalRepository;
-  }
-
   @CheckForNull
-  public File mavenHome() {
-    return mavenHome;
-  }
-
-  @CheckForNull
-  public File antHome() {
-    return antHome;
-  }
-
-  @CheckForNull
-  public File javaHome() {
-    return javaHome;
-  }
-
-  public File getOrchestratorHome() {
-    return orchestratorHome;
-  }
-
-  public File getCacheDir() {
-    return new File(orchestratorHome, "cache");
-  }
-
-  public File getSonarQubeZipsDir() {
-    return sonarQubeZipsDir;
-  }
-
-  public File workspace() {
-    return workspace;
-  }
-
-  @CheckForNull
-  private static File initDir(Configuration config, List<String> propertyKeys, @Nullable File defaultFile) {
+  private static Path initDir(Configuration config, List<String> propertyKeys, @Nullable Path defaultPath) {
     return propertyKeys.stream()
       .map(config::getString)
       .filter(Objects::nonNull)
       .findFirst()
-      .map(File::new)
-      .orElse(defaultFile);
+      .map(Path::of)
+      .orElse(defaultPath);
+  }
+
+  public Path mavenLocalRepository() {
+    return mavenLocalRepository;
+  }
+
+  @CheckForNull
+  public Path mavenHome() {
+    return mavenHome;
+  }
+
+  @CheckForNull
+  public Path antHome() {
+    return antHome;
+  }
+
+  @CheckForNull
+  public Path javaHome() {
+    return javaHome;
+  }
+
+  public Path getOrchestratorHome() {
+    return orchestratorHome;
+  }
+
+  public Path getCacheDir() {
+    return orchestratorHome.resolve("cache");
+  }
+
+  public Path getSonarQubeZipsDir() {
+    return sonarQubeZipsDir;
+  }
+
+  public Path workspace() {
+    return workspace;
   }
 }

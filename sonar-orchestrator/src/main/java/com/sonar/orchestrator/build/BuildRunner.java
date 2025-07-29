@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
+import com.sonar.orchestrator.locator.Locators;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -29,13 +30,15 @@ public class BuildRunner {
 
   public static final String SONAR_HOST_URL = "sonar.host.url";
   private final Configuration config;
+  private final Locators locators;
 
-  public BuildRunner(Configuration config) {
+  public BuildRunner(Configuration config, Locators locators) {
     this.config = config;
+    this.locators = locators;
   }
 
   public BuildResult runQuietly(@Nullable Server server, Build<?> build) {
-    return build.execute(config, adjustProperties(server, build));
+    return build.execute(config, locators, adjustProperties(server, build));
   }
 
   public BuildResult run(@Nullable Server server, Build<?> build) {
