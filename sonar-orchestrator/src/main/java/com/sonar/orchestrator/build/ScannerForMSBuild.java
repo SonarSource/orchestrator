@@ -26,14 +26,13 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.version.Version;
-import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
@@ -46,11 +45,11 @@ import static java.util.Objects.requireNonNull;
  * @since 3.13
  */
 public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
+  public static final String LATEST_RELEASE = "LATEST_RELEASE";
   // 4.1.0.1148
   static final int DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION = 4;
   static final int DOT_NET_CORE_INTRODUCTION_MINOR_VERSION = 1;
   public static final String DOT_NET_CORE_INTRODUCTION_VERSION = DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION + "." + DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
-  public static final String LATEST_RELEASE = "LATEST_RELEASE";
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuild.class);
 
   private final GitHub gitHub;
@@ -72,6 +71,46 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     this.gitHub = gitHub;
   }
 
+  private static Optional<String> getLatestScannerVersionFromArtifactory() {
+    Configuration config = Configuration.createEnv();
+    Locators locators = new Locators(config);
+    MavenLocation build = MavenLocation.builder()
+      .setGroupId("org.sonarsource.scanner.msbuild")
+      .setArtifactId("sonar-scanner")
+      .setVersion(LATEST_RELEASE)
+      .build();
+    return locators.maven().resolveVersion(build);
+  }
+
+  public static ScannerForMSBuild create() {
+    return new ScannerForMSBuild();
+  }
+
+  public static ScannerForMSBuild create(File projectDir, String... keyValueProperties) {
+    return
+    // default value
+    create()
+      // incoming values
+      .setProjectDir(projectDir)
+      .setProperties(keyValueProperties);
+  }
+
+  private static void checkDotNetCoreCompatibility(Version scannerVersion, boolean useDotNetCore) {
+    if (useDotNetCore) {
+      checkArgument(scannerVersion != null, "Default version of SonarScanner for MSBuild embedded by Orchestrator does not support .NET Core. "
+        + "Please provide a scanner version >= %s.", DOT_NET_CORE_INTRODUCTION_VERSION);
+      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION),
+        "Version of ScannerForMSBuild should be greater than or equals to %s to be able to use .Net Core.",
+        DOT_NET_CORE_INTRODUCTION_VERSION);
+    }
+  }
+
+  private static void checkProjectDir(File dir) {
+    requireNonNull(dir, "Project directory must be set");
+    checkArgument(dir.exists(), "Project directory must exist");
+    checkArgument(dir.isDirectory(), "Project directory must be... a directory");
+  }
+
   @CheckForNull
   public Version scannerVersion() {
     return scannerVersion;
@@ -90,21 +129,7 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   }
 
   /**
-   * Providing a .NET Core executable to be used during analysis, force usage of .NET Core version of the scanner. If
-   * not provided and usage of .NET Core is enabled, orchestrator will assume that the dotnet executable is available in PATH.
-   *
-   * Note that there is no need to call {@link #setUseDotNetCore(boolean)} if manually setting the dotnet executable.
-   *
-   * @param dotNetCoreExecutable the path to the .NET Core executable
-   * @return The scanner being built
-   */
-  public ScannerForMSBuild setDotNetCoreExecutable(File dotNetCoreExecutable) {
-    this.dotNetCoreExecutable = dotNetCoreExecutable;
-    return setUseDotNetCore(true);
-  }
-
-  /**
-   * In order to use .NET Core, the provided version of SonarScanner for MSBuild should be higher or 
+   * In order to use .NET Core, the provided version of SonarScanner for MSBuild should be higher or
    * equal to {@link ScannerForMSBuild#DOT_NET_CORE_INTRODUCTION_VERSION}.
    *
    * @return true if using .NET Core and provided version of SonarScanner for MSBuild is compatible.
@@ -122,8 +147,28 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return dotNetCoreExecutable;
   }
 
+  /**
+   * Providing a .NET Core executable to be used during analysis, force usage of .NET Core version of the scanner. If
+   * not provided and usage of .NET Core is enabled, orchestrator will assume that the dotnet executable is available in PATH.
+   *
+   * Note that there is no need to call {@link #setUseDotNetCore(boolean)} if manually setting the dotnet executable.
+   *
+   * @param dotNetCoreExecutable the path to the .NET Core executable
+   * @return The scanner being built
+   */
+  public ScannerForMSBuild setDotNetCoreExecutable(File dotNetCoreExecutable) {
+    this.dotNetCoreExecutable = dotNetCoreExecutable;
+    return setUseDotNetCore(true);
+  }
+
   public File getProjectDir() {
     return projectDir;
+  }
+
+  public ScannerForMSBuild setProjectDir(File dir) {
+    checkProjectDir(dir);
+    this.projectDir = dir;
+    return this;
   }
 
   @CheckForNull
@@ -133,6 +178,11 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
 
   public boolean isDebugLogs() {
     return debugLogs;
+  }
+
+  public ScannerForMSBuild setDebugLogs(boolean b) {
+    this.debugLogs = b;
+    return this;
   }
 
   public ScannerForMSBuild setScannerVersion(String s) {
@@ -151,30 +201,9 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return this;
   }
 
-  private static Optional<String> getLatestScannerVersionFromArtifactory() {
-    Locators locators = Configuration.createEnv().locators();
-    MavenLocation build = MavenLocation.builder()
-      .setGroupId("org.sonarsource.scanner.msbuild")
-      .setArtifactId("sonar-scanner")
-      .setVersion(LATEST_RELEASE)
-      .build();
-    return locators.maven().resolveVersion(build);
-  }
-
   public ScannerForMSBuild setScannerLocation(Location location) {
     requireNonNull(location);
     this.location = location;
-    return this;
-  }
-
-  public ScannerForMSBuild setProjectDir(File dir) {
-    checkProjectDir(dir);
-    this.projectDir = dir;
-    return this;
-  }
-
-  public ScannerForMSBuild setProjectKey(@Nullable String s) {
-    this.projectKey = s;
     return this;
   }
 
@@ -182,8 +211,8 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return projectKey;
   }
 
-  public ScannerForMSBuild setProjectVersion(@Nullable String s) {
-    this.projectVersion = s;
+  public ScannerForMSBuild setProjectKey(@Nullable String s) {
+    this.projectKey = s;
     return this;
   }
 
@@ -191,8 +220,8 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return projectVersion;
   }
 
-  public ScannerForMSBuild setProjectName(@Nullable String s) {
-    this.projectName = s;
+  public ScannerForMSBuild setProjectVersion(@Nullable String s) {
+    this.projectVersion = s;
     return this;
   }
 
@@ -200,49 +229,20 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
     return projectName;
   }
 
-  public ScannerForMSBuild setDebugLogs(boolean b) {
-    this.debugLogs = b;
+  public ScannerForMSBuild setProjectName(@Nullable String s) {
+    this.projectName = s;
     return this;
   }
 
-  public static ScannerForMSBuild create() {
-    return new ScannerForMSBuild();
-  }
-
-  public static ScannerForMSBuild create(File projectDir, String... keyValueProperties) {
-    return
-    // default value
-    create()
-      // incoming values
-      .setProjectDir(projectDir)
-      .setProperties(keyValueProperties);
-  }
-
   @Override
-  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+  BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
     check();
-    return new ScannerForMSBuildExecutor().execute(this, config, adjustedProperties);
+    return new ScannerForMSBuildExecutor().execute(this, config, locators, adjustedProperties);
   }
 
   void check() {
     checkProjectDir(projectDir);
     checkDotNetCoreCompatibility(scannerVersion, useDotnetCore);
-  }
-
-  private static void checkDotNetCoreCompatibility(Version scannerVersion, boolean useDotNetCore) {
-    if (useDotNetCore) {
-      checkArgument(scannerVersion != null, "Default version of SonarScanner for MSBuild embedded by Orchestrator does not support .NET Core. "
-        + "Please provide a scanner version >= %s.", DOT_NET_CORE_INTRODUCTION_VERSION);
-      checkState(scannerVersion.isGreaterThanOrEquals(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION),
-        "Version of ScannerForMSBuild should be greater than or equals to %s to be able to use .Net Core.",
-        DOT_NET_CORE_INTRODUCTION_VERSION);
-    }
-  }
-
-  private static void checkProjectDir(File dir) {
-    requireNonNull(dir, "Project directory must be set");
-    checkArgument(dir.exists(), "Project directory must exist");
-    checkArgument(dir.isDirectory(), "Project directory must be... a directory");
   }
 
 }

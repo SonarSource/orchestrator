@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.locator;
 
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
 import java.io.InputStream;
@@ -30,7 +31,11 @@ public class Locators {
   private final ResourceLocator resourceLocator;
   private final URLLocator urlLocator;
 
-  public Locators(FileSystem fileSystem, Artifactory artifactory) {
+  public Locators(Configuration configuration) {
+    this(configuration.fileSystem(), ArtifactoryFactory.createArtifactory(configuration));
+  }
+
+  Locators(FileSystem fileSystem, Artifactory artifactory) {
     fileLocator = new FileLocator();
     mavenLocator = new MavenLocator(fileSystem, artifactory);
     resourceLocator = new ResourceLocator();

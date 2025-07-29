@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
@@ -133,9 +134,9 @@ public class SonarScanner extends Build<SonarScanner> {
   }
 
   @Override
-  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+  BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
     check();
-    return new SonarScannerExecutor().execute(this, config, adjustedProperties);
+    return new SonarScannerExecutor().execute(this, config, locators, adjustedProperties);
   }
 
   void check() {

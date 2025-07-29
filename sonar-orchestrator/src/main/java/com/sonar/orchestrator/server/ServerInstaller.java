@@ -115,7 +115,7 @@ public class ServerInstaller {
   }
 
   private File unzip(Packaging packaging) {
-    File toDir = new File(configuration.fileSystem().workspace(), valueOf(sharedDirId.addAndGet(1)));
+    File toDir = new File(configuration.fileSystem().workspace().toFile(), valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {

@@ -50,6 +50,25 @@ public class MavenLocation implements Location {
     }
   }
 
+  public static MavenLocation create(String groupId, String artifactId, String version) {
+    return builder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).build();
+  }
+
+  public static MavenLocation create(String groupId, String artifactId, String version, String classifier) {
+    return builder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).setClassifier(classifier).build();
+  }
+
+  /**
+   * @since 2.10.1. Shortcut for {@link #create(String, String, String)}
+   */
+  public static MavenLocation of(String groupId, String artifactId, String version) {
+    return create(groupId, artifactId, version);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public String getGroupId() {
     return groupId;
   }
@@ -102,26 +121,6 @@ public class MavenLocation implements Location {
     } else {
       return String.format("[%s:%s:%s:%s:%s]", groupId, artifactId, version, classifier, packaging);
     }
-  }
-
-  public static MavenLocation create(String groupId, String artifactId, String version) {
-    return builder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).build();
-  }
-
-  public static MavenLocation create(String groupId, String artifactId, String version, String classifier) {
-    return builder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).setClassifier(classifier).build();
-  }
-
-
-  /**
-   * @since 2.10.1. Shortcut for {@link #create(String, String, String)}
-   */
-  public static MavenLocation of(String groupId, String artifactId, String version) {
-    return create(groupId, artifactId, version);
-  }
-
-  public static Builder builder() {
-    return new Builder();
   }
 
   public static class Builder<G extends Builder<G>> {
