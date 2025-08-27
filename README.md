@@ -1,5 +1,4 @@
-[![Build Status](https://api.cirrus-ci.com/github/SonarSource/orchestrator.svg?branch=master)](https://cirrus-ci.com/github/SonarSource/orchestrator) [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.sonarsource.orchestrator%3Aorchestrator-parent&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.sonarsource.orchestrator%3Aorchestrator-parent)
-
+[![Build Status](https://github.com/SonarSource/orchestrator/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/SonarSource/orchestrator/actions/workflows/build.yml?query=branch%3Amaster)
 Orchestrator is a Java library to install and run SonarQube from tests.
 
 ## JUnit 4 API

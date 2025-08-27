@@ -32,7 +32,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class ArtifactoryFactoryTest {
 
-  private static final String DEFAULT_REPOSITORY = "https://repox.jfrog.io/repox";
+  private static final String DEFAULT_REPOSITORY = "https://repox.jfrog.io/artifactory";
   private static final String SOME_MAVEN_REPOSITORY = "https://localhost:9000/maven-repo";
   private static final String ACCESS_TOKEN = "access_token";
   private static final String API_KEY = "api_key";
