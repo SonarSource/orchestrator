@@ -27,7 +27,7 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 public class ArtifactoryFactory {
 
   private static final String DEFAULT_ARTIFACTORY_PREFIX = "https://repox.jfrog.io";
-  private static final String DEFAULT_ARTIFACTORY_URL = DEFAULT_ARTIFACTORY_PREFIX + "/repox";
+  private static final String DEFAULT_ARTIFACTORY_URL = DEFAULT_ARTIFACTORY_PREFIX + "/artifactory";
 
   /**
    * Two types of Artifactory are supported: Maven and Default.
