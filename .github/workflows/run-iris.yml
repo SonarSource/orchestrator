@@ -1,0 +1,93 @@
+name: Sonar Execute IRIS
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+  statuses: read  # To retrieve the BuildNumber
+  checks: read # To use the wait-for-required-github-checks-run action
+
+on:
+  schedule:
+    - cron: '40 3 * * *'
+  workflow_dispatch:
+    inputs:
+      github_environment:
+        description: Github Environment
+        required: false
+        type: string
+        default: "ManualDispactch"
+      runner_label:
+        description: Github Action runner
+        required: false
+        type: string
+        default: "sonar-runner-on-demand"
+
+jobs:
+  run-iris:
+    name: "run-iris"
+    runs-on: github-ubuntu-latest-m
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 # Having a shallow clone here reduces overhead significantly
+          fetch-tags: false
+      - name: Mise setup
+        id: mise-setup
+        uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8 # v2.1.11
+        with:
+          ## ${{ github.ref_name == github.event.repository.default_branch }}
+          ## This can be used to only cache runs on the default branch
+          cache_save: True
+          cache_key_prefix: 'mise-v1'
+          mise_toml: |
+            [tools]
+            poetry = '1.8.5'
+            python = '3.13'
+            pipenv = '2024.4.0'
+            sops = '3.9.0'
+            "npm:aws-cdk" = "v2"
+            "npm:newman" = "latest"
+            java = ['corretto-21', 'corretto-17']
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Print versions
+        run: |
+          echo "NPM: $(npm -v)"
+          echo "Python: $(python3 --version)"
+          echo "Pip: $(pip --version)"
+          echo "Pipenv: $(pipenv --version)"
+          echo "Poetry: $(poetry --version)"
+          echo "Node: $(node --version)"
+          echo "CDK: $(cdk --version)"
+          echo "Newman: $(newman --version)"
+          echo "Default Java: $(java --version)"
+          echo "All Java distributions installed: $(env | grep JAVA_)"
+        shell: bash
+      - name: Get sonar token from Vault
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@d6d745ffdbc82b040df839b903bc33b5592cd6b0
+        with:
+          # next, token.next, next.token, data.next
+          secrets: |
+            development/kv/data/iris next | SONAR_IRIS_NEXT_TOKEN;
+            development/kv/data/iris sqc-eu | SONAR_IRIS_SQC_EU_TOKEN;
+            development/kv/data/iris sqc-us | SONAR_IRIS_SQC_US_TOKEN;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USERNAME;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+            development/kv/data/repox artifactory_url | ARTIFACTORY_URL;
+      - name: Run IRIS
+        run: |
+          chmod +x ./.github/run_iris.sh
+          ./.github/run_iris.sh
+        env:
+          SONAR_SQC_EU_URL: "https://sonarcloud.io"
+          SONAR_IRIS_SQC_EU_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_IRIS_SQC_EU_TOKEN }}
+          SONAR_SQC_US_URL: "https://sonarqube.us"
+          SONAR_IRIS_SQC_US_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_IRIS_SQC_US_TOKEN }}
+          SONAR_NEXT_URL: "https://next.sonarqube.com/sonarqube"
+          SONAR_IRIS_NEXT_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_IRIS_NEXT_TOKEN }}
+          ARTIFACTORY_USERNAME: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+          ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
