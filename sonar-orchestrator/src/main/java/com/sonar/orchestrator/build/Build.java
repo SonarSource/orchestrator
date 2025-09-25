@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
+import com.sonar.orchestrator.locator.Locators;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -191,6 +192,6 @@ public abstract class Build<T extends Build<T>> {
     return setProperty("sonar.dynamicAnalysis", "false");
   }
 
-  abstract BuildResult execute(Configuration config, Map<String, String> adjustedProperties);
+  abstract BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties);
 
 }

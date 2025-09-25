@@ -22,7 +22,7 @@ package com.sonar.orchestrator.locator;
 import java.net.URISyntaxException;
 import java.net.URL;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static java.util.Objects.requireNonNull;
 

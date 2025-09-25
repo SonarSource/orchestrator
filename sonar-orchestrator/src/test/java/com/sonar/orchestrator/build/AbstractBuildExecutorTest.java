@@ -21,6 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +42,9 @@ public class AbstractBuildExecutorTest {
 
     Configuration config = Configuration.create(new HashMap<String, String>());
 
-    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
+    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, null, "SONAR_OPTS");
+
+    assertThat(env).isEmpty();
   }
 
   @Test
@@ -53,8 +56,9 @@ public class AbstractBuildExecutorTest {
       .addProperties(singletonMap("orchestrator.computeCoverage", "true"))
       .addEnvVariables()
       .build();
+    Locators locators = new Locators(config);
 
-    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
+    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, locators, "SONAR_OPTS");
 
     assertThat(env.get("SONAR_OPTS")).startsWith("foo -javaagent:");
   }
@@ -67,8 +71,9 @@ public class AbstractBuildExecutorTest {
       .addProperties(singletonMap("orchestrator.computeCoverage", "true"))
       .addEnvVariables()
       .build();
+    Locators locators = new Locators(config);
 
-    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, "SONAR_OPTS");
+    AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, locators, "SONAR_OPTS");
 
     assertThat(env.get("SONAR_OPTS")).startsWith("-javaagent:");
   }

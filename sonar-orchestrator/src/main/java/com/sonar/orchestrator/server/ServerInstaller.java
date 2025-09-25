@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +115,7 @@ public class ServerInstaller {
   }
 
   private File unzip(Packaging packaging) {
-    File toDir = new File(configuration.fileSystem().workspace(), valueOf(sharedDirId.addAndGet(1)));
+    File toDir = new File(configuration.fileSystem().workspace().toFile(), valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {

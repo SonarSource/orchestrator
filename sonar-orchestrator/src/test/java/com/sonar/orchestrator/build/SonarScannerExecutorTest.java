@@ -56,7 +56,7 @@ public class SonarScannerExecutorTest {
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
-    new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
+    new SonarScannerExecutor().execute(build, Configuration.create(), null, props, installer, executor);
 
     verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
       && c.toCommandLine().contains("sonar-runner")
@@ -79,7 +79,7 @@ public class SonarScannerExecutorTest {
     CommandExecutor executor = mock(CommandExecutor.class);
     when(executor.execute(any(Command.class), any(StreamConsumer.class), anyLong())).thenReturn(2);
 
-    new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
+    new SonarScannerExecutor().execute(build, Configuration.create(), null, props, installer, executor);
 
     verify(executor).execute(argThat(c -> c.getDirectory().equals(new File("."))
       && c.toCommandLine().contains("sonar-scanner.sh")
@@ -100,7 +100,7 @@ public class SonarScannerExecutorTest {
 
     CommandExecutor executor = mock(CommandExecutor.class);
 
-    new SonarScannerExecutor().execute(build, Configuration.create(), props, installer, executor);
+    new SonarScannerExecutor().execute(build, Configuration.create(), null, props, installer, executor);
     verify(installer).install(eq(build.scannerVersion()), eq(classifier), any());
   }
 }
