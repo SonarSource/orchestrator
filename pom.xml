@@ -57,6 +57,9 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
     <maven.compiler.release>8</maven.compiler.release>
+    <sonarVersion>5.1</sonarVersion>
+    <sonar.organization>sonarsource</sonar.organization>
+    <sonar.projectKey>org.sonarsource.orchestrator:orchestrator-parent</sonar.projectKey>
   </properties>
 
   <dependencyManagement>
