@@ -36,7 +36,6 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>${commonsIO.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>
