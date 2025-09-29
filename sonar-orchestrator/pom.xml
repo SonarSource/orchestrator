@@ -45,7 +45,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-exec</artifactId>
-      <version>${commonsExec.version}</version>
     </dependency>
     <dependency>
       <groupId>com.eclipsesource.minimal-json</groupId>
