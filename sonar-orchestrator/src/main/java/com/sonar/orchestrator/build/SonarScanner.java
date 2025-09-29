@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;

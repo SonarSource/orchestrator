@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.lang3.text.StrSubstitutor;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;

@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

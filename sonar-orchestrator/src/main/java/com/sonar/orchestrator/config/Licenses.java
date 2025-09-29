@@ -26,7 +26,7 @@ import com.sonar.orchestrator.version.Version;
 import java.util.EnumMap;
 import java.util.Map;
 import okhttp3.HttpUrl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static java.lang.String.format;

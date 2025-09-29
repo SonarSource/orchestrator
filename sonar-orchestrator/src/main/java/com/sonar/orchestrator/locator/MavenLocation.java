@@ -19,8 +19,8 @@
  */
 package com.sonar.orchestrator.locator;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
