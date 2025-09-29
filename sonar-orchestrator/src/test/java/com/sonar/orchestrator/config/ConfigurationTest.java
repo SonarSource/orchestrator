@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.config;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.test.MockHttpServer;
@@ -170,7 +169,7 @@ public class ConfigurationTest extends PropertyAndEnvTest {
     props.setProperty("orchestrator.configUrl", url.toString());
     Map<String, String> envVariables = new HashMap<>(System.getenv());
     envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
-    setEnv(ImmutableMap.copyOf(envVariables));
+    setEnv(Map.copyOf(envVariables));
     props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
     Configuration config = Configuration.create(props);
 

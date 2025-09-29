@@ -19,9 +19,9 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
+import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class SonarScannerTest {
       .addArguments("--help")
       .setProperty("foo", "bar")
       .setProperty("no_value", null)
-      .setProperties(ImmutableMap.of("one", "1"))
+      .setProperties(Map.of("one", "1"))
       .setScannerVersion("1.4")
       .setSourceEncoding("UTF-8")
       .setProfile("my profile")
