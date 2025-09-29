@@ -25,7 +25,7 @@ import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.util.Map;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
