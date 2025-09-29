@@ -43,7 +43,7 @@
     <version.surefire.plugin>3.5.2</version.surefire.plugin>
     <guava.version>18.0</guava.version>
     <junit.version>4.13.2</junit.version>
-    <slf4j.version>2.0.11</slf4j.version>
+    <slf4j.version>2.0.17</slf4j.version>
     <version.jacoco.plugin>0.8.12</version.jacoco.plugin>
     <sonar.exclusions>
       **/com/sonar/orchestrator/echo/**/*.java,target/generated-sources/**/*
