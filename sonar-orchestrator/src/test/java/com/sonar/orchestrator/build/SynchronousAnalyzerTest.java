@@ -23,10 +23,10 @@ import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.version.Version;
 import java.util.concurrent.TimeUnit;
+import mockwebserver3.junit4.MockWebServerRule;
 import okhttp3.Credentials;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import mockwebserver3.MockResponse;
+import mockwebserver3.RecordedRequest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -39,23 +39,23 @@ public class SynchronousAnalyzerTest {
   @Rule
   public Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
   @Rule
-  public MockWebServer webServer = new MockWebServer();
+  public MockWebServerRule mockWebServerRule = new MockWebServerRule();
 
   @Test
   public void wait_as_long_queue_is_not_empty() throws Exception {
-    webServer.enqueue(new MockResponse().setBody("false"));
-    webServer.enqueue(new MockResponse().setBody("false"));
-    webServer.enqueue(new MockResponse().setBody("true"));
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body("false").build());
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body("false").build());
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body("true").build());
 
-    Server server = new Server(null, null, Edition.COMMUNITY, Version.create("7.3.0.1000"), webServer.url(""), 9001, null);
+    Server server = new Server(null, null, Edition.COMMUNITY, Version.create("7.3.0.1000"), mockWebServerRule.getServer().url(""), 9001, null);
     new SynchronousAnalyzer(server, 1L, 2).waitForDone();
 
     // fast enough to finish before junit timeout
-    assertThat(webServer.getRequestCount()).isEqualTo(3);
+    assertThat(mockWebServerRule.getServer().getRequestCount()).isEqualTo(3);
     for (int i = 0; i < 3; i++) {
-      RecordedRequest recordedRequest = webServer.takeRequest();
-      assertThat(recordedRequest.getPath()).isEqualTo(SynchronousAnalyzer.RELATIVE_PATH);
-      assertThat(recordedRequest.getHeader("Authorization")).isEqualTo(Credentials.basic("admin", "admin"));
+      RecordedRequest recordedRequest = mockWebServerRule.getServer().takeRequest();
+      assertThat(recordedRequest.getTarget()).isEqualTo(SynchronousAnalyzer.RELATIVE_PATH);
+      assertThat(recordedRequest.getHeaders().get("Authorization")).isEqualTo(Credentials.basic("admin", "admin"));
     }
   }
 

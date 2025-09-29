@@ -19,8 +19,8 @@
  */
 package com.sonar.orchestrator.locator;
 
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import mockwebserver3.MockResponse;
+import mockwebserver3.junit4.MockWebServerRule;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,13 +29,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GitHubImplTest {
   @Rule
-  public MockWebServer server = new MockWebServer();
+  public MockWebServerRule mockWebServerRule = new MockWebServerRule();
 
   @Test
   public void getLatestScannerReleaseVersion_returns_valid_version() {
     prepareResponse("1.2.3.4");
 
-    GitHubImpl sut = new GitHubImpl(server.url("/").toString());
+    GitHubImpl sut = new GitHubImpl(mockWebServerRule.getServer().url("/").toString());
     String latestVersion = sut.getLatestScannerReleaseVersion();
     assertThat(latestVersion).isEqualTo("1.2.3.4");
   }
@@ -44,12 +44,12 @@ public class GitHubImplTest {
   public void getLatestScannerReleaseVersion_two_calls_make_a_single_request() {
     prepareResponse("version");
 
-    GitHubImpl sut = new GitHubImpl(server.url("/").toString());
+    GitHubImpl sut = new GitHubImpl(mockWebServerRule.getServer().url("/").toString());
     String first = sut.getLatestScannerReleaseVersion();
     assertThat(first).isEqualTo("version");
     String second = sut.getLatestScannerReleaseVersion();
     assertThat(second).isEqualTo("version");
-    assertThat(server.getRequestCount()).isEqualTo(1);
+    assertThat(mockWebServerRule.getServer().getRequestCount()).isEqualTo(1);
   }
 
   @After
@@ -58,6 +58,6 @@ public class GitHubImplTest {
   }
 
   private void prepareResponse(String version) {
-    server.enqueue(new MockResponse().setBody("{ \"tag_name\": \"" + version + "\" }"));
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body("{ \"tag_name\": \"" + version + "\" }").build());
   }
 }

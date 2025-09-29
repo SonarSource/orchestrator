@@ -11,7 +11,7 @@
 
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
-    <okhttp.version>4.5.0</okhttp.version>
+    <okhttp.version>5.1.0</okhttp.version>
     <jacoco.version>0.8.13</jacoco.version>
     <argLine/>
   </properties>
@@ -24,7 +24,7 @@
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp</artifactId>
+      <artifactId>okhttp-jvm</artifactId>
       <version>${okhttp.version}</version>
     </dependency>
     <dependency>
@@ -156,7 +156,7 @@
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>mockwebserver</artifactId>
+      <artifactId>mockwebserver3-junit4</artifactId>
       <version>${okhttp.version}</version>
       <scope>test</scope>
     </dependency>

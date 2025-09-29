@@ -22,9 +22,9 @@ package com.sonar.orchestrator.locator;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import mockwebserver3.MockResponse;
+import mockwebserver3.RecordedRequest;
+import mockwebserver3.junit4.MockWebServerRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.DisableOnDebug;
@@ -38,20 +38,41 @@ import static org.junit.Assert.assertThrows;
 
 public class MavenArtifactoryTest {
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
-  @Rule
-  public MockWebServer server = new MockWebServer();
-  @Rule
-  public TestRule safeguardTimeout = new DisableOnDebug(Timeout.seconds(60L));
-
   private static final MavenLocation SONAR_PLUGIN_API = MavenLocation.builder()
     .setGroupId("org.sonarsource.sonarqube")
     .setArtifactId("sonar-plugin-api")
     .setVersion("3.0")
     .build();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
+  @Rule
+  public MockWebServerRule mockWebServerRule = new MockWebServerRule();
+  @Rule
+  public TestRule safeguardTimeout = new DisableOnDebug(Timeout.seconds(60L));
+
+  private static String getContent() {
+    return "<metadata>" +
+      "<groupId>org.sonarsource.sonarqube</groupId>" +
+      "<artifactId>sonar-plugin-api</artifactId>" +
+      "<versioning>" +
+      "<latest>3.0.1.54424</latest>" +
+      "<release>3.0.1.54424</release>" +
+      "<versions>" +
+      "<version>1.0</version>" +
+      "<version>1.0.1</version>" +
+      "<version>1.1</version>" +
+      "<version>2.0</version>" +
+      "<version>2.0.1</version>" +
+      "<version>3.0</version>" +
+      "<version>3.0.1</version>" +
+      "<version>3.0.1.54424</version>" +
+      "</versions>" +
+      "<lastUpdated>20221018072817</lastUpdated>" +
+      "</versioning>" +
+      "</metadata>";
+  }
 
   @Test
   public void downloadToFile_whenSuccessful() throws Exception {
@@ -65,9 +86,9 @@ public class MavenArtifactoryTest {
     assertThat(found).isTrue();
     assertThat(targetFile).exists().hasContent("this_is_bytecode");
 
-    RecordedRequest request = server.takeRequest();
-    assertThat(request.getPath()).isEqualTo("/org/sonarsource/sonarqube/sonar-plugin-api/3.0/sonar-plugin-api-3.0.jar");
-    assertThat(request.getHeader("Authorization")).isNull();
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/org/sonarsource/sonarqube/sonar-plugin-api/3.0/sonar-plugin-api-3.0.jar");
+    assertThat(request.getHeaders().get("Authorization")).isNull();
   }
 
   @Test
@@ -93,33 +114,11 @@ public class MavenArtifactoryTest {
   }
 
   private void prepareServerResponse(String content) {
-    server.enqueue(new MockResponse().setBody(content));
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body(content).build());
   }
 
   private MavenArtifactory getMavenArtifactory() throws IOException {
-    return new MavenArtifactory(temp.newFolder(), server.url("/").toString());
-  }
-
-  private static String getContent() {
-    return "<metadata>" +
-      "<groupId>org.sonarsource.sonarqube</groupId>" +
-      "<artifactId>sonar-plugin-api</artifactId>" +
-      "<versioning>" +
-      "<latest>3.0.1.54424</latest>" +
-      "<release>3.0.1.54424</release>" +
-      "<versions>" +
-      "<version>1.0</version>" +
-      "<version>1.0.1</version>" +
-      "<version>1.1</version>" +
-      "<version>2.0</version>" +
-      "<version>2.0.1</version>" +
-      "<version>3.0</version>" +
-      "<version>3.0.1</version>" +
-      "<version>3.0.1.54424</version>" +
-      "</versions>" +
-      "<lastUpdated>20221018072817</lastUpdated>" +
-      "</versioning>" +
-      "</metadata>";
+    return new MavenArtifactory(temp.newFolder(), mockWebServerRule.getServer().url("/").toString());
   }
 
 }
