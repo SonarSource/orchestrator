@@ -206,32 +206,31 @@ public class HttpCall {
   }
 
   private Request buildOkHttpRequest() {
-    Request.Builder okRequest;
-    switch (method) {
-      case GET:
+    Request.Builder okRequest = switch (method) {
+      case GET -> {
         // parameters of GET request are sent in the URL
         HttpUrl.Builder okUrl = baseUrl.newBuilder();
         parameters.forEach(okUrl::setQueryParameter);
-        okRequest = new Request.Builder().url(okUrl.build());
-        break;
-      case POST:
+        yield new Request.Builder().url(okUrl.build());
+      }
+      case POST -> {
         // parameters of POST request are sent in the body
-        okRequest = new Request.Builder().url(baseUrl);
+        Request.Builder builder = new Request.Builder().url(baseUrl);
         FormBody.Builder schwarzy = new FormBody.Builder();
         parameters.entrySet().stream()
           .filter(e -> e.getValue() != null)
           .forEach(e -> schwarzy.add(e.getKey(), e.getValue()));
-        okRequest.post(schwarzy.build());
-        break;
-      case MULTIPART_POST:
-        okRequest = new Request.Builder().url(baseUrl);
+        builder.post(schwarzy.build());
+        yield builder;
+      }
+      case MULTIPART_POST -> {
+        Request.Builder builder = new Request.Builder().url(baseUrl);
         MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
         parameters.forEach(bodyBuilder::addFormDataPart);
-        okRequest.post(bodyBuilder.build());
-        break;
-      default:
-        throw new UnsupportedOperationException("Unsupported HTTP method: " + method);
-    }
+        builder.post(bodyBuilder.build());
+        yield builder;
+      }
+    };
     headers.forEach(okRequest::header);
     return okRequest.build();
   }

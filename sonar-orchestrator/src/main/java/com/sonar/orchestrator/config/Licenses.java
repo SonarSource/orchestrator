@@ -55,21 +55,12 @@ public class Licenses {
       throw new IllegalArgumentException(String.format("Commercial licenses of SonarQube %s are no longer supported", version));
     }
     return licensesPerEdition.computeIfAbsent(edition, e -> {
-      String filename;
-      switch (e) {
-        case DEVELOPER:
-          filename = "de.txt";
-          break;
-        case ENTERPRISE:
-        case ENTERPRISE_LW:
-          filename = "ee.txt";
-          break;
-        case DATACENTER:
-          filename = "dce.txt";
-          break;
-        default:
-          throw new IllegalStateException("License does not exist for edition " + e);
-      }
+      String filename = switch (e) {
+        case DEVELOPER -> "de.txt";
+        case ENTERPRISE, ENTERPRISE_LW -> "ee.txt";
+        case DATACENTER -> "dce.txt";
+        default -> throw new IllegalStateException("License does not exist for edition " + e);
+      };
       return download(baseUrl + "master/edition_testing/" + filename);
     });
   }
