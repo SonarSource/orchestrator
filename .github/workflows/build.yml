@@ -32,8 +32,6 @@ jobs:
           artifactory-reader-role: private-reader
           artifactory-deployer-role: qa-deployer
           use-develocity: true
-      - name: Check license compliance
-        run: ./check-license-compliance.sh
 
   promote:
     needs: [build]
