@@ -21,7 +21,7 @@ package com.sonar.orchestrator.util;
 
 public final class CommandException extends RuntimeException {
 
-  private transient Command command = null;
+  private final transient Command command;
 
   public CommandException(Command command, String message, Throwable throwable) {
     super(message + " [command: " + command + "]", throwable);
