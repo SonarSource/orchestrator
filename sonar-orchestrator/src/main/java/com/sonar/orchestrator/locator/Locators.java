@@ -50,14 +50,14 @@ public class Locators {
 
   public File locate(Location location) {
     File file;
-    if (location instanceof FileLocation) {
-      file = fileLocator.locate((FileLocation) location);
-    } else if (location instanceof MavenLocation) {
-      file = mavenLocator.locate((MavenLocation) location);
-    } else if (location instanceof ResourceLocation) {
-      file = resourceLocator.locate((ResourceLocation) location);
-    } else if (location instanceof URLLocation) {
-      file = urlLocator.locate((URLLocation) location);
+    if (location instanceof FileLocation fileLocation) {
+      file = fileLocator.locate(fileLocation);
+    } else if (location instanceof MavenLocation mavenLocation) {
+      file = mavenLocator.locate(mavenLocation);
+    } else if (location instanceof ResourceLocation resourceLocation) {
+      file = resourceLocator.locate(resourceLocation);
+    } else if (location instanceof URLLocation urlLocation) {
+      file = urlLocator.locate(urlLocation);
     } else {
       throw throwNotSupported(location);
     }
@@ -75,14 +75,14 @@ public class Locators {
    */
   public File copyToDirectory(Location location, File toDir) {
     File file;
-    if (location instanceof FileLocation) {
-      file = fileLocator.copyToDirectory((FileLocation) location, toDir);
-    } else if (location instanceof MavenLocation) {
-      file = mavenLocator.copyToDirectory((MavenLocation) location, toDir);
-    } else if (location instanceof ResourceLocation) {
-      file = resourceLocator.copyToDirectory((ResourceLocation) location, toDir);
-    } else if (location instanceof URLLocation) {
-      file = urlLocator.copyToDirectory((URLLocation) location, toDir);
+    if (location instanceof FileLocation fileLocation) {
+      file = fileLocator.copyToDirectory(fileLocation, toDir);
+    } else if (location instanceof MavenLocation mavenLocation) {
+      file = mavenLocator.copyToDirectory(mavenLocation, toDir);
+    } else if (location instanceof ResourceLocation resourceLocation) {
+      file = resourceLocator.copyToDirectory(resourceLocation, toDir);
+    } else if (location instanceof URLLocation urlLocation) {
+      file = urlLocator.copyToDirectory(urlLocation, toDir);
     } else {
       throw throwNotSupported(location);
     }
@@ -91,14 +91,14 @@ public class Locators {
 
   public File copyToFile(Location location, File toFile) {
     File file;
-    if (location instanceof FileLocation) {
-      file = fileLocator.copyToFile((FileLocation) location, toFile);
-    } else if (location instanceof MavenLocation) {
-      file = mavenLocator.copyToFile((MavenLocation) location, toFile);
-    } else if (location instanceof ResourceLocation) {
-      file = resourceLocator.copyToFile((ResourceLocation) location, toFile);
-    } else if (location instanceof URLLocation) {
-      file = urlLocator.copyToFile((URLLocation) location, toFile);
+    if (location instanceof FileLocation fileLocation) {
+      file = fileLocator.copyToFile(fileLocation, toFile);
+    } else if (location instanceof MavenLocation mavenLocation) {
+      file = mavenLocator.copyToFile(mavenLocation, toFile);
+    } else if (location instanceof ResourceLocation resourceLocation) {
+      file = resourceLocator.copyToFile(resourceLocation, toFile);
+    } else if (location instanceof URLLocation urlLocation) {
+      file = urlLocator.copyToFile(urlLocation, toFile);
     } else {
       throw throwNotSupported(location);
     }
@@ -107,14 +107,14 @@ public class Locators {
 
   public InputStream openInputStream(Location location) {
     InputStream input;
-    if (location instanceof FileLocation) {
-      input = fileLocator.openInputStream((FileLocation) location);
-    } else if (location instanceof MavenLocation) {
-      input = mavenLocator.openInputStream((MavenLocation) location);
-    } else if (location instanceof ResourceLocation) {
-      input = resourceLocator.openInputStream((ResourceLocation) location);
-    } else if (location instanceof URLLocation) {
-      input = urlLocator.openInputStream((URLLocation) location);
+    if (location instanceof FileLocation fileLocation) {
+      input = fileLocator.openInputStream(fileLocation);
+    } else if (location instanceof MavenLocation mavenLocation) {
+      input = mavenLocator.openInputStream(mavenLocation);
+    } else if (location instanceof ResourceLocation resourceLocation) {
+      input = resourceLocator.openInputStream(resourceLocation);
+    } else if (location instanceof URLLocation urlLocation) {
+      input = urlLocator.openInputStream(urlLocation);
     } else {
       throw throwNotSupported(location);
     }
