@@ -12,8 +12,7 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <okhttp.version>4.5.0</okhttp.version>
-    <jupiter.version>5.9.1</jupiter.version>
-    <jacoco.version>0.8.10</jacoco.version>
+    <jacoco.version>0.8.13</jacoco.version>
     <argLine/>
   </properties>
 
@@ -81,18 +80,6 @@
       </exclusions>
     </dependency>
 
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
     <!-- Needed if -Dorchestrator.computeCoverage=true -->
     <dependency>
       <groupId>org.jacoco</groupId>
@@ -130,6 +117,22 @@
 
     <!-- unit tests -->
     <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>33.5.0-jre</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
@@ -160,7 +163,6 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${jupiter.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
