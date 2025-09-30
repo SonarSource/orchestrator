@@ -31,7 +31,6 @@ import mockwebserver3.RecordedRequest;
 import mockwebserver3.SocketEffect;
 import mockwebserver3.junit5.StartStop;
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -64,7 +63,7 @@ class HttpCallTest {
 
     verifySuccess(response, PONG);
     RecordedRequest recordedRequest = server.takeRequest();
-    Assertions.assertThat(recordedRequest.getHeaders().get("foo")).isEqualTo("bar");
+    assertThat(recordedRequest.getHeaders().get("foo")).isEqualTo("bar");
   }
 
   @Test
@@ -135,7 +134,7 @@ class HttpCallTest {
     verifySuccess(response, PONG);
     RecordedRequest recordedRequest = server.takeRequest();
     verifyRecorded(recordedRequest, "POST", "api/system/ping");
-    Assertions.assertThat(recordedRequest.getBody().utf8()).isEmpty();
+    assertThat(recordedRequest.getBody().utf8()).isEmpty();
   }
 
   @Test
@@ -172,7 +171,7 @@ class HttpCallTest {
     verifySuccess(response, PONG);
     RecordedRequest recordedRequest = server.takeRequest();
     verifyRecorded(recordedRequest, "POST", "api/system/ping");
-    Assertions.assertThat(recordedRequest.getBody().utf8()).isEqualTo("foo=foz&bar=baz");
+    assertThat(recordedRequest.getBody().utf8()).isEqualTo("foo=foz&bar=baz");
   }
 
   @Test
@@ -188,7 +187,7 @@ class HttpCallTest {
     verifySuccess(response, PONG);
     RecordedRequest recordedRequest = server.takeRequest();
     verifyRecorded(recordedRequest, "POST", "api/system/ping");
-    Assertions.assertThat(recordedRequest.getBody().utf8())
+    assertThat(recordedRequest.getBody().utf8())
       .containsSubsequence("Content-Disposition: form-data; name=\"foo\"", "foz", "Content-Disposition: form-data; name=\"bar\"", "baz");
   }
 
@@ -267,7 +266,7 @@ class HttpCallTest {
     newCall("").execute();
 
     RecordedRequest recordedRequest = server.takeRequest();
-    Assertions.assertThat(recordedRequest.getHeaders().get("Authorization")).isNull();
+    assertThat(recordedRequest.getHeaders().get("Authorization")).isNull();
   }
 
   @Test
@@ -316,7 +315,7 @@ class HttpCallTest {
   }
 
   @Test
-  void downloadToFile_creates_the_file_if_it_does_not_exist(@TempDir Path dir) throws Exception {
+  void downloadToFile_creates_the_file_if_it_does_not_exist(@TempDir Path dir) {
     server.enqueue(new MockResponse.Builder().body(PONG).build());
     File file = new File(dir.toFile(), "ping.txt");
     assertThat(file).doesNotExist();
@@ -327,7 +326,7 @@ class HttpCallTest {
   }
 
   @Test
-  void downloadToFile_creates_the_file_and_its_parent_dirs_if_they_do_not_exist(@TempDir Path dir) throws Exception {
+  void downloadToFile_creates_the_file_and_its_parent_dirs_if_they_do_not_exist(@TempDir Path dir) {
     server.enqueue(new MockResponse.Builder().body(PONG).build());
     File file = new File(dir.toFile(), "foo/bar/ping.txt");
     assertThat(file).doesNotExist();
@@ -482,12 +481,12 @@ class HttpCallTest {
   }
 
   private void verifyRecorded(RecordedRequest recordedRequest, String expectedMethod, String expectedPath) {
-    Assertions.assertThat(recordedRequest.getMethod()).isEqualTo(expectedMethod);
-    Assertions.assertThat(recordedRequest.getTarget()).isEqualTo("/" + expectedPath);
+    assertThat(recordedRequest.getMethod()).isEqualTo(expectedMethod);
+    assertThat(recordedRequest.getTarget()).isEqualTo("/" + expectedPath);
   }
 
   private void verifyHeader(RecordedRequest recordedRequest, String key, String expectedValue) {
-    Assertions.assertThat(recordedRequest.getHeaders().get(key)).isEqualTo(expectedValue);
+    assertThat(recordedRequest.getHeaders().get(key)).isEqualTo(expectedValue);
   }
 
   private HttpCall newCall(String path) {
