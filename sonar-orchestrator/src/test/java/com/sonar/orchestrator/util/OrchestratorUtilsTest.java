@@ -27,21 +27,12 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrchestratorUtilsTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-
-  @Test
-  public void test_isEmpty() {
-    assertThat(isEmpty(null)).isTrue();
-    assertThat(isEmpty("")).isTrue();
-    assertThat(isEmpty("  ")).isFalse();
-    assertThat(isEmpty("foo")).isFalse();
-  }
 
   @Test
   public void checkArgument_does_not_throw_IAE_if_expression_is_true() {

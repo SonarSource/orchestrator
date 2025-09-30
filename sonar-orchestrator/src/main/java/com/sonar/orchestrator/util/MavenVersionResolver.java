@@ -33,7 +33,7 @@ import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class MavenVersionResolver {
 

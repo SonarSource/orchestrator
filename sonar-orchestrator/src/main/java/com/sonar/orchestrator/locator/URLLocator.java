@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.lang.String.format;
 
 class URLLocator implements Locator<URLLocation> {

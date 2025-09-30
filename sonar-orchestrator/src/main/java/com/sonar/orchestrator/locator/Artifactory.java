@@ -37,7 +37,7 @@ import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;

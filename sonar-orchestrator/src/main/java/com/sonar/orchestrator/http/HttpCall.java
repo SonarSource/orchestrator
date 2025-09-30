@@ -42,7 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
 import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
