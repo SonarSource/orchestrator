@@ -316,7 +316,7 @@ class HttpCallTest {
   }
 
   @Test
-  void downloadToFile_creates_the_file_if_it_does_not_exist(@TempDir Path dir) throws Exception {
+  void downloadToFile_creates_the_file_if_it_does_not_exist(@TempDir Path dir) {
     server.enqueue(new MockResponse.Builder().body(PONG).build());
     File file = new File(dir.toFile(), "ping.txt");
     assertThat(file).doesNotExist();
@@ -327,7 +327,7 @@ class HttpCallTest {
   }
 
   @Test
-  void downloadToFile_creates_the_file_and_its_parent_dirs_if_they_do_not_exist(@TempDir Path dir) throws Exception {
+  void downloadToFile_creates_the_file_and_its_parent_dirs_if_they_do_not_exist(@TempDir Path dir) {
     server.enqueue(new MockResponse.Builder().body(PONG).build());
     File file = new File(dir.toFile(), "foo/bar/ping.txt");
     assertThat(file).doesNotExist();
