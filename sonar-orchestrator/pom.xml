@@ -11,7 +11,6 @@
 
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
-    <okhttp.version>5.1.0</okhttp.version>
     <jacoco.version>0.8.13</jacoco.version>
     <argLine/>
   </properties>
@@ -28,9 +27,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp-jvm</artifactId>
-      <version>${okhttp.version}</version>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>sonar-orchestrator-http</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -156,7 +155,6 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver3-junit4</artifactId>
-      <version>${okhttp.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

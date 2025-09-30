@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Http Client
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -38,29 +38,66 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
-import static com.sonar.orchestrator.container.Server.ADMIN_LOGIN;
-import static com.sonar.orchestrator.container.Server.ADMIN_PASSWORD;
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 public class HttpCall {
 
+  private static final String ADMIN_LOGIN = "admin";
+  private static final String ADMIN_PASSWORD = "admin";
+
   private static final String DEFAULT_USER_AGENT = "Orchestrator";
 
   private final OkHttpClient okClient;
   private final HttpUrl baseUrl;
-  private HttpMethod method = HttpMethod.GET;
   private final Map<String, String> parameters = new LinkedHashMap<>();
   private final Map<String, String> headers = new LinkedHashMap<>();
+  private HttpMethod method = HttpMethod.GET;
   private Long timeoutMs = null;
 
   HttpCall(OkHttpClient okClient, HttpUrl baseUrl) {
     this.okClient = okClient;
     this.baseUrl = baseUrl;
     this.headers.put("User-Agent", DEFAULT_USER_AGENT);
+  }
+
+  private static String extractFilename(Response response) {
+    String disposition = response.header("Content-Disposition");
+    String filename;
+    if (disposition == null) {
+      // extract filename from URL
+      filename = StringUtils.substringAfterLast(response.request().url().encodedPath(), "/");
+    } else {
+      filename = disposition.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
+      if (disposition.equals(filename)) {
+        // strange case on bintray: "attachment; filename = sonar-lits-plugin-0.5.jar"
+        filename = StringUtils.substringAfterLast(disposition, "=");
+      }
+      filename = Strings.CS.remove(filename, "\"");
+      filename = Strings.CS.remove(filename, "'");
+      filename = Strings.CS.remove(filename, ";");
+      filename = Strings.CS.remove(filename, " ");
+    }
+
+    if (isEmpty(filename)) {
+      throw new IllegalStateException(
+        format("Can not guess the target filename for download of %s. Header Content-Disposition is missing or empty.", response.request().url()));
+    }
+
+    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+      throw new IllegalStateException("Header Content-Disposition has invalid value: " + filename);
+    }
+
+    return filename;
+  }
+
+  private static void checkArgument(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+    if (!expression) {
+      throw new IllegalArgumentException(format(errorMessageTemplate, errorMessageArgs));
+    }
   }
 
   public HttpUrl getBaseUrl() {
@@ -87,7 +124,6 @@ public class HttpCall {
 
   /**
    * Adds parameter to URL query.
-   *
    * If value is {@code null}, then only the key is sent. For example
    * {@code setParam("foo", null)} sends "?foo".
    */
@@ -98,7 +134,6 @@ public class HttpCall {
 
   /**
    * Adds one or more parameters to URL query
-   *
    * Example: {@code setParams("foo", "value of foo", "bar", "value of bar")}
    *
    * @throws IllegalArgumentException if argument {@code otherKeysAndNames} has odd size
@@ -156,7 +191,7 @@ public class HttpCall {
     Request okRequest = buildOkHttpRequest();
     try {
       doDownloadToFile(okRequest, file);
-    } catch (ProtocolException|SocketException|SocketTimeoutException se) {
+    } catch (ProtocolException | SocketException | SocketTimeoutException se) {
       // retry, because of some false-positives when downloading files from GitHub
       try {
         doDownloadToFile(okRequest, file);
@@ -181,7 +216,7 @@ public class HttpCall {
     Request okRequest = buildOkHttpRequest();
     try {
       return doDownloadToDirectory(dir, okRequest);
-    } catch (ProtocolException|SocketException|SocketTimeoutException se) {
+    } catch (ProtocolException | SocketException | SocketTimeoutException se) {
       // retry, because of some false-positives when downloading files from GitHub
       try {
         return doDownloadToDirectory(dir, okRequest);
@@ -245,37 +280,5 @@ public class HttpCall {
         .build();
     }
     return copy.newCall(okRequest).execute();
-  }
-
-  private static String extractFilename(Response response) {
-    String disposition = response.header("Content-Disposition");
-    String filename;
-    if (disposition == null) {
-      // extract filename from URL
-      filename = StringUtils.substringAfterLast(response.request().url().encodedPath(), "/");
-    } else {
-      filename = disposition.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
-      if (disposition.equals(filename)) {
-        // strange case on bintray: "attachment; filename = sonar-lits-plugin-0.5.jar"
-        filename = StringUtils.substringAfterLast(disposition, "=");
-      }
-      if (filename != null) {
-        filename = StringUtils.remove(filename, "\"");
-        filename = StringUtils.remove(filename, "'");
-        filename = StringUtils.remove(filename, ";");
-        filename = StringUtils.remove(filename, " ");
-      }
-    }
-
-    if (isEmpty(filename)) {
-      throw new IllegalStateException(
-        format("Can not guess the target filename for download of %s. Header Content-Disposition is missing or empty.", response.request().url()));
-    }
-
-    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
-      throw new IllegalStateException("Header Content-Disposition has invalid value: " + filename);
-    }
-
-    return filename;
   }
 }
