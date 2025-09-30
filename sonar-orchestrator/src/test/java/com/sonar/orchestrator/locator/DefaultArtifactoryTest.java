@@ -27,9 +27,9 @@ import com.sonar.orchestrator.config.Configuration;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import mockwebserver3.MockResponse;
+import mockwebserver3.RecordedRequest;
+import mockwebserver3.junit4.MockWebServerRule;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.jetbrains.annotations.Nullable;
@@ -45,19 +45,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultArtifactoryTest {
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
-  @Rule
-  public MockWebServer server = new MockWebServer();
-  @Rule
-  public TestRule safeguardTimeout = new DisableOnDebug(Timeout.seconds(60L));
   private static final MavenLocation SONAR_JAVA_4_5 = MavenLocation.builder()
     .setGroupId("org.sonarsource.java")
     .setArtifactId("sonar-java")
     .setVersion("4.5")
     .build();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
+  @Rule
+  public MockWebServerRule mockWebServerRule = new MockWebServerRule();
+  @Rule
+  public TestRule safeguardTimeout = new DisableOnDebug(Timeout.seconds(60L));
 
   @Test
   public void download_file_with_success() throws Exception {
@@ -74,10 +74,10 @@ public class DefaultArtifactoryTest {
     assertThat(found).isTrue();
     assertThat(targetFile).exists().hasContent("this_is_bytecode");
 
-    RecordedRequest request = server.takeRequest();
-    assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-    assertThat(request.getHeader("X-JFrog-Art-Api")).isNull();
-    assertThat(request.getHeader("Authorization")).isNull();
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
+    assertThat(request.getHeaders().get("X-JFrog-Art-Api")).isNull();
+    assertThat(request.getHeaders().get("Authorization")).isNull();
   }
 
   @Test
@@ -96,15 +96,15 @@ public class DefaultArtifactoryTest {
     assertThat(found).isTrue();
     assertThat(targetFile).exists().hasContent("this_is_bytecode");
 
-    RecordedRequest request1 = server.takeRequest();
-    assertThat(request1.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-    assertThat(request1.getHeader("X-JFrog-Art-Api")).isNull();
-    assertThat(request1.getHeader("Authorization")).isNull();
+    RecordedRequest request1 = mockWebServerRule.getServer().takeRequest();
+    assertThat(request1.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
+    assertThat(request1.getHeaders().get("X-JFrog-Art-Api")).isNull();
+    assertThat(request1.getHeaders().get("Authorization")).isNull();
 
-    RecordedRequest request2 = server.takeRequest();
-    assertThat(request2.getPath()).isEqualTo("/sonarsource-qa/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-    assertThat(request2.getHeader("X-JFrog-Art-Api")).isNull();
-    assertThat(request2.getHeader("Authorization")).isNull();
+    RecordedRequest request2 = mockWebServerRule.getServer().takeRequest();
+    assertThat(request2.getTarget()).isEqualTo("/sonarsource-qa/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
+    assertThat(request2.getHeaders().get("X-JFrog-Art-Api")).isNull();
+    assertThat(request2.getHeaders().get("Authorization")).isNull();
   }
 
   @Test
@@ -122,9 +122,9 @@ public class DefaultArtifactoryTest {
     assertThat(found).isTrue();
     assertThat(targetFile).exists().hasContent("this_is_bytecode");
 
-    RecordedRequest request = server.takeRequest();
-    assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-    assertThat(request.getHeader("X-JFrog-Art-Api")).isEqualTo("abcde");
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
+    assertThat(request.getHeaders().get("X-JFrog-Art-Api")).isEqualTo("abcde");
   }
 
   @Test
@@ -132,9 +132,9 @@ public class DefaultArtifactoryTest {
     prepareDownload("this_is_bytecode");
 
     Configuration configuration = newConfiguration()
-            .setProperty("orchestrator.artifactory.accessToken", "abcde")
-            .setProperty("orchestrator.artifactory.apiKey", "defgh")
-            .build();
+      .setProperty("orchestrator.artifactory.accessToken", "abcde")
+      .setProperty("orchestrator.artifactory.apiKey", "defgh")
+      .build();
     Artifactory underTest = DefaultArtifactory.create(configuration);
 
     File targetFile = temp.newFile();
@@ -143,12 +143,11 @@ public class DefaultArtifactoryTest {
     assertThat(found).isTrue();
     assertThat(targetFile).exists().hasContent("this_is_bytecode");
 
-    RecordedRequest request = server.takeRequest();
-    assertThat(request.getPath()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-    assertThat(request.getHeader("Authorization")).isEqualTo("Bearer abcde");
-    assertThat(request.getHeader("X-JFrog-Art-Api")).isNull();
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
+    assertThat(request.getHeaders().get("Authorization")).isEqualTo("Bearer abcde");
+    assertThat(request.getHeaders().get("X-JFrog-Art-Api")).isNull();
   }
-
 
   @Test
   public void download_considers_unauthorized_error_as_artifact_not_found() throws Exception {
@@ -369,8 +368,8 @@ public class DefaultArtifactoryTest {
 
     DefaultArtifactory.create(configuration).resolveVersion(MavenLocation.of("org.sonarsource.sonarqube", "sonar-plugin-api", "LATEST_RELEASE"));
 
-    RecordedRequest request = server.takeRequest();
-    assertThat(request.getHeader("X-JFrog-Art-Api")).isEqualTo("abcde");
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getHeaders().get("X-JFrog-Art-Api")).isEqualTo("abcde");
   }
 
   @Test
@@ -395,18 +394,18 @@ public class DefaultArtifactoryTest {
   }
 
   private void verifyVersionsRequest(String groupId, String artifactId, String versionLayout, String repositories) throws InterruptedException {
-    RecordedRequest request = server.takeRequest();
-    assertThat(request.getPath()).isEqualTo("/api/search/versions?g=" + groupId + "&a=" + artifactId + "&remote=0&repos=" + repositories + "&v=" + versionLayout);
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/api/search/versions?g=" + groupId + "&a=" + artifactId + "&remote=0&repos=" + repositories + "&v=" + versionLayout);
   }
 
   private Configuration.Builder newConfiguration() throws IOException {
     return Configuration.builder()
       .setProperty("orchestrator.workspaceDir", temp.newFolder().getCanonicalPath())
-      .setProperty("orchestrator.artifactory.url", server.url("/").toString());
+      .setProperty("orchestrator.artifactory.url", mockWebServerRule.getServer().url("/").toString());
   }
 
   private void prepareDownload(String content) {
-    server.enqueue(new MockResponse().setBody(content));
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body(content).build());
   }
 
   private void prepareResponseError(int status) {
@@ -414,15 +413,15 @@ public class DefaultArtifactoryTest {
   }
 
   private void prepareResponseError(int status, @Nullable String message) {
-    MockResponse response = new MockResponse()
-            .setResponseCode(status);
-    if(message != null) {
-      response.setBody(new JsonObject().add(
-              "errors", new JsonArray().add(
-                      new JsonObject().add("message", message)))
-              .toString());
+    MockResponse.Builder responseBuilder = new MockResponse.Builder()
+      .code(status);
+    if (message != null) {
+      responseBuilder.body(new JsonObject().add(
+        "errors", new JsonArray().add(
+          new JsonObject().add("message", message)))
+        .toString());
     }
-    server.enqueue(response);
+    mockWebServerRule.getServer().enqueue(responseBuilder.build());
   }
 
   private void prepareVersions(String... versions) {
@@ -432,6 +431,6 @@ public class DefaultArtifactoryTest {
     }
     JsonValue json = Json.object()
       .add("results", array);
-    server.enqueue(new MockResponse().setBody(json.toString()));
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().body(json.toString()).build());
   }
 }
