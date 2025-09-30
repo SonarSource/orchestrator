@@ -26,7 +26,10 @@ import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 import mockwebserver3.MockResponse;
 import mockwebserver3.RecordedRequest;
@@ -78,6 +81,43 @@ public class DefaultArtifactoryTest {
     assertThat(request.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
     assertThat(request.getHeaders().get("X-JFrog-Art-Api")).isNull();
     assertThat(request.getHeaders().get("Authorization")).isNull();
+  }
+
+  @Test
+  public void download_file_concurrently_with_success() throws Exception {
+    for (int i = 0; i < 10; i++) {
+      prepareDownload("this_is_bytecode");
+    }
+
+    Configuration configuration = newConfiguration()
+      .setProperty("orchestrator.artifactory.apiKey", "")
+      .build();
+    Artifactory underTest = DefaultArtifactory.create(configuration);
+
+    File targetFile = temp.newFile();
+
+    var executor = Executors.newFixedThreadPool(10);
+    var listFutures = new ArrayList<Future<Boolean>>();
+    for (int i = 0; i < 10; i++) {
+      listFutures.add(executor.submit(() -> {
+        try {
+          return underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+        } catch (Exception e) {
+          e.printStackTrace();
+          return false;
+        }
+      }));
+    }
+    executor.shutdown();
+    assertThat(executor.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+
+    for (Future<Boolean> future : listFutures) {
+      assertThat(future.get()).isTrue();
+    }
+    assertThat(targetFile).exists().hasContent("this_is_bytecode");
+
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
   }
 
   @Test

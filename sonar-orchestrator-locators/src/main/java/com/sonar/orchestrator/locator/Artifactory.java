@@ -26,6 +26,8 @@ import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -45,15 +47,15 @@ public abstract class Artifactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(Artifactory.class);
 
-  protected final File tempDir;
+  protected final Path workspace;
   protected final String baseUrl;
   @Nullable
   protected final String apiKey;
   @Nullable
   protected final String accessToken;
 
-  protected Artifactory(File tempDir, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
-    this.tempDir = tempDir;
+  protected Artifactory(Path workspace, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
+    this.workspace = workspace;
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
     this.accessToken = accessToken;
@@ -75,7 +77,7 @@ public abstract class Artifactory {
     return "";
   }
 
-  protected boolean moveFile(File tempFile, File toFile) {
+  protected static synchronized boolean moveFile(File tempFile, File toFile) {
     try {
       FileUtils.deleteQuietly(toFile);
       FileUtils.moveFile(tempFile, toFile);
@@ -148,7 +150,20 @@ public abstract class Artifactory {
 
   public abstract Optional<String> resolveVersion(MavenLocation location);
 
-  public abstract boolean downloadToFile(MavenLocation location, File toFile);
+  public final boolean downloadToFile(MavenLocation location, File toFile) {
+    Path uniqueTempDir;
+    try {
+      uniqueTempDir = Files.createTempDirectory(workspace, location.getArtifactId());
+    } catch (IOException e) {
+      throw new IllegalStateException("Unable to create temp download directory", e);
+    }
+    try {
+      Optional<File> tempFile = this.downloadToDir(location, uniqueTempDir.toFile());
+      return tempFile.filter(file -> moveFile(file, toFile)).isPresent();
+    } finally {
+      FileUtils.deleteQuietly(uniqueTempDir.toFile());
+    }
+  }
 
   public abstract Optional<File> downloadToDir(MavenLocation location, File toDir);
 

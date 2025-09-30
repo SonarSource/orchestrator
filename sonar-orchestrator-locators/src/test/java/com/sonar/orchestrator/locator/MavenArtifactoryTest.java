@@ -119,7 +119,7 @@ public class MavenArtifactoryTest {
   }
 
   private MavenArtifactory getMavenArtifactory() throws IOException {
-    return new MavenArtifactory(temp.newFolder(), mockWebServerRule.getServer().url("/").toString());
+    return new MavenArtifactory(temp.newFolder().toPath(), mockWebServerRule.getServer().url("/").toString());
   }
 
 }

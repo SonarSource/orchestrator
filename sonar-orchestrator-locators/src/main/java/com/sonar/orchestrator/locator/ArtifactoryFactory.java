@@ -21,6 +21,7 @@ package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
 import java.io.File;
+import java.nio.file.Path;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
@@ -38,15 +39,15 @@ public class ArtifactoryFactory {
    * </p>
    */
   public static Artifactory createArtifactory(Configuration configuration) {
-    File downloadTempDir = new File(configuration.fileSystem().workspace().toFile(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), DEFAULT_ARTIFACTORY_URL);
 
+    Path workspace = configuration.fileSystem().workspace();
     if (baseUrl.startsWith(DEFAULT_ARTIFACTORY_PREFIX)) {
       String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
       String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
-      return new DefaultArtifactory(downloadTempDir, baseUrl, accessToken, apiKey);
+      return new DefaultArtifactory(workspace, baseUrl, accessToken, apiKey);
     } else {
-      return new MavenArtifactory(downloadTempDir, baseUrl);
+      return new MavenArtifactory(workspace, baseUrl);
     }
   }
 

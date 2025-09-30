@@ -25,6 +25,7 @@ import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.http.HttpCall;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -37,22 +38,15 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 public class DefaultArtifactory extends Artifactory {
 
-  protected DefaultArtifactory(File tempDir, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
-    super(tempDir, baseUrl, accessToken, apiKey);
+  protected DefaultArtifactory(Path workspace, String baseUrl, @Nullable String accessToken, @Nullable String apiKey) {
+    super(workspace, baseUrl, accessToken, apiKey);
   }
 
   protected static DefaultArtifactory create(Configuration configuration) {
-    File downloadTempDir = new File(configuration.fileSystem().workspace().toFile(), "temp-downloads");
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
-    return new DefaultArtifactory(downloadTempDir, baseUrl, accessToken, apiKey);
-  }
-
-  @Override
-  public boolean downloadToFile(MavenLocation location, File toFile) {
-    Optional<File> tempFile = this.downloadToDir(location, tempDir);
-    return tempFile.filter(file -> super.moveFile(file, toFile)).isPresent();
+    return new DefaultArtifactory(configuration.fileSystem().workspace(), baseUrl, accessToken, apiKey);
   }
 
   @Override

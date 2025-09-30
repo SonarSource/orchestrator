@@ -36,6 +36,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class MavenLocatorTest {
 
@@ -48,7 +49,8 @@ public class MavenLocatorTest {
   @Before
   public void setUp() throws Exception {
     File cacheDir = temp.newFolder();
-    Mockito.when(fileSystem.getCacheDir()).thenReturn(cacheDir.toPath());
+    when(fileSystem.getCacheDir()).thenReturn(cacheDir.toPath());
+    when(fileSystem.mavenLocalRepository()).thenReturn(null);
   }
 
   @Test
@@ -67,7 +69,7 @@ public class MavenLocatorTest {
   public void find_in_maven_local_repository_if_defined() throws IOException {
     File localRepository = temp.newFolder();
     FileUtils.touch(new File(localRepository, "foo/bar/1.0/bar-1.0.jar"));
-    Mockito.when(fileSystem.mavenLocalRepository()).thenReturn(localRepository.toPath());
+    when(fileSystem.mavenLocalRepository()).thenReturn(localRepository.toPath());
     markAsAbsentFromArtifactory();
 
     File file = underTest.locateResolvedVersion(MavenLocation.of("foo", "bar", "1.0"));
@@ -82,7 +84,7 @@ public class MavenLocatorTest {
   public void search_but_not_find_in_maven_local_repository_if_defined() throws IOException {
     File localRepository = temp.newFolder();
     FileUtils.touch(new File(localRepository, "foo/bar/1.0/bar-1.0.jar"));
-    Mockito.when(fileSystem.mavenLocalRepository()).thenReturn(localRepository.toPath());
+    when(fileSystem.mavenLocalRepository()).thenReturn(localRepository.toPath());
     markAsAbsentFromArtifactory();
 
     File file = underTest.locateResolvedVersion(MavenLocation.of("foo", "bar", "1.1"));
@@ -92,7 +94,7 @@ public class MavenLocatorTest {
 
   @Test
   public void download_from_artifactory_and_add_to_cache() throws Exception {
-    Mockito.when(artifactory.downloadToFile(ArgumentMatchers.any(), ArgumentMatchers.any())).thenAnswer((Answer<Boolean>) invocationOnMock -> {
+    when(artifactory.downloadToFile(ArgumentMatchers.any(), ArgumentMatchers.any())).thenAnswer((Answer<Boolean>) invocationOnMock -> {
       File file = (File) invocationOnMock.getArguments()[1];
       FileUtils.write(file, "content of file", StandardCharsets.UTF_8);
       return true;
@@ -112,11 +114,11 @@ public class MavenLocatorTest {
   }
 
   private void markAsAbsentFromArtifactory() {
-    Mockito.when(artifactory.downloadToFile(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(false);
+    when(artifactory.downloadToFile(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(false);
   }
 
   private void markVersionsAsResolved() {
-    Mockito.when(artifactory.resolveVersion(ArgumentMatchers.any())).thenAnswer((Answer<Optional<String>>) invocationOnMock -> {
+    when(artifactory.resolveVersion(ArgumentMatchers.any())).thenAnswer((Answer<Optional<String>>) invocationOnMock -> {
       MavenLocation location = (MavenLocation) invocationOnMock.getArguments()[0];
       return Optional.of(location.getVersion());
     });
