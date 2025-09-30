@@ -24,6 +24,7 @@
     <module>sonar-orchestrator</module>
     <module>sonar-orchestrator-config</module>
     <module>sonar-orchestrator-http</module>
+    <module>sonar-orchestrator-locators</module>
     <module>sonar-orchestrator-junit4</module>
     <module>sonar-orchestrator-junit5</module>
   </modules>
@@ -52,6 +53,7 @@
     <gitRepositoryName>orchestrator</gitRepositoryName>
     <maven.compiler.release>17</maven.compiler.release>
     <sonarVersion>5.1</sonarVersion>
+    <okhttp.version>5.1.0</okhttp.version>
     <sonar.organization>sonarsource</sonar.organization>
     <sonar.projectKey>org.sonarsource.orchestrator:orchestrator-parent</sonar.projectKey>
   </properties>
@@ -82,6 +84,21 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
         <version>1.14.0</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.13</version>
+      </dependency>
+      <dependency>
+        <groupId>com.eclipsesource.minimal-json</groupId>
+        <artifactId>minimal-json</artifactId>
+        <version>0.9.5</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
       </dependency>
       <dependency>
         <groupId>com.squareup.okhttp3</groupId>
@@ -119,6 +136,11 @@
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock-standalone</artifactId>
         <version>3.13.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.stefanbirkner</groupId>
+        <artifactId>system-rules</artifactId>
+        <version>1.19.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

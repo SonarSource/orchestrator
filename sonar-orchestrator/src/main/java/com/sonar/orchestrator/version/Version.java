@@ -19,11 +19,11 @@
  */
 package com.sonar.orchestrator.version;
 
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 
 public class Version implements Comparable<Version> {
 
