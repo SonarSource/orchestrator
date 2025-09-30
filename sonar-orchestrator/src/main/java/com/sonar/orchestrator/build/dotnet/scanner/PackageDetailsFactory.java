@@ -21,22 +21,22 @@ package com.sonar.orchestrator.build.dotnet.scanner;
 
 import com.sonar.orchestrator.version.Version;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nonnull;
-
 public class PackageDetailsFactory {
   // Starting with this version the download paths have changed.
   public static final Version PACKAGING_CHANGE_VERSION = Version.create("6.0.0.81631");
 
-  public PackageDetails create(@NotNull Version scannerVersion, boolean useDotNetCore) {
+  private static boolean hasNewPackageNames(Version scannerVersion) {
+    return scannerVersion.isGreaterThanOrEquals(PACKAGING_CHANGE_VERSION.getMajor(), PACKAGING_CHANGE_VERSION.getMinor());
+  }
+
+  public PackageDetails create(Version scannerVersion, boolean useDotNetCore) {
     // Depending on the version of the scanner, the file names, the artifactId and the classifiers can be different.
     // For versions 5.x and below, the file names had the following format:
-    //  - sonar-scanner-msbuild-<ver>-netcoreapp2.0
-    //  - sonar-scanner-msbuild-<ver>-net46
+    // - sonar-scanner-msbuild-<ver>-netcoreapp2.0
+    // - sonar-scanner-msbuild-<ver>-net46
     // Starting version 6.x, they are:
-    //  - sonar-scanner-<ver>-net
-    //  - sonar-scanner-<ver>-net-framework
+    // - sonar-scanner-<ver>-net
+    // - sonar-scanner-<ver>-net-framework
     String executableName = useDotNetCore ? "SonarScanner.MSBuild.dll" : "SonarScanner.MSBuild.exe";
     if (hasNewPackageNames(scannerVersion)) {
       final String classifier = useDotNetCore ? "net" : "net-framework";
@@ -47,9 +47,5 @@ public class PackageDetailsFactory {
       final String filePath = String.format("sonar-scanner-msbuild-%s-%s", scannerVersion, classifier);
       return new PackageDetails("org.sonarsource.scanner.msbuild", "sonar-scanner-msbuild", classifier, filePath, executableName);
     }
-  }
-
-  private static boolean hasNewPackageNames(@Nonnull Version scannerVersion) {
-    return scannerVersion.isGreaterThanOrEquals(PACKAGING_CHANGE_VERSION.getMajor(), PACKAGING_CHANGE_VERSION.getMinor());
   }
 }
