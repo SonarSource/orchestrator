@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import java.util.HashMap;
@@ -37,7 +36,7 @@ public class AbstractBuildExecutorTest {
 
   @Test
   public void shouldNotAppendCoverageArgumentToOptsByDefault() {
-    Map<String, String> env = ImmutableMap.of();
+    Map<String, String> env = Map.of();
 
     Configuration config = Configuration.create(new HashMap<String, String>());
 

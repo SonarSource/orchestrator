@@ -23,6 +23,7 @@ import com.sonar.orchestrator.TestModules;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,16 +66,17 @@ public class CommandExecutorTest {
     StreamConsumer streamConsumer = new StreamConsumer() {
       @Override
       public void consumeLine(String line) {
-        stdOutBuilder.append(line).append(SystemUtils.LINE_SEPARATOR);
+        stdOutBuilder.append(line).append(System.lineSeparator());
       }
     };
     Command command = Command.create(getScript("output")).setDirectory(workDir);
     int exitCode = CommandExecutor.create().execute(command, streamConsumer, 1000L);
-    assertThat(exitCode).isEqualTo(0);
+    assertThat(exitCode).isZero();
 
     String stdOut = stdOutBuilder.toString();
-    assertThat(stdOut).contains("stdOut: first line");
-    assertThat(stdOut).contains("stdOut: second line");
+    assertThat(stdOut)
+      .contains("stdOut: first line")
+      .contains("stdOut: second line");
   }
 
   @Test
@@ -150,7 +152,7 @@ public class CommandExecutorTest {
 
     CommandExecutor.create().execute(command, 2000L);
 
-    List<String> args = FileUtils.readLines(new File(outputDir, "arguments.txt"));
+    List<String> args = FileUtils.readLines(new File(outputDir, "arguments.txt"), StandardCharsets.UTF_8);
     assertThat(args).contains("foo");
     assertThat(args).contains("amper&sand");
     assertThat(args).contains("white space").doesNotContain("white", "space");

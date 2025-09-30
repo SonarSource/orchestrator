@@ -29,13 +29,13 @@ public class DatabaseClientTest {
   public void testGetProperties() {
     H2 h2 = H2.builder().setDriverClassName("my.Driver").build();
     Map<String, String> props = h2.getProperties();
-    assertThat(props.get("sonar.jdbc.dialect")).isEqualTo("h2");
-    assertThat(props.get("sonar.jdbc.username")).isEqualTo("sonar");
-    assertThat(props.get("sonar.jdbc.password")).isEqualTo("sonar");
-    assertThat(props.get("sonar.jdbc.driverClassName")).isEqualTo("my.Driver");
+    assertThat(props)
+      .containsEntry("sonar.jdbc.dialect", "h2")
+      .containsEntry("sonar.jdbc.username", "sonar")
+      .containsEntry("sonar.jdbc.password", "sonar")
+      .containsEntry("sonar.jdbc.driverClassName", "my.Driver");
     assertThat(h2.isDropAndCreate()).isFalse();
   }
-
 
   @Test
   public void testSetProperties() {
@@ -51,9 +51,13 @@ public class DatabaseClientTest {
   @Test
   public void testGetDbMetatdata() {
     H2 h2 = H2.builder().setDriverClassName("my.Driver").build();
-    try{ h2.openConnection(); } catch( Exception devnull ) {}
-    assertThat(h2.getDBMajorVersion() >= 0).isTrue();
-    assertThat(h2.getDBMinorVersion() >= 0).isTrue();
+    try {
+      h2.openConnection();
+    } catch (Exception devnull) {
+      // Ignore exception
+    }
+    assertThat(h2.getDBMajorVersion()).isGreaterThanOrEqualTo(0);
+    assertThat(h2.getDBMinorVersion()).isGreaterThanOrEqualTo(0);
   }
 
   @Test

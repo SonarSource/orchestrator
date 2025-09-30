@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.locator;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.PropertyAndEnvTest;
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +75,7 @@ public class FileLocationTest extends PropertyAndEnvTest {
 
     Map<String, String> envVariables = new HashMap<>(System.getenv());
     envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
-    setEnv(ImmutableMap.copyOf(envVariables));
+    setEnv(Map.copyOf(envVariables));
 
     FileLocation location = FileLocation.ofShared("abap/foo.txt");
     assertThat(location.getFile().isFile()).isTrue();

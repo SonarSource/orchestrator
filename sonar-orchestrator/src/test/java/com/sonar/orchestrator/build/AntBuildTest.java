@@ -42,7 +42,7 @@ public class AntBuildTest {
     assertThat(build.getTargets()).containsExactly("compile", "sonar");
     assertThat(build.getTimeoutSeconds()).isEqualTo(50000L);
     assertThat(build.getProperties()).hasSize(1);
-    assertThat(build.getProperties().get("foo")).isEqualTo("bar");
+    assertThat(build.getProperties()).containsEntry("foo", "bar");
     assertThat(build.toString()).contains("compile").contains("sonar");
   }
 

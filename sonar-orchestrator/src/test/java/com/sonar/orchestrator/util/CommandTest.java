@@ -126,7 +126,7 @@ public class CommandTest {
   public void toString_is_the_command_line() {
     Command command = Command.create("java");
     command.addArgument("-Xmx512m");
-    assertThat(command.toString()).isEqualTo(command.toCommandLine());
+    assertThat(command).hasToString(command.toCommandLine());
   }
 
   @Test
@@ -149,7 +149,7 @@ public class CommandTest {
   public void override_env_variables() {
     Command command = Command.create("java");
     command.setEnvironmentVariable("JAVA_HOME", "/path/to/java");
-    assertThat(command.getEnvironmentVariables().get("JAVA_HOME")).isEqualTo("/path/to/java");
+    assertThat(command.getEnvironmentVariables()).containsEntry("JAVA_HOME", "/path/to/java");
   }
 
   @Test

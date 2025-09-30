@@ -72,7 +72,7 @@ public final class DatabaseFactory {
     }
 
     String value = config.getString("orchestrator.keepDatabase", "false");
-    boolean keepDatabase = !isEmpty(value) ? Boolean.valueOf(value) : false;
+    boolean keepDatabase = !isEmpty(value) && Boolean.parseBoolean(value);
     if (keepDatabase) {
       builder.setDropAndCreate(false);
     }

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import java.util.Arrays;
 import java.util.Map;
@@ -55,7 +54,7 @@ public class BuildTest {
   @Test
   public void clearProperties() {
     FakeBuild build = new FakeBuild();
-    build.setProperties(ImmutableMap.of("one", "1", "two", "2"));
+    build.setProperties(Map.of("one", "1", "two", "2"));
     assertThat(build.getProperties()).hasSize(2);
     assertThat(build.getProperty("one")).isEqualTo("1");
     assertThat(build.getProperty("two")).isEqualTo("2");
@@ -124,7 +123,7 @@ public class BuildTest {
     FakeBuild build = new FakeBuild() {
       @Override
       protected Map<String, String> doGetEnvironmentVariablePrefixes() {
-        return ImmutableMap.of(
+        return Map.of(
           "FAKE_OPTS", "-x",
           "JAVA_OPTS", "-Xmx512m");
       }

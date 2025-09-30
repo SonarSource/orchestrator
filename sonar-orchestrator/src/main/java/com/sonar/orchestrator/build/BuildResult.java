@@ -45,7 +45,7 @@ public class BuildResult {
   public List<String> getLogsLines(Predicate<String> linePredicate) {
     return Arrays.stream(logs.toString().split("\r?\n|\r"))
       .filter(linePredicate)
-      .collect(Collectors.toList());
+      .toList();
   }
 
   /**

@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.version.Version;
@@ -51,7 +50,7 @@ public class BuildRunnerTest {
     when(server.version()).thenReturn(Version.create("5.2"));
     when(server.getUrl()).thenReturn("http://localhost:9000");
     Build build = mock(Build.class);
-    when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
+    when(build.getProperties()).thenReturn(Map.of("sonar.projectKey", "SAMPLE", "language", "java"));
 
     BuildRunner runner = new BuildRunner(config);
     runner.runQuietly(server, build);
@@ -75,7 +74,7 @@ public class BuildRunnerTest {
     when(server.version()).thenReturn(Version.create("5.2"));
     when(server.getUrl()).thenReturn("http://localhost:9000");
     Build build = mock(ScannerForMSBuild.class);
-    when(build.getProperties()).thenReturn(ImmutableMap.of("sonar.projectKey", "SAMPLE", "language", "java"));
+    when(build.getProperties()).thenReturn(Map.of("sonar.projectKey", "SAMPLE", "language", "java"));
 
     BuildRunner runner = new BuildRunner(config);
     runner.runQuietly(server, build);

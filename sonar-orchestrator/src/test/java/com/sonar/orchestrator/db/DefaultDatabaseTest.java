@@ -222,7 +222,7 @@ public class DefaultDatabaseTest {
   public void executeSql() {
     List<Map<String, String>> rows = db.executeSql("select * from metrics order by kee");
 
-    assertThat(rows.size()).isEqualTo(2);
+    assertThat(rows).hasSize(2);
     assertThat(rows.get(0).get("KEE")).isEqualTo("lines");
     assertThat(rows.get(0).get("NAME")).isEqualTo("Lines");
     assertThat(rows.get(1).get("KEE")).isEqualTo("ncloc");
@@ -232,7 +232,7 @@ public class DefaultDatabaseTest {
   @Test
   public void executeSql_empty_result() {
     List<Map<String, String>> rows = db.executeSql("select * from metrics where kee='xxx'");
-    assertThat(rows.size()).isEqualTo(0);
+    assertThat(rows).isEmpty();
   }
 
   @Test
@@ -245,7 +245,7 @@ public class DefaultDatabaseTest {
   public void truncate() {
     assertThat(db.countSql("select count(kee) from metrics")).isGreaterThan(0);
     db.truncate("metrics");
-    assertThat(db.countSql("select count(kee) from metrics")).isEqualTo(0);
+    assertThat(db.countSql("select count(kee) from metrics")).isZero();
   }
 
   @Test

@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +75,7 @@ public abstract class Artifactory {
     if (!StringUtils.isEmpty(repository)) {
       urlBuilder.addPathSegment(repository);
     }
-    HttpUrl url = urlBuilder.addEncodedPathSegments(StringUtils.replace(location.getGroupId(), ".", "/"))
+    HttpUrl url = urlBuilder.addEncodedPathSegments(Strings.CS.replace(location.getGroupId(), ".", "/"))
       .addPathSegment(location.getArtifactId())
       .addPathSegment(location.getVersion())
       .addPathSegment(location.getFilename())
