@@ -29,7 +29,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class HttpClient {
 
