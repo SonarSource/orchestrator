@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Http Client
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -19,30 +19,26 @@
  */
 package com.sonar.orchestrator.http;
 
-import okhttp3.HttpUrl;
+public class HttpClientFactory {
 
-public class HttpException extends RuntimeException {
+  private static transient volatile boolean initialized;
+  private static HttpClient singleton;
 
-  private final String url;
-  private final int code;
-  private final String body;
-
-  public HttpException(HttpUrl url, int code, String body) {
-    super("URL [" + url + "] returned code [" + code + "]");
-    this.url = url.toString();
-    this.code = code;
-    this.body = body;
+  private HttpClientFactory() {
+    // prevent instantiation, only static methods for the time being
   }
 
-  public String getUrl() {
-    return url;
-  }
-
-  public int getCode() {
-    return code;
-  }
-
-  public String getBody() {
-    return body;
+  public static HttpClient create() {
+    // A 2-field variant of Double Checked Locking.
+    if (!initialized) {
+      synchronized (HttpClient.class) {
+        if (!initialized) {
+          singleton = new HttpClient.Builder().build();
+          initialized = true;
+          return singleton;
+        }
+      }
+    }
+    return singleton;
   }
 }
