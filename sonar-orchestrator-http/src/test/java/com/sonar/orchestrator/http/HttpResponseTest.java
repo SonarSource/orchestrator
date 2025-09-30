@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Http Client
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -17,8 +17,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-@ParametersAreNonnullByDefault
 package com.sonar.orchestrator.http;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import okhttp3.Headers;
+import org.junit.jupiter.api.Test;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class HttpResponseTest {
+
+  @Test
+  void isSuccessful_returns_true_if_code_is_2xx() {
+    verifyCodeSuccessful(200, true);
+    verifyCodeSuccessful(201, true);
+    verifyCodeSuccessful(220, true);
+    verifyCodeSuccessful(300, false);
+    verifyCodeSuccessful(404, false);
+  }
+
+  private void verifyCodeSuccessful(int code, boolean expectedSuccessfulFlag) {
+    HttpResponse response = new HttpResponse(code, UTF_8, new byte[0], new Headers.Builder().build());
+    assertThat(response.getCode()).isEqualTo(code);
+    assertThat(response.isSuccessful()).isEqualTo(expectedSuccessfulFlag);
+  }
+
+}

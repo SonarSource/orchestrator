@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Http Client
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -21,16 +21,16 @@ package com.sonar.orchestrator.http;
 
 import okhttp3.Authenticator;
 import okhttp3.OkHttpClient;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HttpClientTest {
+class HttpClientTest {
 
   @Test
-  public void should_have_default_settings() throws Exception {
+  void should_have_default_settings() {
     HttpClient underTest = newClient();
 
     OkHttpClient okClient = underTest.getUnderlying();
@@ -43,7 +43,7 @@ public class HttpClientTest {
   }
 
   @Test
-  public void should_enable_proxy_authentication_if_system_properties_for_proxy_host_and_credentials_are_defined() {
+  void should_enable_proxy_authentication_if_system_properties_for_proxy_host_and_credentials_are_defined() {
     HttpClient.SystemProperties sysProps = mock(HttpClient.SystemProperties.class);
     when(sysProps.getProperty("http.proxyHost")).thenReturn("proxy.mydomain");
     when(sysProps.getProperty("http.proxyUser")).thenReturn("foo");
@@ -56,7 +56,7 @@ public class HttpClientTest {
   }
 
   @Test
-  public void should_disable_proxy_authentication_if_system_properties_for_proxy_credentials_are_not_defined() {
+  void should_disable_proxy_authentication_if_system_properties_for_proxy_credentials_are_not_defined() {
     HttpClient.SystemProperties sysProps = mock(HttpClient.SystemProperties.class);
     when(sysProps.getProperty("http.proxyHost")).thenReturn("proxy.mydomain");
 
@@ -66,7 +66,7 @@ public class HttpClientTest {
   }
 
   @Test
-  public void should_disable_proxy_authentication_if_proxy_credentials_are_defined_but_not_host() {
+  void should_disable_proxy_authentication_if_proxy_credentials_are_defined_but_not_host() {
     HttpClient.SystemProperties sysProps = mock(HttpClient.SystemProperties.class);
     when(sysProps.getProperty("http.proxyUser")).thenReturn("foo");
     when(sysProps.getProperty("http.proxyPassword")).thenReturn("bar");
