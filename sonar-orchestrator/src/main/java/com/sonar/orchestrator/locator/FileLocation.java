@@ -124,7 +124,7 @@ public class FileLocation implements Location {
    * @deprecated  Replaced by {@link com.sonar.orchestrator.Orchestrator#getFileLocationOfShared(java.lang.String)}
    *              which take into account orchestrator.properties
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public static FileLocation ofShared(String relativePath) {
     String prop = System.getProperty(PROP_SHARED_DIR);
     return ofShared(relativePath, prop != null ? prop : System.getenv(ENV_SHARED_DIR));
@@ -136,7 +136,7 @@ public class FileLocation implements Location {
    * @deprecated  Replaced by {@link com.sonar.orchestrator.Orchestrator#getFileLocationOfShared(java.lang.String)}
    *              which take into account orchestrator.properties
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   static FileLocation ofShared(String relativePath, String rootPath) {
     requireNonNull(rootPath, format("System property '%s' or environment variable '%s' is missing", PROP_SHARED_DIR, ENV_SHARED_DIR));
     File rootDir = new File(rootPath);

@@ -71,7 +71,7 @@ public class MavenVersionResolver {
 
     List<Version> filteredVersions = versions.stream()
       .filter(version -> version.toString().startsWith(majorMinorVersion))
-      .collect(Collectors.toList());
+      .toList();
 
     if (!filteredVersions.isEmpty()) {
       return filteredVersions.stream()
