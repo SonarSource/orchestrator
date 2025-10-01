@@ -19,8 +19,6 @@
  */
 package com.sonar.orchestrator.build.dotnet.scanner;
 
-import org.jetbrains.annotations.NotNull;
-
 public class PackageDetails {
   private final String groupId;
   private final String artifactId;
@@ -28,7 +26,7 @@ public class PackageDetails {
   private final String packageName;
   private final String executableName;
 
-  public PackageDetails(@NotNull String groupId, @NotNull String artifactId, @NotNull String classifier, @NotNull String packageName, @NotNull String executableName) {
+  public PackageDetails(String groupId, String artifactId, String classifier, String packageName, String executableName) {
     this.groupId = groupId;
     this.artifactId = artifactId;
     this.classifier = classifier;

@@ -20,11 +20,14 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.SystemUtils;
@@ -34,9 +37,8 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
 
-  private final Os os;
-
   private static final String MAVEN_OPTS = "MAVEN_OPTS";
+  private final Os os;
 
   // visible for tests
   MavenBuildExecutor(Os os) {
@@ -48,19 +50,19 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
   }
 
   @Override
-  BuildResult execute(MavenBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
+  BuildResult execute(MavenBuild build, Configuration config, Locators locators, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
     for (String goal : build.getGoals()) {
-      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, MAVEN_OPTS);
-      executeGoal(build, config, adjustedProperties, goal, result, commandExecutor);
+      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, locators, MAVEN_OPTS);
+      executeGoal(build, config, locators, adjustedProperties, goal, result, commandExecutor);
     }
     return result;
   }
 
-  private void executeGoal(MavenBuild build, Configuration config, Map<String, String> adjustedProperties, String goal,
+  private void executeGoal(MavenBuild build, Configuration config, Locators locators, Map<String, String> adjustedProperties, String goal,
     final BuildResult result, CommandExecutor commandExecutor) {
     try {
-      File mavenHome = config.fileSystem().mavenHome();
+      Path mavenHome = config.fileSystem().mavenHome();
       Command command = Command.create(buildMvnPath(config));
       if (build.getExecutionDir() != null) {
         command.setDirectory(build.getExecutionDir());
@@ -70,7 +72,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
       }
       if (mavenHome != null) {
         // Force M2_HOME to override default value from calling env
-        command.setEnvironmentVariable("M2_HOME", mavenHome.getAbsolutePath());
+        command.setEnvironmentVariable("M2_HOME", mavenHome.toAbsolutePath().toString());
       }
       // allow to set "clean install" in the same process
       command.addArguments(goal.split(" "));
@@ -78,7 +80,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
       command.addArgument("-e");
 
       if (build.getPom() != null) {
-        File pomFile = config.locators().locate(build.getPom());
+        File pomFile = locators.locate(build.getPom());
         checkState(pomFile.exists(), "Maven pom does not exist: %s", build.getPom());
         command.addArgument("-f").addArgument(pomFile.getAbsolutePath());
       }
@@ -101,22 +103,22 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
 
   String buildMvnPath(Configuration config) throws IOException {
     Optional<String> binary = Optional.ofNullable(config.getStringByKeys("maven.binary", "MAVEN_BINARY"));
-    File home = config.fileSystem().mavenHome();
+    Path home = config.fileSystem().mavenHome();
     if (home == null) {
       return binary.orElse(os.isWindows() ? "mvn.cmd" : "mvn");
     }
     if (binary.isPresent()) {
-      return new File(home, "bin/" + binary.get()).getCanonicalPath();
+      return home.resolve("bin/" + binary.get()).toAbsolutePath().toString();
     }
     if (os.isWindows()) {
       // .bat is required for maven versions <= 3.2
-      File bin = new File(home, "bin/mvn.bat");
-      if (bin.exists()) {
-        return bin.getCanonicalPath();
+      Path bin = home.resolve("bin/mvn.bat");
+      if (Files.exists(bin)) {
+        return bin.toAbsolutePath().toString();
       }
-      return new File(home, "bin/mvn.cmd").getCanonicalPath();
+      return home.resolve("bin/mvn.cmd").toAbsolutePath().toString();
     }
-    return new File(home, "bin/mvn").getCanonicalPath();
+    return home.resolve("bin/mvn").toAbsolutePath().toString();
   }
 
   static class Os {

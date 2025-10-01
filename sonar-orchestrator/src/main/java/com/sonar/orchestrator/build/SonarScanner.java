@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.Map;
@@ -29,7 +30,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.SystemUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -133,9 +134,9 @@ public class SonarScanner extends Build<SonarScanner> {
   }
 
   @Override
-  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
+  BuildResult execute(Configuration config, Locators locators, Map<String, String> adjustedProperties) {
     check();
-    return new SonarScannerExecutor().execute(this, config, adjustedProperties);
+    return new SonarScannerExecutor().execute(this, config, locators, adjustedProperties);
   }
 
   void check() {

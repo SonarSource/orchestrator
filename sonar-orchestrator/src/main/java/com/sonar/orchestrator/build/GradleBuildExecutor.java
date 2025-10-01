@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -44,19 +45,19 @@ public class GradleBuildExecutor extends AbstractBuildExecutor<GradleBuild> {
   }
 
   @Override
-  BuildResult execute(GradleBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
+  BuildResult execute(GradleBuild build, Configuration config, Locators locators, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
     for (String task : build.getTasks()) {
-      executeTask(build, config, adjustedProperties, task, result, commandExecutor);
+      executeTask(build, locators, adjustedProperties, task, result, commandExecutor);
     }
 
     return result;
   }
 
-  private void executeTask(GradleBuild build, Configuration config, Map<String, String> adjustedProperties, String task,
+  private void executeTask(GradleBuild build, Locators locators, Map<String, String> adjustedProperties, String task,
     final BuildResult result, CommandExecutor commandExecutor) {
     try {
-      File projectDir = config.locators().locate(build.getProjectDirectory());
+      File projectDir = locators.locate(build.getProjectDirectory());
 
       File gradlew = getGradleWrapper(projectDir);
       checkState(gradlew.exists(), "Gradle wrapper does not exist: '%s'", gradlew.toString());

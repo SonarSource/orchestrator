@@ -20,11 +20,12 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.SystemUtils;
@@ -34,26 +35,37 @@ import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
 
+  private static String getAntPath(@Nullable Path antHome) {
+    String program = "ant";
+    if (SystemUtils.IS_OS_WINDOWS) {
+      program += ".bat";
+    }
+    if (antHome != null) {
+      program = antHome.resolve("bin/" + program).toAbsolutePath().toString();
+    }
+    return program;
+  }
+
   @Override
-  BuildResult execute(AntBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
+  BuildResult execute(AntBuild build, Configuration config, Locators locators, Map<String, String> adjustedProperties, CommandExecutor commandExecutor) {
     BuildResult result = new BuildResult();
     for (String target : build.getTargets()) {
-      executeTarget(build, config, adjustedProperties, target, result, commandExecutor);
+      executeTarget(build, config, locators, adjustedProperties, target, result, commandExecutor);
     }
     return result;
   }
 
-  private void executeTarget(AntBuild build, Configuration config, Map<String, String> adjustedProperties, String target,
+  private void executeTarget(AntBuild build, Configuration config, Locators locators, Map<String, String> adjustedProperties, String target,
     BuildResult result, CommandExecutor commandExecutor) {
     try {
-      File home = build.getAntHome() != null ? build.getAntHome() : config.fileSystem().antHome();
+      Path home = build.getAntHome() != null ? build.getAntHome().toPath() : config.fileSystem().antHome();
       Command command = Command.create(getAntPath(home));
       for (Map.Entry<String, String> env : build.getEnvironmentVariables().entrySet()) {
         command.setEnvironmentVariable(env.getKey(), env.getValue());
       }
       command.addArguments(target.split(" "));
 
-      File antFile = config.locators().locate(build.getBuildLocation());
+      File antFile = locators.locate(build.getBuildLocation());
       checkState(antFile.exists(), "Ant build file does not exist: %s", build.getBuildLocation());
 
       command.addArgument("-f").addArgument(antFile.getCanonicalPath());
@@ -69,17 +81,6 @@ class AntBuildExecutor extends AbstractBuildExecutor<AntBuild> {
     } catch (Exception e) {
       throw new IllegalStateException("Fail to execute Ant", e);
     }
-  }
-
-  private static String getAntPath(@Nullable File antHome) throws IOException {
-    String program = "ant";
-    if (SystemUtils.IS_OS_WINDOWS) {
-      program += ".bat";
-    }
-    if (antHome != null) {
-      program = new File(antHome, "bin/" + program).getCanonicalPath();
-    }
-    return program;
   }
 
 }

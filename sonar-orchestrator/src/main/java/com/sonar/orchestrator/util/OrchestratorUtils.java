@@ -21,6 +21,7 @@ package com.sonar.orchestrator.util;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
 
 import static java.lang.String.format;
 
@@ -75,18 +76,11 @@ public class OrchestratorUtils {
 
   @CheckForNull
   public static String defaultIfEmpty(@Nullable String object, @Nullable String defaultValue) {
-    return isEmpty(object) ? defaultValue : object;
+    return StringUtils.isEmpty(object) ? defaultValue : object;
   }
 
   @CheckForNull
   public static <T> T defaultIfNull(@Nullable T object, @Nullable T defaultValue) {
     return object != null ? object : defaultValue;
-  }
-
-  /**
-   * Checks if a String is empty ("") or null.
-   */
-  public static boolean isEmpty(@Nullable String str) {
-    return str == null || str.length() == 0;
   }
 }

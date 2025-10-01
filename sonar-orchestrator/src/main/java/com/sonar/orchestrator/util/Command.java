@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.SystemUtils;
 
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
 public class Command {

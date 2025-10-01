@@ -22,6 +22,8 @@ package com.sonar.orchestrator.server;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.Server;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
@@ -56,11 +58,11 @@ public class ServerCommandLineFactory {
 
   private CommandLine createJavaCommandLine() {
     CommandLine command;
-    File javaHome = fs.javaHome();
-    if (javaHome == null || !javaHome.exists()) {
+    Path javaHome = fs.javaHome();
+    if (javaHome == null || !Files.exists(javaHome)) {
       command = new CommandLine("java");
     } else {
-      command = new CommandLine(FileUtils.getFile(javaHome, "bin", "java"));
+      command = new CommandLine(javaHome.resolve("bin/java").toFile());
     }
     return command;
   }
