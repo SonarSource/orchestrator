@@ -91,7 +91,7 @@ public abstract class Build<T extends Build<T>> {
   /**
    * @deprecated since 2.17 use {@link Server#associateProjectToQualityProfile(String, String, String)}
    */
-  @Deprecated
+  @Deprecated(since = "2.17")
   public T setProfile(@Nullable String profileKey) {
     return setProperty("sonar.profile", profileKey);
   }
@@ -186,7 +186,7 @@ public abstract class Build<T extends Build<T>> {
    * @since 2.10
    * @deprecated since 3.13
    */
-  @Deprecated
+  @Deprecated(since = "3.13")
   public T withoutDynamicAnalysis() {
     return setProperty("sonar.dynamicAnalysis", "false");
   }

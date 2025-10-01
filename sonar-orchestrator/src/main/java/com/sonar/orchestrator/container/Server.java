@@ -88,7 +88,7 @@ public class Server {
   /**
    * @deprecated from SQ 6.2 and on, use {@link #getAppLogs()}, {@link #getWebLogs()}, {@link #getCeLogs()} or {@link #getEsLogs()}
    */
-  @Deprecated
+  @Deprecated(since = "3.13")
   public File getLogs() {
     return getLogFile("sonar.log");
   }
@@ -175,7 +175,7 @@ public class Server {
   /**
    * @deprecated in 3.15. Replaced by {@link #newHttpCall(String)}.
    */
-  @Deprecated
+  @Deprecated(since = "3.15")
   public String post(String relativePath, Map<String, Object> params) {
     HttpCall httpCall = newHttpCall(relativePath);
     params.entrySet().stream()
