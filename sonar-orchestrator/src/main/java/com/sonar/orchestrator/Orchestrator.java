@@ -95,7 +95,7 @@ public class Orchestrator {
    */
   public Server install() {
     if (server == null) {
-      database = new DefaultDatabase(config, locators);
+      database = new DefaultDatabase(this);
       database.start();
 
       PackagingResolver packagingResolver = new PackagingResolver(locators);

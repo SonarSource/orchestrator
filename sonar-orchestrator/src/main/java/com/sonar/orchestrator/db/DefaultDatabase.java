@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.db;
 
+import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
 import java.sql.Connection;
@@ -45,11 +46,15 @@ public final class DefaultDatabase implements Database {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultDatabase.class);
 
-  private DatabaseClient databaseClient;
+  private final DatabaseClient databaseClient;
   private boolean started = false;
 
+  public DefaultDatabase(Orchestrator orchestrator) {
+    this(orchestrator.getConfiguration(), orchestrator.getLocators());
+  }
+
   public DefaultDatabase(Configuration config, Locators locators) {
-    this.databaseClient = DatabaseFactory.create(config, locators);
+    this(DatabaseFactory.create(config, locators));
   }
 
   public DefaultDatabase(DatabaseClient client) {
