@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Http Client
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -17,21 +17,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator;
+package com.sonar.orchestrator.http;
 
-import java.io.File;
-import java.io.FileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import okhttp3.Headers;
+import org.junit.jupiter.api.Test;
 
-public class TestModules {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
-  public static File getFile(String dir, String filenameRegexp) {
-    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
-    File[] files = new File(dir).listFiles(fileFilter);
-    if (files == null || files.length != 1) {
-      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
-    }
-    return files[0];
+class HttpResponseTest {
+
+  @Test
+  void isSuccessful_returns_true_if_code_is_2xx() {
+    verifyCodeSuccessful(200, true);
+    verifyCodeSuccessful(201, true);
+    verifyCodeSuccessful(220, true);
+    verifyCodeSuccessful(300, false);
+    verifyCodeSuccessful(404, false);
+  }
+
+  private void verifyCodeSuccessful(int code, boolean expectedSuccessfulFlag) {
+    HttpResponse response = new HttpResponse(code, UTF_8, new byte[0], new Headers.Builder().build());
+    assertThat(response.getCode()).isEqualTo(code);
+    assertThat(response.isSuccessful()).isEqualTo(expectedSuccessfulFlag);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Locators
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -17,21 +17,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator;
+package com.sonar.orchestrator.locator;
 
 import java.io.File;
-import java.io.FileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import java.io.InputStream;
+import javax.annotation.CheckForNull;
 
-public class TestModules {
+public interface Locator<L extends Location> {
+  @CheckForNull
+  File locate(L location);
 
-  public static File getFile(String dir, String filenameRegexp) {
-    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
-    File[] files = new File(dir).listFiles(fileFilter);
-    if (files == null || files.length != 1) {
-      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
-    }
-    return files[0];
-  }
+  File copyToDirectory(L location, File toDir);
 
+  File copyToFile(L location, File toFile);
+
+  InputStream openInputStream(L location);
 }
