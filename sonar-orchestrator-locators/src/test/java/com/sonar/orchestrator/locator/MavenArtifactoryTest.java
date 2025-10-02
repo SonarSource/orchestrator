@@ -25,7 +25,6 @@ import java.util.Optional;
 import mockwebserver3.MockResponse;
 import mockwebserver3.RecordedRequest;
 import mockwebserver3.junit4.MockWebServerRule;
-import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.DisableOnDebug;
@@ -88,8 +87,8 @@ public class MavenArtifactoryTest {
     assertThat(targetFile).exists().hasContent("this_is_bytecode");
 
     RecordedRequest request = mockWebServerRule.getServer().takeRequest();
-    Assertions.assertThat(request.getTarget()).isEqualTo("/org/sonarsource/sonarqube/sonar-plugin-api/3.0/sonar-plugin-api-3.0.jar");
-    Assertions.assertThat(request.getHeaders().get("Authorization")).isNull();
+    assertThat(request.getTarget()).isEqualTo("/org/sonarsource/sonarqube/sonar-plugin-api/3.0/sonar-plugin-api-3.0.jar");
+    assertThat(request.getHeaders().get("Authorization")).isNull();
   }
 
   @Test
