@@ -49,7 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.util.NetworkUtils.getNextAvailablePort;
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 
@@ -115,7 +115,7 @@ public class ServerInstaller {
   }
 
   private File unzip(Packaging packaging) {
-    File toDir = new File(configuration.fileSystem().workspace(), valueOf(sharedDirId.addAndGet(1)));
+    File toDir = new File(configuration.fileSystem().workspace().toFile(), valueOf(sharedDirId.addAndGet(1)));
     try {
       FileUtils.deleteDirectory(toDir);
     } catch (IOException e) {

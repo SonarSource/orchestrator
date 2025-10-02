@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.coverage;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import java.io.File;
 import java.io.IOException;
@@ -41,11 +42,6 @@ public class JaCoCoArgumentsBuilderTest {
   public MockHttpServerInterceptor httpServer = new MockHttpServerInterceptor();
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
-
-  @Test
-  public void all_constructors_are_private() {
-   assertThat(hasOnlyPrivateConstructors(JaCoCoArgumentsBuilder.class)).isTrue();
-  }
 
   /**
    * Asserts that all constructors are private, usually for helper classes with
@@ -69,6 +65,11 @@ public class JaCoCoArgumentsBuilderTest {
   }
 
   @Test
+  public void all_constructors_are_private() {
+    assertThat(hasOnlyPrivateConstructors(JaCoCoArgumentsBuilder.class)).isTrue();
+  }
+
+  @Test
   public void shouldGetJaCoCoVersionFromPom() {
     assertThat(JaCoCoArgumentsBuilder.jaCoCoVersion).isNotEmpty();
   }
@@ -77,7 +78,7 @@ public class JaCoCoArgumentsBuilderTest {
   public void shouldReturnNullByDefault() {
     Configuration config = Configuration.create(new HashMap<>());
 
-    assertThat(JaCoCoArgumentsBuilder.getJaCoCoArgument(config)).isNull();
+    assertThat(JaCoCoArgumentsBuilder.getJaCoCoArgument(config, new Locators(config))).isNull();
   }
 
   @Test(expected = IllegalStateException.class)
@@ -96,7 +97,7 @@ public class JaCoCoArgumentsBuilderTest {
       .addEnvVariables()
       .build();
 
-    String argument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
+    String argument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config, new Locators(config));
 
     assertThat(argument).matches("-javaagent:.*=destfile=" +
       Matcher.quoteReplacement(FilenameUtils.separatorsToUnix(output.getAbsolutePath())) +

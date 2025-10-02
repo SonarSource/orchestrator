@@ -19,7 +19,9 @@
  */
 package com.sonar.orchestrator.db;
 
+import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -38,17 +40,21 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public final class DefaultDatabase implements Database {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultDatabase.class);
 
-  private DatabaseClient databaseClient;
+  private final DatabaseClient databaseClient;
   private boolean started = false;
 
-  public DefaultDatabase(Configuration config) {
-    this.databaseClient = DatabaseFactory.create(config, config.locators());
+  public DefaultDatabase(Orchestrator orchestrator) {
+    this(orchestrator.getConfiguration(), orchestrator.getLocators());
+  }
+
+  public DefaultDatabase(Configuration config, Locators locators) {
+    this(DatabaseFactory.create(config, locators));
   }
 
   public DefaultDatabase(DatabaseClient client) {
@@ -316,7 +322,7 @@ public final class DefaultDatabase implements Database {
     }
     List<String> spids = new ArrayList<>();
     try (Statement stmt = connection.createStatement();
-         ResultSet rs = stmt.executeQuery(sql)) {
+      ResultSet rs = stmt.executeQuery(sql)) {
       while (rs.next()) {
         String spid = rs.getString(1);
         if (!isEmpty(spid)) {

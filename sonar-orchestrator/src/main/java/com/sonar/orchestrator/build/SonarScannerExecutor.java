@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -30,29 +31,6 @@ import org.slf4j.LoggerFactory;
 class SonarScannerExecutor extends AbstractBuildExecutor<SonarScanner> {
 
   private static final String SONAR_SCANNER_OPTS = "SONAR_SCANNER_OPTS";
-
-  @Override
-  BuildResult execute(SonarScanner build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
-    return execute(build, config, adjustedProperties, new SonarScannerInstaller(config.locators()), create);
-  }
-
-  BuildResult execute(SonarScanner build, Configuration config, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
-    CommandExecutor commandExecutor) {
-    BuildResult result = new BuildResult();
-    File scannerScript = installer.install(build.scannerVersion(), build.classifier(), config.fileSystem().workspace());
-    try {
-      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, SONAR_SCANNER_OPTS);
-      Command command = createCommand(build, adjustedProperties, scannerScript);
-      LoggerFactory.getLogger(SonarScanner.class).info("Execute: {}", command);
-      StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
-      int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
-      result.addStatus(status);
-      return result;
-
-    } catch (Exception e) {
-      throw new IllegalStateException("Fail to execute SonarQube Scanner", e);
-    }
-  }
 
   private static Command createCommand(SonarScanner build, Map<String, String> adjustedProperties, File runnerScript) {
     Command command = Command.create(runnerScript.getAbsolutePath());
@@ -73,6 +51,29 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarScanner> {
       }
     }
     return command;
+  }
+
+  @Override
+  BuildResult execute(SonarScanner build, Configuration config, Locators locators, Map<String, String> adjustedProperties, CommandExecutor create) {
+    return execute(build, config, locators, adjustedProperties, new SonarScannerInstaller(locators), create);
+  }
+
+  BuildResult execute(SonarScanner build, Configuration config, Locators locators, Map<String, String> adjustedProperties, SonarScannerInstaller installer,
+    CommandExecutor commandExecutor) {
+    BuildResult result = new BuildResult();
+    File scannerScript = installer.install(build.scannerVersion(), build.classifier(), config.fileSystem().workspace().toFile());
+    try {
+      appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, locators, SONAR_SCANNER_OPTS);
+      Command command = createCommand(build, adjustedProperties, scannerScript);
+      LoggerFactory.getLogger(SonarScanner.class).info("Execute: {}", command);
+      StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
+      int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
+      result.addStatus(status);
+      return result;
+
+    } catch (Exception e) {
+      throw new IllegalStateException("Fail to execute SonarQube Scanner", e);
+    }
   }
 
 }

@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -32,8 +33,8 @@ import static java.util.Objects.requireNonNull;
 class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild> {
 
   @Override
-  BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, CommandExecutor create) {
-    return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(config.locators()), create);
+  BuildResult execute(ScannerForMSBuild build, Configuration config, Locators locators, Map<String, String> adjustedProperties, CommandExecutor create) {
+    return execute(build, config, adjustedProperties, new ScannerForMSBuildInstaller(locators), create);
   }
 
   BuildResult execute(ScannerForMSBuild build, Configuration config, Map<String, String> adjustedProperties, ScannerForMSBuildInstaller installer,
@@ -42,7 +43,7 @@ class ScannerForMSBuildExecutor extends AbstractBuildExecutor<ScannerForMSBuild>
     File runnerScript = installer.install(
       build.scannerVersion(),
       build.getLocation(),
-      config.fileSystem().workspace(),
+      config.fileSystem().workspace().toFile(),
       build.isUsingDotNetCore());
     try {
       Command command = createCommand(build, adjustedProperties, runnerScript);
