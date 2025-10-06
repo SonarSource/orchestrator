@@ -26,7 +26,7 @@ import com.sonar.orchestrator.server.StartupLogWatcher;
 import com.sonar.orchestrator.version.Version;
 import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -55,6 +55,14 @@ public class OrchestratorExtension extends Orchestrator implements BeforeAllCall
 
   OrchestratorExtension(Configuration config, SonarDistribution distribution, @Nullable StartupLogWatcher startupLogWatcher) {
     super(config, distribution, startupLogWatcher);
+  }
+
+  public static OrchestratorExtensionBuilder builderEnv() {
+    return new OrchestratorExtensionBuilder(Configuration.createEnv());
+  }
+
+  public static OrchestratorExtensionBuilder builder(Configuration config) {
+    return new OrchestratorExtensionBuilder(config);
   }
 
   @Override
@@ -86,14 +94,6 @@ public class OrchestratorExtension extends Orchestrator implements BeforeAllCall
     }
     String reason = "SonarQube version (" + this.getServer().version() + ") meets requirements";
     return ConditionEvaluationResult.enabled(reason);
-  }
-
-  public static OrchestratorExtensionBuilder builderEnv() {
-    return new OrchestratorExtensionBuilder(Configuration.createEnv());
-  }
-
-  public static OrchestratorExtensionBuilder builder(Configuration config) {
-    return new OrchestratorExtensionBuilder(config);
   }
 
 }

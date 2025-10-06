@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Http Client
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -17,21 +17,28 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator;
+package com.sonar.orchestrator.http;
 
-import java.io.File;
-import java.io.FileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+public class HttpClientFactory {
 
-public class TestModules {
+  private static transient volatile boolean initialized;
+  private static HttpClient singleton;
 
-  public static File getFile(String dir, String filenameRegexp) {
-    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
-    File[] files = new File(dir).listFiles(fileFilter);
-    if (files == null || files.length != 1) {
-      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
-    }
-    return files[0];
+  private HttpClientFactory() {
+    // prevent instantiation, only static methods for the time being
   }
 
+  public static HttpClient create() {
+    // A 2-field variant of Double Checked Locking.
+    if (!initialized) {
+      synchronized (HttpClient.class) {
+        if (!initialized) {
+          singleton = new HttpClient.Builder().build();
+          initialized = true;
+          return singleton;
+        }
+      }
+    }
+    return singleton;
+  }
 }
