@@ -86,8 +86,9 @@ The test environment is configured in the file `~/.sonar/orchestrator/orchestrat
     # This property can be replaced by the environment variable ARTIFACTORY_ACCESS_TOKEN.
     #orchestrator.artifactory.accessToken=xxx
 
-    # Personal access token used to request SonarSource development licenses at https://github.com/sonarsource/licenses.
-    # Generate a token from https://github.com/settings/tokens
+    # Fine-grained Personal access token used to request SonarSource development licenses at https://github.com/sonarsource/licenses.
+    # Generate a token from https://github.com/settings/personal-access-tokens/new
+    # The token needs `SonarSource` as the Resource Owner and Read-only access for the SonarSource/licenses repository.
     # This property can be replaced by the environment variable GITHUB_TOKEN.
     #github.token=xxx
 
