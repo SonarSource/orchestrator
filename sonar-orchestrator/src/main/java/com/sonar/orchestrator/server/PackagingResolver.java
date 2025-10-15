@@ -29,7 +29,6 @@ import java.io.File;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
 
 public class PackagingResolver {
 
@@ -42,6 +41,66 @@ public class PackagingResolver {
 
   public PackagingResolver(Locators locators) {
     this.locators = locators;
+  }
+
+  private static Version getVersionInBrackets(String version) {
+    // 7.2 is the first version that relies on the current groupId and artifactId structure
+    Version defaultVersion = Version.create("7.2");
+    Matcher matcher = BRACKETS_PATTERN.matcher(version);
+    if (!matcher.matches()) {
+      return defaultVersion;
+    }
+    String versionInBrackets = version.substring(version.indexOf("[") + 1, version.indexOf("]"));
+    return versionInBrackets.isEmpty() ? defaultVersion : Version.create(versionInBrackets);
+  }
+
+  private static MavenCoordinates getMavenCoordinates(SonarDistribution distribution, Version version) {
+    String groupId;
+    String artifactId;
+    if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals(7, 2)) {
+      groupId = PUBLIC_GROUP_ID;
+      artifactId = "sonar-application";
+    } else {
+      switch (distribution.getEdition()) {
+        case DEVELOPER:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-developer";
+          break;
+        case ENTERPRISE:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-enterprise";
+          break;
+        case ENTERPRISE_LW:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-enterprise-lw";
+          break;
+        case DATACENTER:
+          groupId = PRIVATE_GROUP_ID;
+          artifactId = "sonarqube-datacenter";
+          break;
+        default:
+          throw new IllegalStateException("Unknown SonarQube edition : " + distribution.getEdition());
+      }
+    }
+    return new MavenCoordinates(groupId, artifactId);
+  }
+
+  private static Version guessVersionFromZipName(File zip) {
+    Matcher matcher = ZIP_VERSION_PATTERN.matcher(zip.getName());
+
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException("Fail to extract version from filename: " + zip.getName());
+    }
+    return Version.create(matcher.group(1));
+  }
+
+  private static MavenLocation newMavenLocationOfZip(String groupId, String artifactId, String version) {
+    return MavenLocation.builder()
+      .setGroupId(groupId)
+      .setArtifactId(artifactId)
+      .setVersion(version)
+      .withPackaging("zip")
+      .build();
   }
 
   public Packaging resolve(SonarDistribution distribution) {
@@ -86,48 +145,6 @@ public class PackagingResolver {
     return Version.create(version);
   }
 
-  private static Version getVersionInBrackets(String version) {
-    //7.2 is the first version that relies on the current groupId and artifactId structure
-    Version defaultVersion = Version.create("7.2");
-    Matcher matcher = BRACKETS_PATTERN.matcher(version);
-    if (!matcher.matches()) {
-      return defaultVersion;
-    }
-    String versionInBrackets = version.substring(version.indexOf("[") + 1, version.indexOf("]"));
-    return versionInBrackets.isEmpty() ? defaultVersion : Version.create(versionInBrackets);
-  }
-
-  private static @NotNull MavenCoordinates getMavenCoordinates(SonarDistribution distribution, Version version) {
-    String groupId;
-    String artifactId;
-    if (distribution.getEdition().equals(Edition.COMMUNITY) || !version.isGreaterThanOrEquals(7, 2)) {
-      groupId = PUBLIC_GROUP_ID;
-      artifactId = "sonar-application";
-    } else {
-      switch (distribution.getEdition()) {
-        case DEVELOPER:
-          groupId = PRIVATE_GROUP_ID;
-          artifactId = "sonarqube-developer";
-          break;
-        case ENTERPRISE:
-          groupId = PRIVATE_GROUP_ID;
-          artifactId = "sonarqube-enterprise";
-          break;
-        case ENTERPRISE_LW:
-          groupId = PRIVATE_GROUP_ID;
-          artifactId = "sonarqube-enterprise-lw";
-          break;
-        case DATACENTER:
-          groupId = PRIVATE_GROUP_ID;
-          artifactId = "sonarqube-datacenter";
-          break;
-        default:
-          throw new IllegalStateException("Unknown SonarQube edition : " + distribution.getEdition());
-      }
-    }
-    return new MavenCoordinates(groupId, artifactId);
-  }
-
   private static class MavenCoordinates {
     public final String groupId;
     public final String artifactId;
@@ -136,24 +153,6 @@ public class PackagingResolver {
       this.groupId = groupId;
       this.artifactId = artifactId;
     }
-  }
-
-  private static Version guessVersionFromZipName(File zip) {
-    Matcher matcher = ZIP_VERSION_PATTERN.matcher(zip.getName());
-
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Fail to extract version from filename: " + zip.getName());
-    }
-    return Version.create(matcher.group(1));
-  }
-
-  private static MavenLocation newMavenLocationOfZip(String groupId, String artifactId, String version) {
-    return MavenLocation.builder()
-      .setGroupId(groupId)
-      .setArtifactId(artifactId)
-      .setVersion(version)
-      .withPackaging("zip")
-      .build();
   }
 
 }

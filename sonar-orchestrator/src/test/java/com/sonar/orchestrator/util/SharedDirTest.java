@@ -19,23 +19,23 @@
  */
 package com.sonar.orchestrator.util;
 
-import com.sonar.orchestrator.PropertyAndEnvTest;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.ExpectedException;
 
-import static com.sonar.orchestrator.TestModules.setEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SharedDirTest extends PropertyAndEnvTest {
+public class SharedDirTest {
+
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -60,9 +60,7 @@ public class SharedDirTest extends PropertyAndEnvTest {
     URL url = getClass().getResource("/com/sonar/orchestrator/util/SharedDirTest/sample.properties");
     Properties props = new Properties();
     props.setProperty("orchestrator.configUrl", url.toString());
-    Map<String, String> envVariables = new HashMap<>(System.getenv());
-    envVariables.put("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
-    setEnv(Map.copyOf(envVariables));
+    environmentVariables.set("SONAR_IT_SOURCES", FilenameUtils.getFullPath(url.toURI().getPath()));
     props.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
     Configuration config = Configuration.create(props);
     SharedDir underTest = new SharedDir(config);
