@@ -46,6 +46,8 @@ import static java.util.Objects.requireNonNull;
  */
 public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   public static final String LATEST_RELEASE = "LATEST_RELEASE";
+  static final int DOT_NET_SCANNER_CLI_NOT_BUNDLED_MAJOR_VERSION = 11;
+  static final int DOT_NET_SCANNER_CLI_NOT_BUNDLED_MINOR_VERSION = 0;
   // 4.1.0.1148
   static final int DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION = 4;
   static final int DOT_NET_CORE_INTRODUCTION_MINOR_VERSION = 1;
