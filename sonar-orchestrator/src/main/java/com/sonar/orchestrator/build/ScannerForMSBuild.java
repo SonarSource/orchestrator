@@ -49,6 +49,9 @@ public class ScannerForMSBuild extends Build<ScannerForMSBuild> {
   // 4.1.0.1148
   static final int DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION = 4;
   static final int DOT_NET_CORE_INTRODUCTION_MINOR_VERSION = 1;
+  // as of v11.0.0 of the scanner for .NET, the sonar-scanner CLI is no longer bundled
+  static final int DOT_NET_SCANNER_CLI_NOT_BUNDLED_MAJOR_VERSION = 11;
+  static final int DOT_NET_SCANNER_CLI_NOT_BUNDLED_MINOR_VERSION = 0;
   public static final String DOT_NET_CORE_INTRODUCTION_VERSION = DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION + "." + DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
   private static final Logger LOG = LoggerFactory.getLogger(ScannerForMSBuild.class);
 

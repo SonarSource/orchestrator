@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION;
 import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
+import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_SCANNER_CLI_NOT_BUNDLED_MAJOR_VERSION;
+import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_SCANNER_CLI_NOT_BUNDLED_MINOR_VERSION;
 import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
 
 /**
@@ -108,7 +110,9 @@ public class ScannerForMSBuildInstaller {
       ZipUtils.unzip(zipFile, scannerDir);
       if (SystemUtils.IS_OS_UNIX
         && scannerVersion != null
-        && scannerVersion.isGreaterThan(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION)) {
+        && scannerVersion.isGreaterThan(DOT_NET_CORE_INTRODUCTION_MAJOR_VERSION, DOT_NET_CORE_INTRODUCTION_MINOR_VERSION)
+        // as of v11.0.0 of the scanner for .NET, the sonar-scanner CLI is no longer bundled
+        && !scannerVersion.isGreaterThanOrEquals(DOT_NET_SCANNER_CLI_NOT_BUNDLED_MAJOR_VERSION, DOT_NET_SCANNER_CLI_NOT_BUNDLED_MINOR_VERSION)) {
         // change permissions on binary files from sonar-scanner included in scanner
         setSonarScannerBinariesAsExecutable(scannerDir);
       }
