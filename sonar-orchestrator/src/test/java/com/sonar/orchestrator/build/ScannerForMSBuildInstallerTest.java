@@ -142,6 +142,18 @@ public class ScannerForMSBuildInstallerTest {
   }
 
   @Test
+  public void install_scanner_cli_not_bundled_version() throws Exception {
+    File toDir = temp.newFolder();
+    URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-11.0.0.126294-net.zip");
+    when(locators.locate(any())).thenReturn(new File(zip.toURI()));
+    File script = installer.install(Version.create("11.0.0.126294"), null, toDir, true);
+
+    assertThat(script).isFile().exists();
+    assertThat(script.getName()).contains("SonarScanner.MSBuild.dll");
+    assertThat(script.getParentFile()).hasName("sonar-scanner-11.0.0.126294-net");
+  }
+
+  @Test
   public void install_zip_after_package_renaming_dotnet_framework() throws Exception {
     File toDir = temp.newFolder();
     URL zip = ScannerForMSBuildInstallerTest.class.getResource("/com/sonar/orchestrator/build/ScannerForMSBuildInstallerTest/sonar-scanner-6.0.0.81631-net-framework.zip");
