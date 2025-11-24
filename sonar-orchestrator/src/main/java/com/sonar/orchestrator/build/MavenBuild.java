@@ -93,21 +93,21 @@ public final class MavenBuild extends Build<MavenBuild> {
   }
 
   public MavenBuild addSonarGoal() {
-    return addGoal("sonar:sonar");
+    return addGoal("org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar");
   }
 
   /**
    * mvn clean package && mvn sonar:sonar
    */
   public MavenBuild setCleanPackageSonarGoals() {
-    return setGoals("clean package", "sonar:sonar");
+    return setGoals("clean package", "org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar");
   }
 
   /**
    * mvn clean sonar:sonar
    */
   public MavenBuild setCleanSonarGoals() {
-    return setGoals("clean sonar:sonar");
+    return setGoals("clean org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar");
   }
 
   public MavenBuild setGoals(String... goals) {

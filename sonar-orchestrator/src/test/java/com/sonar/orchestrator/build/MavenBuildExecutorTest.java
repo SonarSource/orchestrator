@@ -220,7 +220,7 @@ public class MavenBuildExecutorTest {
     new MavenBuildExecutor().execute(build, config, new Locators(config), props, executor);
 
     verify(executor).execute(argThat(mvnMatcher(pom, "clean")), any(), eq(30000L));
-    verify(executor).execute(argThat(mvnMatcher(pom, "sonar:sonar")), any(), eq(30000L));
+    verify(executor).execute(argThat(mvnMatcher(pom, "org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar")), any(), eq(30000L));
   }
 
   private ArgumentMatcher<Command> mvnMatcher(final File pom, final String goal) {
