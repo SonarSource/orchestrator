@@ -72,13 +72,13 @@ public class MavenBuildTest {
   @Test
   public void set_clean_package_sonar_goals() {
     MavenBuild build = MavenBuild.create().setCleanPackageSonarGoals();
-    assertThat(build.getGoals()).containsExactly("clean package", "sonar:sonar");
+    assertThat(build.getGoals()).containsExactly("clean package", "org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar");
   }
 
   @Test
   public void set_clean_sonar_goals() {
     MavenBuild build = MavenBuild.create().setCleanSonarGoals();
-    assertThat(build.getGoals()).containsExactly("clean sonar:sonar");
+    assertThat(build.getGoals()).containsExactly("clean org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar");
   }
 
   @Test
