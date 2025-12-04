@@ -25,6 +25,7 @@
     <module>sonar-orchestrator-config</module>
     <module>sonar-orchestrator-http</module>
     <module>sonar-orchestrator-locators</module>
+    <module>sonar-orchestrator-build</module>
     <module>sonar-orchestrator-junit4</module>
     <module>sonar-orchestrator-junit5</module>
   </modules>
