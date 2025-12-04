@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Build
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -23,7 +23,7 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.build.util.Command;
+import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
 import java.util.HashMap;
