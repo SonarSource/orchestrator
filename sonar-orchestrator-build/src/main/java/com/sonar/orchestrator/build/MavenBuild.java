@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.build.Utils.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public final class MavenBuild extends Build<MavenBuild> {
