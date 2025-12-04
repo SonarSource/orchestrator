@@ -248,9 +248,9 @@ public class Orchestrator {
 
     BuildResult buildResult;
     if (quietly) {
-      buildResult = buildRunner.runQuietly(server, build);
+      buildResult = buildRunner.runQuietly(server.getUrl(), build);
     } else {
-      buildResult = buildRunner.run(server, build);
+      buildResult = buildRunner.run(server.getUrl(), build);
     }
     if (waitForComputeEngine) {
       new SynchronousAnalyzer(server).waitForDone();
@@ -307,7 +307,7 @@ public class Orchestrator {
 
     BuildResult[] results = new BuildResult[builds.length];
     for (int index = 0; index < builds.length; index++) {
-      results[index] = buildRunner.run(server, builds[index]);
+      results[index] = buildRunner.run(server.getUrl(), builds[index]);
     }
     new SynchronousAnalyzer(server).waitForDone();
     return results;
