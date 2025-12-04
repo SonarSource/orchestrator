@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.locator.Locators;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,23 +36,23 @@ public class BuildRunner {
     this.locators = locators;
   }
 
-  public BuildResult runQuietly(@Nullable Server server, Build<?> build) {
-    return build.execute(config, locators, adjustProperties(server, build));
+  public BuildResult runQuietly(@Nullable String serverUrl, Build<?> build) {
+    return build.execute(config, locators, adjustProperties(serverUrl, build));
   }
 
-  public BuildResult run(@Nullable Server server, Build<?> build) {
-    BuildResult result = runQuietly(server, build);
+  public BuildResult run(@Nullable String serverUrl, Build<?> build) {
+    BuildResult result = runQuietly(serverUrl, build);
     if (!result.isSuccess()) {
       throw new BuildFailureException(build, result);
     }
     return result;
   }
 
-  Map<String, String> adjustProperties(@Nullable Server server, Build<?> build) {
+  Map<String, String> adjustProperties(@Nullable String serverUrl, Build<?> build) {
     Map<String, String> adjustedProperties = new HashMap<>();
     if (!(build instanceof ScannerForMSBuild) || !build.arguments().contains("end")) {
-      if (server != null) {
-        adjustedProperties.put(SONAR_HOST_URL, server.getUrl());
+      if (serverUrl != null) {
+        adjustedProperties.put(SONAR_HOST_URL, serverUrl);
       }
       adjustedProperties.put("sonar.scm.disabled", "true");
       adjustedProperties.put("sonar.branch.autoconfig.disabled", "true");
