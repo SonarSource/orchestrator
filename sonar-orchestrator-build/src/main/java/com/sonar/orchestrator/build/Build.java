@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-import static com.sonar.orchestrator.build.Utils.checkArgument;
+import static com.sonar.orchestrator.util.Utils.checkArgument;
 
 public abstract class Build<T extends Build<T>> {
 

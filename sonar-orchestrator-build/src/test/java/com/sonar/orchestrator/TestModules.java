@@ -1,6 +1,6 @@
 /*
  * Orchestrator
- * Copyright (C) 2011-2025 SonarSource Sàrl
+ * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,35 +17,21 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.build.util;
+package com.sonar.orchestrator;
 
-import java.io.IOException;
-import java.io.Writer;
-import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 
-public interface StreamConsumer {
+public class TestModules {
 
-  void consumeLine(String line);
-
-  class Pipe implements StreamConsumer {
-
-    private final Writer writer;
-
-    public Pipe(Writer writer) {
-      this.writer = writer;
+  public static File getFile(String dir, String filenameRegexp) {
+    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
+    File[] files = new File(dir).listFiles(fileFilter);
+    if (files == null || files.length != 1) {
+      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
     }
-
-    @Override
-    public void consumeLine(String line) {
-      try {
-        System.out.println(line);
-        writer.write(line);
-        writer.write("\n");
-      } catch (IOException e) {
-        LoggerFactory.getLogger(Pipe.class).error("Fail to write : " + line, e);
-      }
-    }
+    return files[0];
   }
-
 
 }

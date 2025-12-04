@@ -17,24 +17,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.build.util;
+package com.sonar.orchestrator.util;
 
-import java.io.StringWriter;
-import org.junit.Test;
+public final class CommandException extends RuntimeException {
 
-import static org.assertj.core.api.Assertions.assertThat;
+  private final transient Command command;
 
-public class StreamConsumerTest {
+  public CommandException(Command command, String message, Throwable throwable) {
+    super(message + " [command: " + command + "]", throwable);
+    this.command = command;
+  }
 
-  @Test
-  public void consumeLine() {
-    StringWriter writer = new StringWriter();
-    StreamConsumer.Pipe pipe = new StreamConsumer.Pipe(writer);
+  public CommandException(Command command, Throwable throwable) {
+    super(throwable);
+    this.command = command;
+  }
 
-    pipe.consumeLine("foo");
-    pipe.consumeLine("bar");
-
-    // https://jira.sonarsource.com/browse/ORCH-342 keep newlines
-    assertThat(writer.toString()).isEqualTo("foo\nbar\n");
+  public Command getCommand() {
+    return command;
   }
 }

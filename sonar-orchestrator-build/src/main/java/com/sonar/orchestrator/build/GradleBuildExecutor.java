@@ -22,14 +22,14 @@ package com.sonar.orchestrator.build;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.build.util.Command;
-import com.sonar.orchestrator.build.util.CommandExecutor;
-import com.sonar.orchestrator.build.util.StreamConsumer;
+import com.sonar.orchestrator.util.CommandExecutor;
+import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.util.Map;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.build.Utils.checkState;
+import static com.sonar.orchestrator.util.Utils.checkState;
 
 public class GradleBuildExecutor extends AbstractBuildExecutor<GradleBuild> {
 

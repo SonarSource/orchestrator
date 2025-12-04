@@ -17,27 +17,25 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.build;
+package com.sonar.orchestrator.util;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.sonar.orchestrator.util.StreamConsumer;
+import java.io.StringWriter;
+import org.junit.Test;
 
-import static com.sonar.orchestrator.util.Utils.checkArgument;
+import static org.assertj.core.api.Assertions.assertThat;
 
-final class PropertyUtils {
+public class StreamConsumerTest {
 
-  private PropertyUtils() {
-  }
+  @Test
+  public void consumeLine() {
+    StringWriter writer = new StringWriter();
+    StreamConsumer.Pipe pipe = new StreamConsumer.Pipe(writer);
 
-  static Map<String, String> toMap(String[] keyValues) {
-    checkArgument(keyValues.length % 2 == 0, "Must be an even number of key/values");
-    Map<String, String> map = new HashMap<>();
-    int index = 0;
-    while (index < keyValues.length) {
-      String key = keyValues[index++];
-      String value = keyValues[index++];
-      map.put(key, value);
-    }
-    return map;
+    pipe.consumeLine("foo");
+    pipe.consumeLine("bar");
+
+    // https://jira.sonarsource.com/browse/ORCH-342 keep newlines
+    assertThat(writer.toString()).isEqualTo("foo\nbar\n");
   }
 }

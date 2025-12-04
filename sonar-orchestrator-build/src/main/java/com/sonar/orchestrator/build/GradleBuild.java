@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.sonar.orchestrator.build.Utils.checkArgument;
+import static com.sonar.orchestrator.util.Utils.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public final class GradleBuild extends Build<GradleBuild> {

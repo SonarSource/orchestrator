@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.build.util;
+package com.sonar.orchestrator.util;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.SystemUtils;
 
-import static com.sonar.orchestrator.build.Utils.checkArgument;
+import static com.sonar.orchestrator.util.Utils.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
