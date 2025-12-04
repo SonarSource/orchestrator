@@ -20,10 +20,10 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.util.Command;
+import com.sonar.orchestrator.build.util.Command;
 import com.sonar.orchestrator.util.CommandException;
-import com.sonar.orchestrator.util.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
+import com.sonar.orchestrator.build.util.CommandExecutor;
+import com.sonar.orchestrator.build.util.StreamConsumer;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.util.HashMap;

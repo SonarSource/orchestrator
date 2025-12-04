@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Build
  * Copyright (C) 2011-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -19,25 +19,24 @@
  */
 package com.sonar.orchestrator.build;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Nullable;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static java.lang.String.format;
 
-final class PropertyUtils {
+class Utils {
 
-  private PropertyUtils() {
-  }
+  private Utils() {}
 
-  static Map<String, String> toMap(String[] keyValues) {
-    checkArgument(keyValues.length % 2 == 0, "Must be an even number of key/values");
-    Map<String, String> map = new HashMap<>();
-    int index = 0;
-    while (index < keyValues.length) {
-      String key = keyValues[index++];
-      String value = keyValues[index++];
-      map.put(key, value);
+  static void checkArgument(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+    if (!expression) {
+      throw new IllegalArgumentException(format(errorMessageTemplate, errorMessageArgs));
     }
-    return map;
   }
+
+  static void checkState(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+    if (!expression) {
+      throw new IllegalStateException(format(errorMessageTemplate, errorMessageArgs));
+    }
+  }
+
 }

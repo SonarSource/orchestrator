@@ -34,8 +34,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.build.Utils.checkArgument;
+import static com.sonar.orchestrator.build.Utils.checkState;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
