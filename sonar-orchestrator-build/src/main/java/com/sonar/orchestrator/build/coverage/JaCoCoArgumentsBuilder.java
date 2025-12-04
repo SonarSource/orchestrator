@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.coverage;
+package com.sonar.orchestrator.build.coverage;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;

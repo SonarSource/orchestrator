@@ -17,24 +17,35 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.util;
+package com.sonar.orchestrator.build.util;
 
-import java.io.StringWriter;
-import org.junit.Test;
+import java.io.IOException;
+import java.io.Writer;
+import org.slf4j.LoggerFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public interface StreamConsumer {
 
-public class StreamConsumerTest {
+  void consumeLine(String line);
 
-  @Test
-  public void consumeLine() {
-    StringWriter writer = new StringWriter();
-    StreamConsumer.Pipe pipe = new StreamConsumer.Pipe(writer);
+  class Pipe implements StreamConsumer {
 
-    pipe.consumeLine("foo");
-    pipe.consumeLine("bar");
+    private final Writer writer;
 
-    // https://jira.sonarsource.com/browse/ORCH-342 keep newlines
-    assertThat(writer.toString()).isEqualTo("foo\nbar\n");
+    public Pipe(Writer writer) {
+      this.writer = writer;
+    }
+
+    @Override
+    public void consumeLine(String line) {
+      try {
+        System.out.println(line);
+        writer.write(line);
+        writer.write("\n");
+      } catch (IOException e) {
+        LoggerFactory.getLogger(Pipe.class).error("Fail to write : " + line, e);
+      }
+    }
   }
+
+
 }

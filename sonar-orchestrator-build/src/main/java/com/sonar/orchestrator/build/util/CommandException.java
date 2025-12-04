@@ -17,35 +17,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.util;
+package com.sonar.orchestrator.build.util;
 
-import java.io.IOException;
-import java.io.Writer;
-import org.slf4j.LoggerFactory;
+public final class CommandException extends RuntimeException {
 
-public interface StreamConsumer {
+  private final transient Command command;
 
-  void consumeLine(String line);
-
-  class Pipe implements StreamConsumer {
-
-    private final Writer writer;
-
-    public Pipe(Writer writer) {
-      this.writer = writer;
-    }
-
-    @Override
-    public void consumeLine(String line) {
-      try {
-        System.out.println(line);
-        writer.write(line);
-        writer.write("\n");
-      } catch (IOException e) {
-        LoggerFactory.getLogger(Pipe.class).error("Fail to write : " + line, e);
-      }
-    }
+  public CommandException(Command command, String message, Throwable throwable) {
+    super(message + " [command: " + command + "]", throwable);
+    this.command = command;
   }
 
+  public CommandException(Command command, Throwable throwable) {
+    super(throwable);
+    this.command = command;
+  }
 
+  public Command getCommand() {
+    return command;
+  }
 }
