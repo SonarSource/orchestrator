@@ -24,7 +24,7 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.build.util.Command;
-import com.sonar.orchestrator.build.util.CommandExecutor;
+import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;

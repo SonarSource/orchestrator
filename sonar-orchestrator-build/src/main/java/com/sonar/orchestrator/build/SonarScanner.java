@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.SystemUtils;
 
-import static com.sonar.orchestrator.build.Utils.checkArgument;
+import static com.sonar.orchestrator.util.Utils.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 

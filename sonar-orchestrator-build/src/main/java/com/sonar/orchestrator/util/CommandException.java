@@ -17,27 +17,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.build;
+package com.sonar.orchestrator.util;
 
-import java.util.HashMap;
-import java.util.Map;
+public final class CommandException extends RuntimeException {
 
-import static com.sonar.orchestrator.util.Utils.checkArgument;
+  private final transient Command command;
 
-final class PropertyUtils {
-
-  private PropertyUtils() {
+  public CommandException(Command command, String message, Throwable throwable) {
+    super(message + " [command: " + command + "]", throwable);
+    this.command = command;
   }
 
-  static Map<String, String> toMap(String[] keyValues) {
-    checkArgument(keyValues.length % 2 == 0, "Must be an even number of key/values");
-    Map<String, String> map = new HashMap<>();
-    int index = 0;
-    while (index < keyValues.length) {
-      String key = keyValues[index++];
-      String value = keyValues[index++];
-      map.put(key, value);
-    }
-    return map;
+  public CommandException(Command command, Throwable throwable) {
+    super(throwable);
+    this.command = command;
+  }
+
+  public Command getCommand() {
+    return command;
   }
 }

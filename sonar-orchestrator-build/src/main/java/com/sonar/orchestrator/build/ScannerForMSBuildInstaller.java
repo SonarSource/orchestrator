@@ -24,7 +24,7 @@ import com.sonar.orchestrator.build.dotnet.scanner.PackageDetailsFactory;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.build.util.ZipUtils;
+import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +41,7 @@ import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_CORE_INTROD
 import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_CORE_INTRODUCTION_MINOR_VERSION;
 import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_SCANNER_CLI_NOT_BUNDLED_MAJOR_VERSION;
 import static com.sonar.orchestrator.build.ScannerForMSBuild.DOT_NET_SCANNER_CLI_NOT_BUNDLED_MINOR_VERSION;
-import static com.sonar.orchestrator.build.Utils.checkState;
+import static com.sonar.orchestrator.util.Utils.checkState;
 
 /**
  * Installs a given version of Scanner for .NET. It finds the zip into local maven repository

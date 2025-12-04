@@ -25,7 +25,7 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.db.DatabaseClient;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.build.util.ZipUtils;
+import com.sonar.orchestrator.util.ZipUtils;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.util.OrchestratorUtils;
 import java.io.File;
