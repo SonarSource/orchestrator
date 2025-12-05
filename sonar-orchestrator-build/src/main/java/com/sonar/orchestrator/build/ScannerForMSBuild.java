@@ -25,7 +25,7 @@ import com.sonar.orchestrator.locator.GitHubImpl;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
@@ -34,8 +34,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.Utils.checkArgument;
-import static com.sonar.orchestrator.util.Utils.checkState;
+import static com.sonar.orchestrator.build.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.build.util.Preconditions.checkState;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 

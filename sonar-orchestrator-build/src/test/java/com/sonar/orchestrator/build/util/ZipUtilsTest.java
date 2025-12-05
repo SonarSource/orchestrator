@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.util;
+package com.sonar.orchestrator.build.util;
 
-import com.sonar.orchestrator.util.ZipUtils;
+import com.sonar.orchestrator.build.util.ZipUtils;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;

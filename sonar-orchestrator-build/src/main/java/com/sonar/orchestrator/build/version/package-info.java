@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 @ParametersAreNonnullByDefault
-package com.sonar.orchestrator.version;
+package com.sonar.orchestrator.build.version;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 

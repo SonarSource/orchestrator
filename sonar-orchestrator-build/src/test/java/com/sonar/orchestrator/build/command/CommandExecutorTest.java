@@ -17,10 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.util;
+package com.sonar.orchestrator.build.command;
 
-import com.sonar.orchestrator.TestModules;
+import com.sonar.orchestrator.build.util.StreamConsumer;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -138,7 +140,7 @@ public class CommandExecutorTest {
     command.addArgument("-Dprop.quotes=single'quote");
 
     command.addArgument("-jar");
-    command.addArgument(TestModules.getFile("../echo/target", "echo-*.jar").getAbsolutePath());
+    command.addArgument(getFile("../echo/target", "echo-*.jar").getAbsolutePath());
     command.setDirectory(outputDir);
 
     // arguments
@@ -217,4 +219,12 @@ public class CommandExecutorTest {
     return new File("src/test/scripts/" + filename).getCanonicalPath();
   }
 
+  private static File getFile(String dir, String filenameRegexp) {
+    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
+    File[] files = new File(dir).listFiles(fileFilter);
+    if (files == null || files.length != 1) {
+      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
+    }
+    return files[0];
+  }
 }

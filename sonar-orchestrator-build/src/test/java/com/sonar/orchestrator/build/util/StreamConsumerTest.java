@@ -1,6 +1,6 @@
 /*
  * Orchestrator Build
- * Copyright (C) 2011-2025 SonarSource SA
+ * Copyright (C) 2011-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,21 +17,25 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator;
+package com.sonar.orchestrator.build.util;
 
-import java.io.File;
-import java.io.FileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import com.sonar.orchestrator.build.util.StreamConsumer;
+import java.io.StringWriter;
+import org.junit.Test;
 
-public class TestModules {
+import static org.assertj.core.api.Assertions.assertThat;
 
-  public static File getFile(String dir, String filenameRegexp) {
-    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
-    File[] files = new File(dir).listFiles(fileFilter);
-    if (files == null || files.length != 1) {
-      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
-    }
-    return files[0];
+public class StreamConsumerTest {
+
+  @Test
+  public void consumeLine() {
+    StringWriter writer = new StringWriter();
+    StreamConsumer.Pipe pipe = new StreamConsumer.Pipe(writer);
+
+    pipe.consumeLine("foo");
+    pipe.consumeLine("bar");
+
+    // https://jira.sonarsource.com/browse/ORCH-342 keep newlines
+    assertThat(writer.toString()).isEqualTo("foo\nbar\n");
   }
-
 }

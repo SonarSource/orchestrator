@@ -23,7 +23,7 @@ import com.sonar.orchestrator.build.dotnet.scanner.PackageDetails;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
