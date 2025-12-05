@@ -17,8 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-@ParametersAreNonnullByDefault
-package com.sonar.orchestrator.version;
+package com.sonar.orchestrator.build.util;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nullable;
 
+import static java.lang.String.format;
+
+public class Preconditions {
+
+  private Preconditions() {}
+
+  public static void checkArgument(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+    if (!expression) {
+      throw new IllegalArgumentException(format(errorMessageTemplate, errorMessageArgs));
+    }
+  }
+
+  public static void checkState(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+    if (!expression) {
+      throw new IllegalStateException(format(errorMessageTemplate, errorMessageArgs));
+    }
+  }
+
+}

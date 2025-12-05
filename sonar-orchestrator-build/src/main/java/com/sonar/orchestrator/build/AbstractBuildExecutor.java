@@ -22,7 +22,7 @@ package com.sonar.orchestrator.build;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.build.coverage.JaCoCoArgumentsBuilder;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.util.CommandExecutor;
+import com.sonar.orchestrator.build.command.CommandExecutor;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

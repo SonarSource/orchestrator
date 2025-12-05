@@ -17,21 +17,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator;
+package com.sonar.orchestrator.build.command;
 
-import java.io.File;
-import java.io.FileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+public final class CommandException extends RuntimeException {
 
-public class TestModules {
+  private final transient Command command;
 
-  public static File getFile(String dir, String filenameRegexp) {
-    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
-    File[] files = new File(dir).listFiles(fileFilter);
-    if (files == null || files.length != 1) {
-      throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);
-    }
-    return files[0];
+  public CommandException(Command command, String message, Throwable throwable) {
+    super(message + " [command: " + command + "]", throwable);
+    this.command = command;
   }
 
+  public CommandException(Command command, Throwable throwable) {
+    super(throwable);
+    this.command = command;
+  }
+
+  public Command getCommand() {
+    return command;
+  }
 }

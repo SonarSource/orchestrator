@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.build.dotnet.scanner;
 
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 
 public class PackageDetailsFactory {
   // Starting with this version the download paths have changed.

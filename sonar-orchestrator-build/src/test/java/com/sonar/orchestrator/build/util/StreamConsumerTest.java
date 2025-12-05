@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.util;
+package com.sonar.orchestrator.build.util;
 
-import com.sonar.orchestrator.util.StreamConsumer;
+import com.sonar.orchestrator.build.util.StreamConsumer;
 import java.io.StringWriter;
 import org.junit.Test;
 

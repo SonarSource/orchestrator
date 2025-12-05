@@ -17,35 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.util;
+@ParametersAreNonnullByDefault
+package com.sonar.orchestrator.build.version;
 
-import java.io.IOException;
-import java.io.Writer;
-import org.slf4j.LoggerFactory;
+import javax.annotation.ParametersAreNonnullByDefault;
 
-public interface StreamConsumer {
-
-  void consumeLine(String line);
-
-  class Pipe implements StreamConsumer {
-
-    private final Writer writer;
-
-    public Pipe(Writer writer) {
-      this.writer = writer;
-    }
-
-    @Override
-    public void consumeLine(String line) {
-      try {
-        System.out.println(line);
-        writer.write(line);
-        writer.write("\n");
-      } catch (IOException e) {
-        LoggerFactory.getLogger(Pipe.class).error("Fail to write : " + line, e);
-      }
-    }
-  }
-
-
-}

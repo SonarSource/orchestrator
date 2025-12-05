@@ -23,7 +23,7 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpResponse;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 import java.util.EnumMap;
 import java.util.Map;
 import okhttp3.HttpUrl;
