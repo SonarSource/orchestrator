@@ -23,17 +23,17 @@ import javax.annotation.Nullable;
 
 import static java.lang.String.format;
 
-class Utils {
+public class Utils {
 
   private Utils() {}
 
-  static void checkArgument(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+  public static void checkArgument(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
     if (!expression) {
       throw new IllegalArgumentException(format(errorMessageTemplate, errorMessageArgs));
     }
   }
 
-  static void checkState(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
+  public static void checkState(boolean expression, String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
     if (!expression) {
       throw new IllegalStateException(format(errorMessageTemplate, errorMessageArgs));
     }
