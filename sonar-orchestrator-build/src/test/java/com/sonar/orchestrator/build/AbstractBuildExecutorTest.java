@@ -19,9 +19,9 @@
  */
 package com.sonar.orchestrator.build;
 
+import com.sonar.orchestrator.build.test.MockHttpServerInterceptor;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Rule;
@@ -39,7 +39,7 @@ public class AbstractBuildExecutorTest {
   public void shouldNotAppendCoverageArgumentToOptsByDefault() {
     Map<String, String> env = Map.of();
 
-    Configuration config = Configuration.create(new HashMap<String, String>());
+    Configuration config = Configuration.create(new HashMap<>());
 
     AbstractBuildExecutor.appendCoverageArgumentToOpts(env, config, null, "SONAR_OPTS");
 

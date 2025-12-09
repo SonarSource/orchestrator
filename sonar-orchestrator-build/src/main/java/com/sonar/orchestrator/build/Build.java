@@ -20,7 +20,6 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.locator.Locators;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,7 +89,7 @@ public abstract class Build<T extends Build<T>> {
   }
 
   /**
-   * @deprecated since 2.17 use {@link Server#associateProjectToQualityProfile(String, String, String)}
+   * @deprecated since 2.17 use Server#associateProjectToQualityProfile(String, String, String)
    */
   @Deprecated(since = "2.17")
   public T setProfile(@Nullable String profileKey) {

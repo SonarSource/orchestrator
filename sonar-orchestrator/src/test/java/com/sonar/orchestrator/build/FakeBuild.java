@@ -1,5 +1,5 @@
 /*
- * Orchestrator Build
+ * Orchestrator
  * Copyright (C) 2011-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *

@@ -1,5 +1,5 @@
 /*
- * Orchestrator
+ * Orchestrator Build
  * Copyright (C) 2011-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.coverage;
+package com.sonar.orchestrator.build.coverage;
 
+import com.sonar.orchestrator.build.test.MockHttpServerInterceptor;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.test.MockHttpServerInterceptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
