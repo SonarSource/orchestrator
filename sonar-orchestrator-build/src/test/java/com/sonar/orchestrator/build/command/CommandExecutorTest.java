@@ -220,7 +220,7 @@ public class CommandExecutorTest {
   }
 
   private static File getFile(String dir, String filenameRegexp) {
-    FileFilter fileFilter = new WildcardFileFilter(filenameRegexp);
+    FileFilter fileFilter = WildcardFileFilter.builder().setWildcards(filenameRegexp).get();
     File[] files = new File(dir).listFiles(fileFilter);
     if (files == null || files.length != 1) {
       throw new IllegalStateException("File not found: " + filenameRegexp + " in " + dir);

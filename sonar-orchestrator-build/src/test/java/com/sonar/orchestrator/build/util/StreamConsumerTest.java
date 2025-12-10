@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build.util;
 
-import com.sonar.orchestrator.build.util.StreamConsumer;
 import java.io.StringWriter;
 import org.junit.Test;
 

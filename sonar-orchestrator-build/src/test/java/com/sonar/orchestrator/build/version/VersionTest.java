@@ -19,7 +19,6 @@
  */
 package com.sonar.orchestrator.build.version;
 
-import com.sonar.orchestrator.build.version.Version;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
