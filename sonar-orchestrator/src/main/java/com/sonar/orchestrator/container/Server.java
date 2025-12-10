@@ -24,7 +24,7 @@ import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

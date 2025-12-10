@@ -24,7 +24,6 @@ import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.BuildRunner;
-import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.Server;
@@ -45,6 +44,7 @@ import com.sonar.orchestrator.server.ServerInstaller;
 import com.sonar.orchestrator.server.ServerProcess;
 import com.sonar.orchestrator.server.ServerProcessImpl;
 import com.sonar.orchestrator.server.StartupLogWatcher;
+import com.sonar.orchestrator.server.SynchronousAnalyzer;
 import com.sonar.orchestrator.util.SharedDir;
 import java.util.Arrays;
 import java.util.UUID;
@@ -248,9 +248,9 @@ public class Orchestrator {
 
     BuildResult buildResult;
     if (quietly) {
-      buildResult = buildRunner.runQuietly(server, build);
+      buildResult = buildRunner.runQuietly(server.getUrl(), build);
     } else {
-      buildResult = buildRunner.run(server, build);
+      buildResult = buildRunner.run(server.getUrl(), build);
     }
     if (waitForComputeEngine) {
       new SynchronousAnalyzer(server).waitForDone();
@@ -307,7 +307,7 @@ public class Orchestrator {
 
     BuildResult[] results = new BuildResult[builds.length];
     for (int index = 0; index < builds.length; index++) {
-      results[index] = buildRunner.run(server, builds[index]);
+      results[index] = buildRunner.run(server.getUrl(), builds[index]);
     }
     new SynchronousAnalyzer(server).waitForDone();
     return results;

@@ -20,7 +20,7 @@
 package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 import java.io.File;
 import okhttp3.HttpUrl;
 import org.junit.Before;

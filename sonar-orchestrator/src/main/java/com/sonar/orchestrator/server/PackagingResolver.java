@@ -24,7 +24,7 @@ import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.build.version.Version;
 import java.io.File;
 import java.util.Optional;
 import java.util.regex.Matcher;
