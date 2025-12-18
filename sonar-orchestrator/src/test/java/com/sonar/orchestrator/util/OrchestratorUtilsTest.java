@@ -23,8 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.sonar.orchestrator.util.Preconditions.checkArgument;
-import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,48 +31,6 @@ public class OrchestratorUtilsTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-
-  @Test
-  public void checkArgument_does_not_throw_IAE_if_expression_is_true() {
-    checkArgument(true, "foo");
-  }
-
-  @Test
-  public void checkArgument_throws_IAE_if_expression_is_false() {
-    expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("foo");
-
-    checkArgument(false, "foo");
-  }
-
-  @Test
-  public void checkArgument_throws_IAE_with_formatted_message_if_expression_is_false() {
-    expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("hello:world");
-
-    checkArgument(false, "%s:%s", "hello", "world");
-  }
-
-  @Test
-  public void checkState_does_not_throw_ISE_if_expression_is_true() {
-    checkState(true, "foo");
-  }
-
-  @Test
-  public void checkState_throws_ISE_if_expression_is_false() {
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("foo");
-
-    checkState(false, "foo");
-  }
-
-  @Test
-  public void checkState_throws_ISE_with_formatted_message_if_expression_is_false() {
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("hello:world");
-
-    checkState(false, "%s:%s", "hello", "world");
-  }
 
   @Test
   public void test_defaultIfEmpty() {
