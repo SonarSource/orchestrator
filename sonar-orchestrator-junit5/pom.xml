@@ -25,6 +25,11 @@
       <artifactId>sonar-orchestrator</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.sonarsource.orchestrator</groupId>
+      <artifactId>sonar-orchestrator-utils</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- unit tests -->
     <dependency>

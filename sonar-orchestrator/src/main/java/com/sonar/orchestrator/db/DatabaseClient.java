@@ -29,7 +29,7 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
 
 public abstract class DatabaseClient {
 

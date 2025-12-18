@@ -21,6 +21,7 @@
 
   <modules>
     <module>echo</module>
+    <module>sonar-orchestrator-utils</module>
     <module>sonar-orchestrator</module>
     <module>sonar-orchestrator-config</module>
     <module>sonar-orchestrator-http</module>

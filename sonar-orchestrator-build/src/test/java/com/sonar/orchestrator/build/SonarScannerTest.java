@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.build;
 
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;

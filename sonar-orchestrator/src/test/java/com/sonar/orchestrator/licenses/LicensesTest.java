@@ -21,7 +21,7 @@ package com.sonar.orchestrator.licenses;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.Edition;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import mockwebserver3.MockResponse;
 import mockwebserver3.SocketEffect;
 import mockwebserver3.junit4.MockWebServerRule;

@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-import static com.sonar.orchestrator.build.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
 
 public abstract class Build<T extends Build<T>> {
 

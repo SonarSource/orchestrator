@@ -21,7 +21,7 @@ package com.sonar.orchestrator.container;
 
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import java.util.Random;
 import javax.annotation.Nullable;

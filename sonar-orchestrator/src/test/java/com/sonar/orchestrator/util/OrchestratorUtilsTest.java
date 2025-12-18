@@ -23,8 +23,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfEmpty;
 import static com.sonar.orchestrator.util.OrchestratorUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;

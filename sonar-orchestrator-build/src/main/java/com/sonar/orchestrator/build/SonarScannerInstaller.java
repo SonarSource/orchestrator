@@ -21,8 +21,8 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.build.util.ZipUtils;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.ZipUtils;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import java.net.URL;
 import javax.annotation.Nullable;

@@ -37,7 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
 public class ServerProcessImpl implements ServerProcess {

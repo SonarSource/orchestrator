@@ -19,7 +19,7 @@
  */
 package com.sonar.orchestrator.build.dotnet.scanner;
 
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

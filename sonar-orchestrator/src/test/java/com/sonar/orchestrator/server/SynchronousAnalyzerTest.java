@@ -21,7 +21,7 @@ package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.util.concurrent.TimeUnit;
 import mockwebserver3.junit4.MockWebServerRule;
 import okhttp3.Credentials;

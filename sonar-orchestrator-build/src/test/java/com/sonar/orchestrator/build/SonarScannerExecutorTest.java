@@ -20,10 +20,10 @@
 package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.build.command.Command;
-import com.sonar.orchestrator.build.command.CommandExecutor;
-import com.sonar.orchestrator.build.util.StreamConsumer;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.command.Command;
+import com.sonar.orchestrator.util.command.CommandExecutor;
+import com.sonar.orchestrator.util.StreamConsumer;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;

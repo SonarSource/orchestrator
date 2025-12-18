@@ -22,7 +22,7 @@ package com.sonar.orchestrator.build;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.sonar.orchestrator.build.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
 
 final class PropertyUtils {
 

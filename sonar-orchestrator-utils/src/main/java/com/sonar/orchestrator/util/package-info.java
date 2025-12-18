@@ -1,5 +1,5 @@
 /*
- * Orchestrator Build
+ * Orchestrator Utils
  * Copyright (C) 2011-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
@@ -17,24 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.orchestrator.build.util;
+@ParametersAreNonnullByDefault
+package com.sonar.orchestrator.util;
 
-import java.io.StringWriter;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class StreamConsumerTest {
-
-  @Test
-  public void consumeLine() {
-    StringWriter writer = new StringWriter();
-    StreamConsumer.Pipe pipe = new StreamConsumer.Pipe(writer);
-
-    pipe.consumeLine("foo");
-    pipe.consumeLine("bar");
-
-    // https://jira.sonarsource.com/browse/ORCH-342 keep newlines
-    assertThat(writer.toString()).isEqualTo("foo\nbar\n");
-  }
-}
+import javax.annotation.ParametersAreNonnullByDefault;

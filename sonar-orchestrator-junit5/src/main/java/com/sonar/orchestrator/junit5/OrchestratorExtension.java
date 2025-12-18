@@ -23,7 +23,7 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.container.SonarDistribution;
 import com.sonar.orchestrator.server.StartupLogWatcher;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;

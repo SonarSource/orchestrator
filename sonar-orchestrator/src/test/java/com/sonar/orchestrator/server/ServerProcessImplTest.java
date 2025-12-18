@@ -21,7 +21,7 @@ package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.TestModules;
 import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

@@ -21,7 +21,7 @@ package com.sonar.orchestrator.build;
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.build.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.SystemUtils;
 
-import static com.sonar.orchestrator.build.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
