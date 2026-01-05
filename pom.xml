@@ -21,10 +21,12 @@
 
   <modules>
     <module>echo</module>
+    <module>sonar-orchestrator-utils</module>
     <module>sonar-orchestrator</module>
     <module>sonar-orchestrator-config</module>
     <module>sonar-orchestrator-http</module>
     <module>sonar-orchestrator-locators</module>
+    <module>sonar-orchestrator-build</module>
     <module>sonar-orchestrator-junit4</module>
     <module>sonar-orchestrator-junit5</module>
   </modules>
@@ -45,6 +47,7 @@
     <license.name>GNU LGPL v3</license.name>
     <slf4j.version>2.0.17</slf4j.version>
     <okhttp.version>5.1.0</okhttp.version>
+    <jacoco.version>0.8.13</jacoco.version>
     <sonar.exclusions>
       **/com/sonar/orchestrator/echo/**/*.java,target/generated-sources/**/*
     </sonar.exclusions>

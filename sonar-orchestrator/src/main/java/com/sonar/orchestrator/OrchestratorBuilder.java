@@ -32,8 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 

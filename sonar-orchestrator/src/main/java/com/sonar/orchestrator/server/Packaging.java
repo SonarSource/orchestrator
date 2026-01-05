@@ -20,7 +20,7 @@
 package com.sonar.orchestrator.server;
 
 import com.sonar.orchestrator.container.Edition;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.util.Version;
 import java.io.File;
 import javax.annotation.concurrent.Immutable;
 

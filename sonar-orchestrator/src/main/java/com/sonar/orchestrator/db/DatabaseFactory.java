@@ -24,8 +24,8 @@ import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkArgument;
-import static com.sonar.orchestrator.util.OrchestratorUtils.checkState;
+import static com.sonar.orchestrator.util.Preconditions.checkArgument;
+import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public final class DatabaseFactory {
