@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OrchestratorBuilderTest {
 
-  private static final String LTS_ALIAS = "LATEST_RELEASE[2025.1]";
+  private static final String LTS_ALIAS = "LATEST_RELEASE[2026.1]";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -101,7 +101,7 @@ public class OrchestratorBuilderTest {
       orchestrator.start();
 
       verifyWebContext(orchestrator, "");
-      assertThat(orchestrator.getServer().version().toString()).startsWith("2025.1.");
+      assertThat(orchestrator.getServer().version().toString()).startsWith("2026.1.");
       Map<String, String> pluginVersions = loadInstalledPluginVersions(orchestrator);
       assertThat(pluginVersions).containsEntry("xml", "2.0.1 (build 2020)");
       assertThat(pluginVersions.get("python")).isNotEmpty();
@@ -148,7 +148,7 @@ public class OrchestratorBuilderTest {
       .build();
     orchestrator.install();
 
-    assertThat(orchestrator.getServer().version().toString()).startsWith("2025.1.");
+    assertThat(orchestrator.getServer().version().toString()).startsWith("2026.1.");
     assertThat(orchestrator.getServer().getEdition()).isEqualTo(Edition.DEVELOPER);
     File pluginsDir = new File(orchestrator.getServer().getHome(), "lib/extensions");
     assertThat(FileUtils.listFiles(pluginsDir, new String[]{"jar"}, false)).isNotEmpty();
