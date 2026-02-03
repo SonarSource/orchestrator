@@ -7,6 +7,8 @@ on:
   pull_request:
   merge_group:
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *' # Run at 2AM every day
 
 jobs:
   build:
@@ -26,12 +28,13 @@ jobs:
       - uses: SonarSource/ci-github-actions/get-build-number@v1
       - uses: SonarSource/ci-github-actions/build-maven@v1
         with:
-          deploy-pull-request: true
+          deploy-pull-request: ${{ github.event_name != 'schedule' }}
           artifactory-reader-role: private-reader
           artifactory-deployer-role: qa-deployer
           use-develocity: true
 
   promote:
+    if: github.event_name != 'schedule'
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
