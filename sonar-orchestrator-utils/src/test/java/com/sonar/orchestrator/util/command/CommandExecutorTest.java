@@ -203,6 +203,9 @@ public class CommandExecutorTest {
     if (SystemUtils.IS_OS_WINDOWS) {
       // On Windows, Java ensures a minimum set of environment variables
       assertThat(outputEnv).containsExactlyInAnyOrder("PATHEXT", "SystemRoot", "COMSPEC", "PROMPT");
+    } else if (SystemUtils.IS_OS_MAC) {
+      // On Windows, Java ensures a minimum set of environment variables
+      assertThat(outputEnv).containsExactlyInAnyOrder("PWD", "SHLVL", "_");
     } else {
       // On Linux, only PWD is set as a minimum requirement
       assertThat(outputEnv).containsExactly("PWD");
