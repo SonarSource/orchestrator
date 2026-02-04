@@ -7,8 +7,7 @@ on:
   pull_request:
   merge_group:
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *' # Run at 2AM every day
+  workflow_call:
 
 jobs:
   build:
