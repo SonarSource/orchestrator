@@ -27,13 +27,13 @@ jobs:
       - uses: SonarSource/ci-github-actions/get-build-number@v1
       - uses: SonarSource/ci-github-actions/build-maven@v1
         with:
-          deploy-pull-request: ${{ github.event_name != 'schedule' }}
+          deploy-pull-request: ${{ github.event_name != 'workflow_call' }}
           artifactory-reader-role: private-reader
           artifactory-deployer-role: qa-deployer
           use-develocity: true
 
   promote:
-    if: github.event_name != 'schedule'
+    if: github.event_name != 'workflow_call'
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
