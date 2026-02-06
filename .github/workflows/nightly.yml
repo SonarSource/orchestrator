@@ -1,7 +1,8 @@
 name: CI Scheduled (master nightly)
 on:
   schedule:
-    - cron: '0 2 * * *'  # Nightly builds
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
