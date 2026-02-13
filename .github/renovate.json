@@ -1,0 +1,54 @@
+{
+  "extends": [
+    "config:base",
+    ":preserveSemverRanges"
+  ],
+  "branchConcurrentLimit": 0,
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
+  "separateMinorPatch": false,
+  "separateMajorMinor": false,
+  "ignoreDeps": [],
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": "maven",
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
+      "enabled": true,
+      "groupName": "Minor Backend Dependencies"
+    },
+    {
+      "matchManagers": "maven",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": true,
+      "groupName": "Major Backend Dependencies"
+    },
+    {
+      "matchManagers": "github-actions",
+      "enabled": false
+    },
+    {
+      "matchManagers": "dockerfile",
+      "enabled": false
+    },
+    {
+      "matchManagers": "gradle-wrapper",
+      "enabled": false
+    },
+    {
+      "matchManagers": "npm",
+      "enabled": false
+    },
+    {
+      "matchManagers": "gradle",
+      "enabled": false
+    }
+  ]
+}
