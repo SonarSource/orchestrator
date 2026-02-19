@@ -202,7 +202,7 @@ public class DefaultArtifactoryTest {
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
       public void describeTo(Description description) {
-
+        // Intentionally empty: TypeSafeMatcher.describeMismatch provides enough context
       }
 
       @Override
