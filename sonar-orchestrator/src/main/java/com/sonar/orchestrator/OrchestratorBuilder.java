@@ -37,7 +37,7 @@ import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
-public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BUILDER, ORCH>, ORCH> {
+public abstract class OrchestratorBuilder<B extends OrchestratorBuilder<B, O>, O> {
 
   private final Configuration config;
   private final System2 system2;
@@ -75,7 +75,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER setZipLocation(Location zip) {
     this.distribution.setZipLocation(requireNonNull(zip));
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -103,7 +103,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
   public BUILDER setSonarVersion(String s) {
     checkArgument(!isEmpty(s), "Empty SonarQube version");
     this.distribution.setVersion(s);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -122,7 +122,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER setStartupLogWatcher(@Nullable StartupLogWatcher w) {
     this.startupLogWatcher = w;
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -148,7 +148,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER addPlugin(Location location) {
     distribution.addPluginLocation(requireNonNull(location));
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -157,19 +157,19 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER addBundledPlugin(Location location) {
     distribution.addBundledPluginLocation(requireNonNull(location));
-    return (BUILDER) this;
+    return (B) this;
   }
 
   public BUILDER setOrchestratorProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     overriddenProperties.put(key, value);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   public BUILDER setServerProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     distribution.setServerProperty(key, value);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -178,7 +178,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
   public BUILDER enableCeDebug() {
     failIfRunningOnCI();
     this.setServerProperty("sonar.ce.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006");
-    return (BUILDER) this;
+    return (B) this;
 
   }
 
@@ -188,7 +188,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
   public BUILDER enableWebDebug() {
     failIfRunningOnCI();
     this.setServerProperty("sonar.web.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
-    return (BUILDER) this;
+    return (B) this;
   }
 
   private void failIfRunningOnCI() {
@@ -202,7 +202,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER emptySonarProperties() {
     distribution.setEmptySonarProperties(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -212,7 +212,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER defaultForceAuthentication() {
     distribution.setDefaultForceAuthentication(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -222,7 +222,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER defaultForceDefaultAdminCredentialsRedirect() {
     distribution.setForceDefaultAdminCredentialsRedirect(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -232,7 +232,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER useDefaultAdminCredentialsForBuilds(boolean defaultAdminCredentialsForBuilds) {
     distribution.useDefaultAdminCredentialsForBuilds(defaultAdminCredentialsForBuilds);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -244,7 +244,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER setEdition(Edition edition) {
     distribution.setEdition(edition);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   private static void checkNotEmpty(String key) {
@@ -253,7 +253,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
 
   public BUILDER restoreProfileAtStartup(Location profileBackup) {
     distribution.restoreProfileAtStartup(profileBackup);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -264,7 +264,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER activateLicense() {
     distribution.activateLicense();
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -272,7 +272,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER keepBundledPlugins() {
     distribution.setKeepBundledPlugins(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -283,7 +283,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    */
   public BUILDER addBundledPluginToKeep(String pluginJarNamePrefix) {
     distribution.addBundledPluginToKeep(pluginJarNamePrefix);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   public ORCH build() {
