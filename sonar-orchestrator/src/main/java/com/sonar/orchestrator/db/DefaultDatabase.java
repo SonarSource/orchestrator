@@ -380,18 +380,14 @@ public final class DefaultDatabase implements Database {
   }
 
   DefaultDatabase executeDdl(Connection connection, String... ddls) {
-    Statement stmt = null;
-    try {
-      stmt = connection.createStatement();
+    try (Statement stmt = connection.createStatement()) {
       for (String ddl : ddls) {
         LOG.debug("Execute: {}", ddl);
-        stmt.executeUpdate(ddl);
+        stmt.addBatch(ddl);
       }
+      stmt.executeBatch();
     } catch (Exception e) {
       throw new IllegalStateException("Fail to execute ddl", e);
-
-    } finally {
-      closeQuietly(stmt);
     }
     return this;
   }
