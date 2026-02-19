@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package com.sonar.orchestrator.db;
+import java.util.Locale;
+
 
 public final class Oracle extends DatabaseClient {
 
@@ -72,7 +74,7 @@ public final class Oracle extends DatabaseClient {
 
   @Override
   public String getSelectConnectionIdsSql() {
-    return "SELECT SID || ',' || SERIAL# AS ID  FROM sys.v_$session WHERE USERNAME = '" + getLogin().toUpperCase() + "'";
+    return "SELECT SID || ',' || SERIAL# AS ID  FROM sys.v_$session WHERE USERNAME = '" + getLogin().toUpperCase(Locale.ROOT) + "'";
   }
 
   @Override
