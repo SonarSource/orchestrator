@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.io.InputStreamReader;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -176,7 +177,7 @@ public class CommandExecutor {
 
     @Override
     public void run() {
-      try (InputStreamReader isr = new InputStreamReader(is);
+      try (InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
            BufferedReader br = new BufferedReader(isr)) {
         String line;
         while ((line = br.readLine()) != null) {
