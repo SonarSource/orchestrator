@@ -202,7 +202,7 @@ public class DefaultArtifactoryTest {
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
       public void describeTo(Description description) {
-
+        description.appendText("a string starting with 'Failed to request'");
       }
 
       @Override
@@ -381,6 +381,7 @@ public class DefaultArtifactoryTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
+        description.appendText("a string starting with 'Fail to request versions at'");
       public void describeTo(Description description) {
       }
 
