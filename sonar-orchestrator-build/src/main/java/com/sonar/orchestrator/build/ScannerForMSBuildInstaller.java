@@ -156,7 +156,7 @@ public class ScannerForMSBuildInstaller {
   }
 
   static MavenLocation mavenLocation(Version scannerVersion, PackageDetails packageDetails) {
-    MavenLocation.Builder location = MavenLocation.builder()
+    MavenLocation.Builder<?> location = MavenLocation.builder()
       .setGroupId(packageDetails.getGroupId())
       .setArtifactId(packageDetails.getArtifactId())
       .setVersion(scannerVersion.toString())
