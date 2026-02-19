@@ -40,7 +40,7 @@ public abstract class SingleStartExternalResource extends ExternalResource {
     synchronized (nestedCount) {
       nestedCount.incrementAndGet();
       if (stopped) {
-        throw new RuntimeException(ALREADY_STOPPED);
+        throw new IllegalStateException(ALREADY_STOPPED);
       }
       if (!started) {
         beforeAll();
