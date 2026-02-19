@@ -50,6 +50,7 @@ public class HttpCall {
   private static final String ADMIN_PASSWORD = "admin";
 
   private static final String DEFAULT_USER_AGENT = "Orchestrator";
+  private static final String CAN_NOT_CALL = "Can not call %s";
 
   private final OkHttpClient okClient;
   private final HttpUrl baseUrl;
@@ -196,10 +197,10 @@ public class HttpCall {
       try {
         doDownloadToFile(okRequest, file);
       } catch (IOException e2) {
-        throw new IllegalStateException(format("Can not call %s", okRequest.url()), e2);
+        throw new IllegalStateException(format(CAN_NOT_CALL, okRequest.url()), e2);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
+      throw new IllegalStateException(format(CAN_NOT_CALL, okRequest.url()), e);
     }
   }
 
@@ -221,10 +222,10 @@ public class HttpCall {
       try {
         return doDownloadToDirectory(dir, okRequest);
       } catch (IOException e2) {
-        throw new IllegalStateException(format("Can not call %s", okRequest.url()), e2);
+        throw new IllegalStateException(format(CAN_NOT_CALL, okRequest.url()), e2);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
+      throw new IllegalStateException(format(CAN_NOT_CALL, okRequest.url()), e);
     }
   }
 
