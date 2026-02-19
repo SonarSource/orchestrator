@@ -25,12 +25,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +168,7 @@ public class CommandExecutor {
   private static class StreamGobbler extends Thread {
     private final InputStream is;
     private final StreamConsumer consumer;
-    private volatile Exception exception;
+    private final AtomicReference<Exception> exception = new AtomicReference<>();
 
     StreamGobbler(InputStream is, StreamConsumer consumer) {
       super("ProcessStreamGobbler");
@@ -176,29 +178,29 @@ public class CommandExecutor {
 
     @Override
     public void run() {
-      try (InputStreamReader isr = new InputStreamReader(is);
+      try (InputStreamReader isr = new InputStreamReader(is, Charset.defaultCharset());
            BufferedReader br = new BufferedReader(isr)) {
         String line;
         while ((line = br.readLine()) != null) {
           consumeLine(line);
         }
       } catch (IOException ioe) {
-        exception = ioe;
+        exception.set(ioe);
       }
     }
 
     private void consumeLine(String line) {
-      if (exception == null) {
+      if (exception.get() == null) {
         try {
           consumer.consumeLine(line);
         } catch (Exception e) {
-          exception = e;
+          exception.set(e);
         }
       }
     }
 
     public Exception getException() {
-      return exception;
+      return exception.get();
     }
   }
 
