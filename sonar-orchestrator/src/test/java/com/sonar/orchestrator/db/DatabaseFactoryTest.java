@@ -22,6 +22,8 @@ package com.sonar.orchestrator.db;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -62,14 +64,22 @@ public class DatabaseFactoryTest {
   }
 
   @Test
-  public void should_support_h2() {
-    Configuration config = Configuration.builder()
-      .setProperty("sonar.jdbc.url", "jdbc:h2:tcp://localhost:9092/sonar")
-      .build();
+  public void should_support_dialects() {
+    Map<String, String> jdbcUrlToDialect = new LinkedHashMap<>();
+    jdbcUrlToDialect.put("jdbc:h2:tcp://localhost:9092/sonar", "h2");
+    jdbcUrlToDialect.put("jdbc:postgresql://localhost/sonar", "postgresql");
+    jdbcUrlToDialect.put("jdbc:sqlserver://localhost;databaseName=sonar", "mssql");
+    jdbcUrlToDialect.put("jdbc:jtds:sqlserver://localhost/sonar", "mssql");
 
-    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
+    for (Map.Entry<String, String> entry : jdbcUrlToDialect.entrySet()) {
+      Configuration config = Configuration.builder()
+        .setProperty("sonar.jdbc.url", entry.getKey())
+        .build();
 
-    assertThat(databaseClient.getDialect()).isEqualTo("h2");
+      DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
+
+      assertThat(databaseClient.getDialect()).isEqualTo(entry.getValue());
+    }
   }
 
   @Test
@@ -80,39 +90,6 @@ public class DatabaseFactoryTest {
     DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
 
     assertThat(databaseClient.getDialect()).isEqualTo("h2");
-  }
-
-  @Test
-  public void should_support_postgresql() {
-    Configuration config = Configuration.builder()
-      .setProperty("sonar.jdbc.url", "jdbc:postgresql://localhost/sonar")
-      .build();
-
-    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
-
-    assertThat(databaseClient.getDialect()).isEqualTo("postgresql");
-  }
-
-  @Test
-  public void should_support_mssql_with_microsoft_driver() {
-    Configuration config = Configuration.builder()
-      .setProperty("sonar.jdbc.url", "jdbc:sqlserver://localhost;databaseName=sonar")
-      .build();
-
-    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
-
-    assertThat(databaseClient.getDialect()).isEqualTo("mssql");
-  }
-
-  @Test
-  public void should_support_mssql_with_jtds_driver() {
-    Configuration config = Configuration.builder()
-      .setProperty("sonar.jdbc.url", "jdbc:jtds:sqlserver://localhost/sonar")
-      .build();
-
-    DatabaseClient databaseClient = DatabaseFactory.create(config, mock(Locators.class));
-
-    assertThat(databaseClient.getDialect()).isEqualTo("mssql");
   }
 
   @Test
