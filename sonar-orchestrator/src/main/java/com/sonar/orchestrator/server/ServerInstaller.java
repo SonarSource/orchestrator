@@ -145,7 +145,7 @@ public class ServerInstaller {
     if (bundledPluginNamePrefixesToKeep.isEmpty()) {
       LOG.info("Remove bundled plugins");
     } else {
-      LOG.info("Remove bundled plugins except: " + String.join(", ", bundledPluginNamePrefixesToKeep));
+      LOG.info("Remove bundled plugins except: {}", String.join(", ", bundledPluginNamePrefixesToKeep));
 
     }
     cleanDirectory(new File(homeDir, "lib/bundled-plugins"), bundledPluginNamePrefixesToKeep);
