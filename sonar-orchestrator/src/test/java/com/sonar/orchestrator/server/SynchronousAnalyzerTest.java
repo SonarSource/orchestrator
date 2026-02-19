@@ -54,7 +54,7 @@ public class SynchronousAnalyzerTest {
     assertThat(mockWebServerRule.getServer().getRequestCount()).isEqualTo(3);
     for (int i = 0; i < 3; i++) {
       RecordedRequest recordedRequest = mockWebServerRule.getServer().takeRequest();
-      assertThat(recordedRequest.getTarget()).isEqualTo(SynchronousAnalyzer.RELATIVE_PATH);
+      assertThat(recordedRequest.getTarget()).isEqualTo(SynchronousAnalyzer.DEFAULT_RELATIVE_PATH);
       assertThat(recordedRequest.getHeaders().get("Authorization")).isEqualTo(Credentials.basic("admin", "admin"));
     }
   }
