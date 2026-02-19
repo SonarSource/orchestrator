@@ -202,7 +202,7 @@ public class DefaultArtifactoryTest {
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
       public void describeTo(Description description) {
-
+        // Not needed for this test matcher
       }
 
       @Override
