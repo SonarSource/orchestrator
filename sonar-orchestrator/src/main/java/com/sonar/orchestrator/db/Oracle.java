@@ -19,6 +19,8 @@
  */
 package com.sonar.orchestrator.db;
 
+import java.util.Locale;
+
 public final class Oracle extends DatabaseClient {
 
   private Oracle(Builder builder) {
@@ -72,7 +74,7 @@ public final class Oracle extends DatabaseClient {
 
   @Override
   public String getSelectConnectionIdsSql() {
-    return "SELECT SID || ',' || SERIAL# AS ID  FROM sys.v_$session WHERE USERNAME = '" + getLogin().toUpperCase() + "'";
+    return "SELECT SID || ',' || SERIAL# AS ID  FROM sys.v_$session WHERE USERNAME = '" + getLogin().toUpperCase(Locale.ROOT) + "'";
   }
 
   @Override
