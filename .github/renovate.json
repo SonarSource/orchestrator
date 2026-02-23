@@ -43,11 +43,15 @@
       "enabled": false
     },
     {
+      "matchManagers": "gradle",
+      "enabled": false
+    },
+    {
       "matchManagers": "npm",
       "enabled": false
     },
     {
-      "matchManagers": "gradle",
+      "matchManagers": "mise",
       "enabled": false
     }
   ]
