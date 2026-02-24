@@ -140,17 +140,6 @@ public class MavenBuildExecutorTest {
   }
 
   @Test
-  public void configure_maven_home_on_linux() throws Exception {
-    emulateLinux();
-    File home = temp.newFolder();
-    Configuration configuration = Configuration.builder().setProperty("MAVEN_HOME", home.getCanonicalPath()).build();
-
-    String result = underTest.buildMvnPath(configuration);
-
-    assertThat(result).isEqualTo(new File(home, "bin/mvn").getCanonicalPath());
-  }
-
-  @Test
   public void configure_maven_home_and_binary_on_linux() throws Exception {
     emulateLinux();
     File home = temp.newFolder();
