@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +167,7 @@ public class CommandExecutor {
   private static class StreamGobbler extends Thread {
     private final InputStream is;
     private final StreamConsumer consumer;
-    private volatile Exception exception;
+    private final AtomicReference<Exception> exception = new AtomicReference<>();
 
     StreamGobbler(InputStream is, StreamConsumer consumer) {
       super("ProcessStreamGobbler");
@@ -183,22 +184,22 @@ public class CommandExecutor {
           consumeLine(line);
         }
       } catch (IOException ioe) {
-        exception = ioe;
+        exception.set(ioe);
       }
     }
 
     private void consumeLine(String line) {
-      if (exception == null) {
+      if (exception.get() == null) {
         try {
           consumer.consumeLine(line);
         } catch (Exception e) {
-          exception = e;
+          exception.set(e);
         }
       }
     }
 
     public Exception getException() {
-      return exception;
+      return exception.get();
     }
   }
 
