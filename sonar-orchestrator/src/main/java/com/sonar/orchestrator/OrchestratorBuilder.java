@@ -37,7 +37,7 @@ import static com.sonar.orchestrator.util.Preconditions.checkState;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static java.util.Objects.requireNonNull;
 
-public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BUILDER, ORCH>, ORCH> {
+public abstract class OrchestratorBuilder<B extends OrchestratorBuilder<B, O>, O> {
 
   private final Configuration config;
   private final System2 system2;
@@ -63,7 +63,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * @throws IllegalArgumentException if the zip file does not exist
    */
-  public BUILDER setZipFile(File zip) {
+  public B setZipFile(File zip) {
     checkArgument(zip.exists(), "SonarQube ZIP file does not exist: %s", zip.getAbsolutePath());
     checkArgument(zip.isFile(), "SonarQube ZIP is not a file: %s", zip.getAbsolutePath());
     return setZipLocation(FileLocation.of(zip));
@@ -73,9 +73,9 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    * Set the path to SonarQube zip by its location, for instance {@link FileLocation} or {@link MavenLocation}
    * @since 3.19
    */
-  public BUILDER setZipLocation(Location zip) {
+  public B setZipLocation(Location zip) {
     this.distribution.setZipLocation(requireNonNull(zip));
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -100,10 +100,10 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    * supported. The caller is responsible for loading the version of SonarQube from wherever it
    * needs.
    */
-  public BUILDER setSonarVersion(String s) {
+  public B setSonarVersion(String s) {
     checkArgument(!isEmpty(s), "Empty SonarQube version");
     this.distribution.setVersion(s);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -120,9 +120,9 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * @since 3.13
    */
-  public BUILDER setStartupLogWatcher(@Nullable StartupLogWatcher w) {
+  public B setStartupLogWatcher(@Nullable StartupLogWatcher w) {
     this.startupLogWatcher = w;
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -146,49 +146,49 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    * Downloading and resolving aliases of commercial plugins requires the Artifactory credentials to be set
    * (see parameter "orchestrator.artifactory.accessToken").
    */
-  public BUILDER addPlugin(Location location) {
+  public B addPlugin(Location location) {
     distribution.addPluginLocation(requireNonNull(location));
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
    * Similar to {@link #addPlugin} but installs the plugin in the directory for bundled plugins.
    * Only supported by SQ 8.5+
    */
-  public BUILDER addBundledPlugin(Location location) {
+  public B addBundledPlugin(Location location) {
     distribution.addBundledPluginLocation(requireNonNull(location));
-    return (BUILDER) this;
+    return (B) this;
   }
 
-  public BUILDER setOrchestratorProperty(String key, @Nullable String value) {
+  public B setOrchestratorProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     overriddenProperties.put(key, value);
-    return (BUILDER) this;
+    return (B) this;
   }
 
-  public BUILDER setServerProperty(String key, @Nullable String value) {
+  public B setServerProperty(String key, @Nullable String value) {
     checkNotEmpty(key);
     distribution.setServerProperty(key, value);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
    * Enable JDWP agent in the CE process for remote debugging on port 5006
    */
-  public BUILDER enableCeDebug() {
+  public B enableCeDebug() {
     failIfRunningOnCI();
     this.setServerProperty("sonar.ce.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006");
-    return (BUILDER) this;
+    return (B) this;
 
   }
 
   /**
    * Enable JDWP agent in the web process for remote debugging on port 5005
    */
-  public BUILDER enableWebDebug() {
+  public B enableWebDebug() {
     failIfRunningOnCI();
     this.setServerProperty("sonar.web.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
-    return (BUILDER) this;
+    return (B) this;
   }
 
   private void failIfRunningOnCI() {
@@ -200,9 +200,9 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
   /**
    * Orchestrator will start with clean sonar.properties file
    */
-  public BUILDER emptySonarProperties() {
+  public B emptySonarProperties() {
     distribution.setEmptySonarProperties(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -210,9 +210,9 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * Starting from 8.6 it has been enforced, but due impact on others it will be disabled by default
    */
-  public BUILDER defaultForceAuthentication() {
+  public B defaultForceAuthentication() {
     distribution.setDefaultForceAuthentication(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -220,9 +220,9 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * Starting from 8.8 it has been enforced, but due impact on ITs, it will be disabled by default.
    */
-  public BUILDER defaultForceDefaultAdminCredentialsRedirect() {
+  public B defaultForceDefaultAdminCredentialsRedirect() {
     distribution.setForceDefaultAdminCredentialsRedirect(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -230,9 +230,9 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * Starting from 9.8, permissions for 'Anyone' group has been limited for new instances.
    */
-  public BUILDER useDefaultAdminCredentialsForBuilds(boolean defaultAdminCredentialsForBuilds) {
+  public B useDefaultAdminCredentialsForBuilds(boolean defaultAdminCredentialsForBuilds) {
     distribution.useDefaultAdminCredentialsForBuilds(defaultAdminCredentialsForBuilds);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -242,18 +242,18 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * @since 3.19
    */
-  public BUILDER setEdition(Edition edition) {
+  public B setEdition(Edition edition) {
     distribution.setEdition(edition);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   private static void checkNotEmpty(String key) {
     checkArgument(!isEmpty(key), "Empty property key");
   }
 
-  public BUILDER restoreProfileAtStartup(Location profileBackup) {
+  public B restoreProfileAtStartup(Location profileBackup) {
     distribution.restoreProfileAtStartup(profileBackup);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -262,17 +262,17 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    *
    * @since 3.15
    */
-  public BUILDER activateLicense() {
+  public B activateLicense() {
     distribution.activateLicense();
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
    * Keeps all bundled plugins
    */
-  public BUILDER keepBundledPlugins() {
+  public B keepBundledPlugins() {
     distribution.setKeepBundledPlugins(true);
-    return (BUILDER) this;
+    return (B) this;
   }
 
   /**
@@ -281,12 +281,12 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
    * in which case all plugins are kept.
    * @param pluginJarNamePrefix File name prefix of the plugin jar file to be kept. For example, 'sonar-java'.
    */
-  public BUILDER addBundledPluginToKeep(String pluginJarNamePrefix) {
+  public B addBundledPluginToKeep(String pluginJarNamePrefix) {
     distribution.addBundledPluginToKeep(pluginJarNamePrefix);
-    return (BUILDER) this;
+    return (B) this;
   }
 
-  public ORCH build() {
+  public O build() {
     checkState(distribution.getZipLocation().isPresent() ^ distribution.getVersion().isPresent(),
       "One, and only one, of methods setSonarVersion(String) or setZipFile(File) must be called");
     Configuration.Builder configBuilder = Configuration.builder();
@@ -298,5 +298,5 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
     return build(finalConfig, distribution, startupLogWatcher);
   }
 
-  protected abstract ORCH build(Configuration finalConfig, SonarDistribution distribution, StartupLogWatcher startupLogWatcher);
+  protected abstract O build(Configuration finalConfig, SonarDistribution distribution, StartupLogWatcher startupLogWatcher);
 }
