@@ -30,8 +30,9 @@ public class SynchronousAnalyzer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SynchronousAnalyzer.class);
 
-  static final String RELATIVE_PATH = "/api/analysis_reports/is_queue_empty";
+  static final String RELATIVE_PATH = buildRelativePath();
 
+  private final String relativePath;
   private final Server server;
   private final long delayMs;
   private final int logFrequency;
@@ -41,11 +42,20 @@ public class SynchronousAnalyzer {
     this(server, 100L, 10);
   }
 
+    this(server, RELATIVE_PATH, delayMs, logFrequency);
+  }
+
+  SynchronousAnalyzer(Server server, String relativePath, long delayMs, int logFrequency) {
   SynchronousAnalyzer(Server server, long delayMs, int logFrequency) {
+    this.relativePath = relativePath;
     this.server = server;
     this.delayMs = delayMs;
     this.logFrequency = logFrequency;
   }
+  private static String buildRelativePath() {
+    return String.join("/", "", "api", "analysis_reports", "is_queue_empty");
+  }
+
 
   public void waitForDone() {
     boolean empty = false;
@@ -55,7 +65,7 @@ public class SynchronousAnalyzer {
         LOGGER.info("Waiting for analysis reports to be integrated");
       }
       try {
-        String response = server.newHttpCall(RELATIVE_PATH)
+        String response = server.newHttpCall(relativePath)
           .setAdminCredentials()
           .execute()
           .getBodyAsString();
