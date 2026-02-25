@@ -53,7 +53,7 @@ public final class MockHttpServer {
    * @return never <code>null</code>.
    */
   public Handler getMockHandler() {
-    Handler handler = new AbstractHandler() {
+    return new AbstractHandler() {
 
       @Override
       public void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
@@ -66,7 +66,6 @@ public final class MockHttpServer {
         baseRequest.setHandled(true);
       }
     };
-    return handler;
   }
 
   public void stop() {
