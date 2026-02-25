@@ -202,7 +202,7 @@ public class DefaultArtifactoryTest {
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
       public void describeTo(Description description) {
-
+        // Intentionally left empty: description is not needed for this test matcher
       }
 
       @Override
@@ -381,6 +381,7 @@ public class DefaultArtifactoryTest {
     expectedException.expect(IllegalStateException.class);
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
+        // Intentionally left empty: description is not needed for this test matcher
       public void describeTo(Description description) {
       }
 
