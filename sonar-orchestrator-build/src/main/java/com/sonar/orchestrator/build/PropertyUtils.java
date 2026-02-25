@@ -34,8 +34,10 @@ final class PropertyUtils {
     Map<String, String> map = new HashMap<>();
     int index = 0;
     while (index < keyValues.length) {
-      String key = keyValues[index++];
-      String value = keyValues[index++];
+      String key = keyValues[index];
+      index++;
+      String value = keyValues[index];
+      index++;
       map.put(key, value);
     }
     return map;
