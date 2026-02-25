@@ -27,13 +27,13 @@ import static org.junit.Assert.assertTrue;
 public class OrchestratorRuleMediumTest {
 
   @ClassRule
-  public static OrchestratorRule ORCHESTRATOR = OrchestratorRule.builderEnv()
+  public static OrchestratorRule orchestrator = OrchestratorRule.builderEnv()
     .setSonarVersion("LATEST_RELEASE")
     .build();
 
   @Test
   public void serverShouldBeStarted() {
-    assertTrue(ORCHESTRATOR.getServer().newHttpCall("/api/server/version").execute().isSuccessful());
+    assertTrue(orchestrator.getServer().newHttpCall("/api/server/version").execute().isSuccessful());
   }
 
 }
