@@ -1,6 +1,6 @@
 {
   "extends": [
-    "config:base",
+    "github>SonarSource/renovate-config",
     ":preserveSemverRanges"
   ],
   "branchConcurrentLimit": 0,
