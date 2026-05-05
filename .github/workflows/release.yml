@@ -1,20 +1,36 @@
 ---
 name: sonar-release
-# This workflow is triggered when publishing a new github release
 # yamllint disable-line rule:truthy
 on:
-  release:
-    types:
-      - published
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Full version including build number, e.g. 1.2.3.456'
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce eligible release branches
+        run: |
+          [[ "${GITHUB_REF_NAME}" == "master" || "${GITHUB_REF_NAME}" == branch-* ]] || \
+            { echo "ERROR: must trigger from 'master' or 'branch-*', got '${GITHUB_REF_NAME}'"; exit 1; }
+
   release:
+    needs: guard
     permissions:
       id-token: write
       contents: write
-    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v6
+    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v7
     with:
       publishToBinaries: true  # disabled by default
       mavenCentralSync: true   # disabled by default
       mavenCentralSyncExclusions: "*echo*"
       slackChannel: squad-sq-platform-build-notification
+      version: ${{ inputs.version }}
+      createDraftRelease: false
