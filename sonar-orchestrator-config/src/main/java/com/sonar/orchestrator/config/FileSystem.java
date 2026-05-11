@@ -88,6 +88,10 @@ public class FileSystem {
     return orchestratorHome.resolve("cache");
   }
 
+  public Path getTempDir() {
+    return orchestratorHome.resolve("_tmp");
+  }
+
   public Path getSonarQubeZipsDir() {
     return sonarQubeZipsDir;
   }

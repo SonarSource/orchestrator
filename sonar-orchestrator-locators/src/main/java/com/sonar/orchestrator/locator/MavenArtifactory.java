@@ -20,6 +20,7 @@
 package com.sonar.orchestrator.locator;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public class MavenArtifactory extends Artifactory {
@@ -47,9 +48,8 @@ public class MavenArtifactory extends Artifactory {
   }
 
   @Override
-  public boolean downloadToFile(MavenLocation location, File toFile) {
-    Optional<File> tempFile = super.downloadToDir(location, tempDir, null);
-    return tempFile.filter(file -> super.moveFile(file, toFile)).isPresent();
+  protected boolean doDownload(MavenLocation location, Path destination) {
+    return super.downloadFromRepository(location, destination, null);
   }
 
   @Override

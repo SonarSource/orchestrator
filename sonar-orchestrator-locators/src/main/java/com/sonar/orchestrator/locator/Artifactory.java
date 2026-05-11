@@ -26,12 +26,14 @@ import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,27 +77,52 @@ public abstract class Artifactory {
     return "";
   }
 
-  protected boolean moveFile(File tempFile, File toFile) {
+  /**
+   * Atomically move {@code source} into {@code target}, tolerating a concurrent winner.
+   * <p>
+   * Readers (see {@link MavenLocator#locateResolvedVersion}) list the cache directory and return its single
+   * file: an atomic rename guarantees the cached file appears fully written or not at all.
+   */
+  protected void moveFile(Path source, Path target) {
     try {
-      FileUtils.deleteQuietly(toFile);
-      FileUtils.moveFile(tempFile, toFile);
+      Files.createDirectories(target.getParent());
+      Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+    } catch (IOException e1) {
+      if (Files.isRegularFile(target)) {
+        LOG.debug("File {} was cached concurrently; discarding our copy {}", target, source);
+        return;
+      }
+      LOG.warn("Atomic move from {} to {} failed: {}", source, target, e1.getMessage());
+      LOG.warn("Falling back to a non-atomic move");
+      try {
+        Files.move(source, target);
+      } catch (IOException e2) {
+        throw new IllegalStateException("Fail to move file " + target, e2);
+      }
+    }
+  }
+
+  /**
+   * Download {@code location} from {@code repository} into {@code destination}. The destination filename is
+   * controlled by the caller (not derived from HTTP {@code Content-Disposition}), so callers can supply a
+   * unique temp file path safe to use from multiple JVMs.
+   */
+  protected boolean downloadFromRepository(MavenLocation location, Path destination, @Nullable String repository) {
+    HttpUrl url = buildArtifactUrl(location, repository);
+    HttpCall call = newArtifactoryCall(url);
+    try {
+      LOG.info("Downloading {}", url);
+      call.downloadToFile(destination.toFile());
+      LOG.info("Found {} at {}", location, url);
       return true;
-    } catch (IOException e) {
-      throw new IllegalStateException("Fail to move file " + toFile, e);
+    } catch (HttpException e) {
+      handleDownloadFailure(e, url, repository);
+      return false;
     }
   }
 
   protected Optional<File> downloadToDir(MavenLocation location, File toDir, @Nullable String repository) {
-    HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl).newBuilder();
-    if (!isEmpty(repository)) {
-      urlBuilder.addPathSegment(repository);
-    }
-    HttpUrl url = urlBuilder.addEncodedPathSegments(Strings.CS.replace(location.getGroupId(), ".", "/"))
-      .addPathSegment(location.getArtifactId())
-      .addPathSegment(location.getVersion())
-      .addPathSegment(location.getFilename())
-      .build();
-
+    HttpUrl url = buildArtifactUrl(location, repository);
     HttpCall call = newArtifactoryCall(url);
     try {
       LOG.info("Downloading {}", url);
@@ -103,25 +130,40 @@ public abstract class Artifactory {
       LOG.info("Found {} at {}", location, url);
       return Optional.of(toFile);
     } catch (HttpException e) {
-      if (e.getCode() != HTTP_NOT_FOUND && e.getCode() != HTTP_UNAUTHORIZED && e.getCode() != HTTP_FORBIDDEN) {
-        throw new IllegalStateException("Failed to request " + url, e);
-      } else {
-        String errorMessage;
-        try {
-          JsonArray errors = Json.parse(e.getBody()).asObject().get("errors").asArray();
-          errorMessage = StreamSupport.stream(errors.spliterator(), false)
-            .map(item -> item.asObject().get("message").asString())
-            .collect(Collectors.joining(", "));
-        } catch (Exception ignored) {
-          errorMessage = "--- Failed to parse response body -- ";
-        }
-        LOG.warn("Could not download artifact from repository '{}': {} - {}",
-          repository,
-          e.getCode(),
-          errorMessage);
-      }
+      handleDownloadFailure(e, url, repository);
+      return Optional.empty();
     }
-    return Optional.empty();
+  }
+
+  private HttpUrl buildArtifactUrl(MavenLocation location, @Nullable String repository) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl).newBuilder();
+    if (!isEmpty(repository)) {
+      urlBuilder.addPathSegment(repository);
+    }
+    return urlBuilder.addEncodedPathSegments(Strings.CS.replace(location.getGroupId(), ".", "/"))
+      .addPathSegment(location.getArtifactId())
+      .addPathSegment(location.getVersion())
+      .addPathSegment(location.getFilename())
+      .build();
+  }
+
+  private static void handleDownloadFailure(HttpException e, HttpUrl url, @Nullable String repository) {
+    if (e.getCode() != HTTP_NOT_FOUND && e.getCode() != HTTP_UNAUTHORIZED && e.getCode() != HTTP_FORBIDDEN) {
+      throw new IllegalStateException("Failed to request " + url, e);
+    }
+    String errorMessage;
+    try {
+      JsonArray errors = Json.parse(e.getBody()).asObject().get("errors").asArray();
+      errorMessage = StreamSupport.stream(errors.spliterator(), false)
+        .map(item -> item.asObject().get("message").asString())
+        .collect(Collectors.joining(", "));
+    } catch (Exception ignored) {
+      errorMessage = "--- Failed to parse response body -- ";
+    }
+    LOG.warn("Could not download artifact from repository '{}': {} - {}",
+      repository,
+      e.getCode(),
+      errorMessage);
   }
 
   protected HttpCall newArtifactoryCall(HttpUrl url) {
@@ -148,7 +190,40 @@ public abstract class Artifactory {
 
   public abstract Optional<String> resolveVersion(MavenLocation location);
 
-  public abstract boolean downloadToFile(MavenLocation location, File toFile);
+  /**
+   * Download {@code location} into {@code toFile}, atomically and safely from multiple JVMs.
+   * <p>
+   * Each call downloads into a unique temp file under {@link #tempDir} and, on success, atomically moves
+   * it into place. A concurrent JVM landing the same file in the cache first is treated as success.
+   */
+  public boolean downloadToFile(MavenLocation location, File toFile) {
+    Path tempFile;
+    try {
+      Files.createDirectories(tempDir.toPath());
+      tempFile = Files.createTempFile(tempDir.toPath(), location.getFilename() + "-", ".tmp");
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to create temp file under " + tempDir, e);
+    }
+    try {
+      if (!doDownload(location, tempFile)) {
+        return false;
+      }
+      moveFile(tempFile, toFile.toPath());
+      return true;
+    } finally {
+      try {
+        Files.deleteIfExists(tempFile);
+      } catch (IOException e) {
+        LOG.debug("Could not delete temp file {}: {}", tempFile, e.getMessage());
+      }
+    }
+  }
+
+  /**
+   * Fetch the artifact bytes into {@code destination}. Subclasses choose which Artifactory repository (or
+   * repositories) to try. Returns {@code true} on success.
+   */
+  protected abstract boolean doDownload(MavenLocation location, Path destination);
 
   public abstract Optional<File> downloadToDir(MavenLocation location, File toDir);
 

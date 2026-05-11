@@ -45,6 +45,7 @@ class FileSystemTest {
     verifySameDirs(underTest.workspace(), Path.of("target"));
     verifySameDirs(underTest.getOrchestratorHome(), homeDir);
     verifySameDirs(underTest.getCacheDir(), homeDir.resolve("cache"));
+    verifySameDirs(underTest.getTempDir(), homeDir.resolve("_tmp"));
     verifySameDirs(underTest.getSonarQubeZipsDir(), homeDir.resolve("zips"));
   }
 

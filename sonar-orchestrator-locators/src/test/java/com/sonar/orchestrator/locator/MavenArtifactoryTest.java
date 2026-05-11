@@ -80,7 +80,7 @@ public class MavenArtifactoryTest {
 
     Artifactory underTest = getMavenArtifactory();
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     boolean found = underTest.downloadToFile(SONAR_PLUGIN_API, targetFile);
 
     assertThat(found).isTrue();
@@ -89,6 +89,38 @@ public class MavenArtifactoryTest {
     RecordedRequest request = mockWebServerRule.getServer().takeRequest();
     assertThat(request.getTarget()).isEqualTo("/org/sonarsource/sonarqube/sonar-plugin-api/3.0/sonar-plugin-api-3.0.jar");
     assertThat(request.getHeaders().get("Authorization")).isNull();
+  }
+
+  @Test
+  public void downloadToDir_returns_file_in_target_dir_on_success() throws Exception {
+    prepareServerResponse("this_is_bytecode");
+
+    Artifactory underTest = getMavenArtifactory();
+    File targetDir = temp.newFolder();
+
+    Optional<File> result = underTest.downloadToDir(SONAR_PLUGIN_API, targetDir);
+
+    assertThat(result).isPresent();
+    assertThat(result.get())
+      .hasParent(targetDir)
+      .hasName("sonar-plugin-api-3.0.jar")
+      .hasContent("this_is_bytecode");
+
+    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
+    assertThat(request.getTarget()).isEqualTo("/org/sonarsource/sonarqube/sonar-plugin-api/3.0/sonar-plugin-api-3.0.jar");
+  }
+
+  @Test
+  public void downloadToDir_returns_empty_when_artifact_not_found() throws Exception {
+    mockWebServerRule.getServer().enqueue(new MockResponse.Builder().code(404).build());
+
+    Artifactory underTest = getMavenArtifactory();
+    File targetDir = temp.newFolder();
+
+    Optional<File> result = underTest.downloadToDir(SONAR_PLUGIN_API, targetDir);
+
+    assertThat(result).isEmpty();
+    assertThat(targetDir).isEmptyDirectory();
   }
 
   @Test
