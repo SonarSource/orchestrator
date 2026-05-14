@@ -28,7 +28,7 @@ import com.sonar.orchestrator.util.System2;
 
 public class OrchestratorRuleBuilder extends OrchestratorBuilder<OrchestratorRuleBuilder, OrchestratorRule> {
   OrchestratorRuleBuilder(Configuration initialConfig) {
-    this(initialConfig, System2.INSTANCE);
+    this(initialConfig, new System2());
   }
 
   OrchestratorRuleBuilder(Configuration initialConfig, System2 system2) {

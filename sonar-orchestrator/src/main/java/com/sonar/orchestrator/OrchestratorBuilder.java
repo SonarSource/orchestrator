@@ -46,7 +46,7 @@ public abstract class OrchestratorBuilder<BUILDER extends OrchestratorBuilder<BU
   private StartupLogWatcher startupLogWatcher;
 
   OrchestratorBuilder(Configuration initialConfig) {
-    this(initialConfig, System2.INSTANCE);
+    this(initialConfig, new System2());
   }
 
   protected OrchestratorBuilder(Configuration initialConfig, System2 system2) {

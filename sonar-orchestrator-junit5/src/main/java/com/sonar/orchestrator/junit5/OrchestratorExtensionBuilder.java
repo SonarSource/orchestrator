@@ -27,7 +27,7 @@ import com.sonar.orchestrator.util.System2;
 
 public class OrchestratorExtensionBuilder extends OrchestratorBuilder<OrchestratorExtensionBuilder, OrchestratorExtension> {
   OrchestratorExtensionBuilder(Configuration initialConfig) {
-    this(initialConfig, System2.INSTANCE);
+    this(initialConfig, new System2());
   }
 
   OrchestratorExtensionBuilder(Configuration initialConfig, System2 system2) {

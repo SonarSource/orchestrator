@@ -63,7 +63,7 @@ public final class NetworkUtils {
   }
 
   public static int getNextAvailablePort(InetAddress address) {
-    return getNextAvailablePort(address, PortAllocator.INSTANCE);
+    return getNextAvailablePort(address, new PortAllocator());
   }
 
   static int getNextAvailablePort(InetAddress address, PortAllocator portAllocator) {
@@ -82,8 +82,6 @@ public final class NetworkUtils {
   }
 
   static class PortAllocator {
-    private static final PortAllocator INSTANCE = new PortAllocator();
-
     int getAvailable(InetAddress address) {
       try (ServerSocket socket = new ServerSocket(0, 50, address)) {
         return socket.getLocalPort();
