@@ -44,8 +44,9 @@ public class FileLocatorTest {
 
     File toDir = temp.newFolder();
     File copy = locator.copyToDirectory(FileLocation.of(fileToCopy), toDir);
-    assertThat(copy).isNotNull();
-    assertThat(copy).isEqualTo(new File(toDir, "foo.txt"));
+    assertThat(copy)
+      .isNotNull()
+      .isEqualTo(new File(toDir, "foo.txt"));
     assertThat(copy.length()).isGreaterThan(0L);
   }
 
@@ -56,8 +57,7 @@ public class FileLocatorTest {
 
     File toFile = temp.newFile();
     File copy = locator.copyToFile(FileLocation.of(fileToCopy), toFile);
-    assertThat(copy).isNotNull();
-    assertThat(copy).isSameAs(toFile);
+    assertThat(copy).isNotNull().isSameAs(toFile);
     assertThat(copy.length()).isGreaterThan(0L);
   }
 

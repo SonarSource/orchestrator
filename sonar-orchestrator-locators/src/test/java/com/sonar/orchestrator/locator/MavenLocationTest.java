@@ -90,7 +90,7 @@ public class MavenLocationTest {
     MavenLocation location2 = MavenLocation.builder().setKey("org.codehaus.sonar-plugins", "sonar-clirr-plugin", "1.1").build();
     assertThat(location1.equals(location2)).isTrue();
     assertThat(location2.equals(location1)).isTrue();
-    assertThat(location1.hashCode()).isEqualTo(location1.hashCode());
+    assertThat(location1).hasSameHashCodeAs(location1);
 
     location1 = MavenLocation.builder().setKey("org.codehaus.sonar-plugins", "sonar-clirr-plugin", "1.1").build();
     location2 = MavenLocation.builder().setKey("org.codehaus.sonar-plugins", "sonar-clirr-plugin", "1.2").build();
@@ -105,13 +105,13 @@ public class MavenLocationTest {
   public void test_toString() {
     MavenLocation location = MavenLocation.create("foo", "bar", "1.0");
 
-    assertThat(location.toString()).isEqualTo("[foo:bar:1.0:jar]");
+    assertThat(location).hasToString("[foo:bar:1.0:jar]");
   }
 
   @Test
   public void test_toString_with_classifier() {
     MavenLocation location = MavenLocation.create("foo", "bar", "1.0", "amd");
 
-    assertThat(location.toString()).isEqualTo("[foo:bar:1.0:amd:jar]");
+    assertThat(location).hasToString("[foo:bar:1.0:amd:jar]");
   }
 }
