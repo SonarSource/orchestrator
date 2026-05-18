@@ -52,11 +52,6 @@ public class MavenArtifactory extends Artifactory {
     return super.downloadFromRepository(location, destination, null);
   }
 
-  @Override
-  public Optional<File> downloadToDir(MavenLocation location, File toDir) {
-    return super.downloadToDir(location, toDir, null);
-  }
-
   private static boolean isUnsupportedVersionAlias(String version) {
     return version.startsWith("DEV") || version.startsWith("LTS") || version.contains("COMPATIBLE");
   }

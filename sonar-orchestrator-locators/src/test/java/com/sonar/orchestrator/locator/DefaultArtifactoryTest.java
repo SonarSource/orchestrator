@@ -409,63 +409,6 @@ public class DefaultArtifactoryTest {
   }
 
   @Test
-  public void downloadToDir_returns_file_in_target_dir_on_success() throws Exception {
-    prepareDownload("this_is_bytecode");
-
-    Configuration configuration = newConfiguration().build();
-    Artifactory underTest = DefaultArtifactory.create(configuration);
-    File targetDir = temp.newFolder();
-
-    Optional<File> result = underTest.downloadToDir(SONAR_JAVA_4_5, targetDir);
-
-    assertThat(result).isPresent();
-    assertThat(result.get())
-      .hasParent(targetDir)
-      .hasName("sonar-java-4.5.jar")
-      .hasContent("this_is_bytecode");
-
-    RecordedRequest request = mockWebServerRule.getServer().takeRequest();
-    assertThat(request.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-  }
-
-  @Test
-  public void downloadToDir_falls_back_to_second_repository_on_first_repository_failure() throws Exception {
-    prepareResponseError(404);
-    prepareDownload("this_is_bytecode");
-
-    Configuration configuration = newConfiguration().build();
-    Artifactory underTest = DefaultArtifactory.create(configuration);
-    File targetDir = temp.newFolder();
-
-    Optional<File> result = underTest.downloadToDir(SONAR_JAVA_4_5, targetDir);
-
-    assertThat(result).isPresent();
-    assertThat(result.get())
-      .hasParent(targetDir)
-      .hasContent("this_is_bytecode");
-
-    RecordedRequest request1 = mockWebServerRule.getServer().takeRequest();
-    assertThat(request1.getTarget()).isEqualTo("/sonarsource/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-    RecordedRequest request2 = mockWebServerRule.getServer().takeRequest();
-    assertThat(request2.getTarget()).isEqualTo("/sonarsource-qa/org/sonarsource/java/sonar-java/4.5/sonar-java-4.5.jar");
-  }
-
-  @Test
-  public void downloadToDir_returns_empty_when_both_repositories_fail() throws Exception {
-    prepareResponseError(404);
-    prepareResponseError(404);
-
-    Configuration configuration = newConfiguration().build();
-    Artifactory underTest = DefaultArtifactory.create(configuration);
-    File targetDir = temp.newFolder();
-
-    Optional<File> result = underTest.downloadToDir(SONAR_JAVA_4_5, targetDir);
-
-    assertThat(result).isEmpty();
-    assertThat(targetDir).isEmptyDirectory();
-  }
-
-  @Test
   public void downloadToFile_succeeds_and_cleans_temp_when_target_already_exists() throws Exception {
     prepareDownload("freshly_downloaded_bytes");
 

@@ -47,11 +47,6 @@ public class ArtifactoryTest {
     protected boolean doDownload(MavenLocation location, Path destination) {
       throw new UnsupportedOperationException();
     }
-
-    @Override
-    public Optional<File> downloadToDir(MavenLocation location, File toDir) {
-      throw new UnsupportedOperationException();
-    }
   };
 
   @Test

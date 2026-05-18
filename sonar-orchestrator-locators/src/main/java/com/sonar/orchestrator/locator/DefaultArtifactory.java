@@ -61,17 +61,6 @@ public class DefaultArtifactory extends Artifactory {
   }
 
   @Override
-  public Optional<File> downloadToDir(MavenLocation location, File toDir) {
-    for (String repository : asList("sonarsource", "sonarsource-qa")) {
-      Optional<File> optionalFile = super.downloadToDir(location, toDir, repository);
-      if (optionalFile.isPresent()) {
-        return optionalFile;
-      }
-    }
-    return Optional.empty();
-  }
-
-  @Override
   public Optional<String> resolveVersion(MavenLocation location) {
     String repositories;
     if (location.getVersion().startsWith("LATEST_RELEASE")) {

@@ -121,20 +121,6 @@ public abstract class Artifactory {
     }
   }
 
-  protected Optional<File> downloadToDir(MavenLocation location, File toDir, @Nullable String repository) {
-    HttpUrl url = buildArtifactUrl(location, repository);
-    HttpCall call = newArtifactoryCall(url);
-    try {
-      LOG.info("Downloading {}", url);
-      File toFile = call.downloadToDirectory(toDir);
-      LOG.info("Found {} at {}", location, url);
-      return Optional.of(toFile);
-    } catch (HttpException e) {
-      handleDownloadFailure(e, url, repository);
-      return Optional.empty();
-    }
-  }
-
   private HttpUrl buildArtifactUrl(MavenLocation location, @Nullable String repository) {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl).newBuilder();
     if (!isEmpty(repository)) {
@@ -224,7 +210,5 @@ public abstract class Artifactory {
    * repositories) to try. Returns {@code true} on success.
    */
   protected abstract boolean doDownload(MavenLocation location, Path destination);
-
-  public abstract Optional<File> downloadToDir(MavenLocation location, File toDir);
 
 }
