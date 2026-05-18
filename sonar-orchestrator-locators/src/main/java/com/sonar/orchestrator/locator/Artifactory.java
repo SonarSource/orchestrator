@@ -26,6 +26,7 @@ import com.sonar.orchestrator.http.HttpClientFactory;
 import com.sonar.orchestrator.http.HttpException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -96,6 +97,8 @@ public abstract class Artifactory {
       LOG.warn("Falling back to a non-atomic move");
       try {
         Files.move(source, target);
+      } catch (FileAlreadyExistsException e2) {
+        LOG.debug("File {} was cached concurrently during fallback; discarding our copy {}", target, source);
       } catch (IOException e2) {
         throw new IllegalStateException("Fail to move file " + target, e2);
       }
