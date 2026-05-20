@@ -1,0 +1,27 @@
+# yamllint disable rule:line-length
+---
+name: Releasability status
+on:
+  workflow_run:
+    workflows: [ "Build" ]  # Name must match the name of the build workflow
+    types: [ completed ]
+    branches:
+      - master
+      - branch-*
+
+jobs:
+  update_releasability_status:
+    runs-on: sonar-xs
+    name: Releasability status
+    environment: ci
+    permissions:
+      id-token: write
+      statuses: write
+      contents: read
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: SonarSource/gh-action_releasability/releasability-status@v3
+        with:
+          optional_checks: "Jira"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
