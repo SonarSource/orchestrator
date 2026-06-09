@@ -1,6 +1,6 @@
 /*
  * Orchestrator Locators
- * Copyright (C) 2011-2025 SonarSource Sàrl
+ * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ public class ArtifactoryFactory {
    * </p>
    */
   public static Artifactory createArtifactory(Configuration configuration) {
-    File downloadTempDir = new File(configuration.fileSystem().workspace().toFile(), "temp-downloads");
+    File downloadTempDir = configuration.fileSystem().getTempDir().toFile();
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), DEFAULT_ARTIFACTORY_URL);
 
     if (baseUrl.startsWith(DEFAULT_ARTIFACTORY_PREFIX)) {

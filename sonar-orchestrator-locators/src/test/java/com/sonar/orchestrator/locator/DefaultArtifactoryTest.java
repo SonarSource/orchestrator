@@ -1,6 +1,6 @@
 /*
  * Orchestrator Locators
- * Copyright (C) 2011-2025 SonarSource Sàrl
+ * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,17 @@ import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import mockwebserver3.MockResponse;
 import mockwebserver3.RecordedRequest;
@@ -68,7 +78,7 @@ public class DefaultArtifactoryTest {
       .build();
     Artifactory underTest = DefaultArtifactory.create(configuration);
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isTrue();
@@ -90,7 +100,7 @@ public class DefaultArtifactoryTest {
       .build();
     Artifactory underTest = DefaultArtifactory.create(configuration);
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isTrue();
@@ -116,7 +126,7 @@ public class DefaultArtifactoryTest {
       .build();
     Artifactory underTest = DefaultArtifactory.create(configuration);
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isTrue();
@@ -137,7 +147,7 @@ public class DefaultArtifactoryTest {
       .build();
     Artifactory underTest = DefaultArtifactory.create(configuration);
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
     assertThat(found).isTrue();
@@ -156,7 +166,7 @@ public class DefaultArtifactoryTest {
     prepareResponseError(401);
     Configuration configuration = newConfiguration().build();
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     Artifactory underTest = DefaultArtifactory.create(configuration);
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
@@ -170,7 +180,7 @@ public class DefaultArtifactoryTest {
     prepareResponseError(403, "not found");
     Configuration configuration = newConfiguration().build();
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     Artifactory underTest = DefaultArtifactory.create(configuration);
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
@@ -184,7 +194,7 @@ public class DefaultArtifactoryTest {
     prepareResponseError(404);
     Configuration configuration = newConfiguration().build();
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     Artifactory underTest = DefaultArtifactory.create(configuration);
     boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
 
@@ -195,7 +205,7 @@ public class DefaultArtifactoryTest {
   public void download_throws_ISE_if_unexpected_error() throws Exception {
     prepareResponseError(500);
     Configuration configuration = newConfiguration().build();
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     Artifactory underTest = DefaultArtifactory.create(configuration);
 
     expectedException.expect(IllegalStateException.class);
@@ -396,6 +406,63 @@ public class DefaultArtifactoryTest {
   private void verifyVersionsRequest(String groupId, String artifactId, String versionLayout, String repositories) throws InterruptedException {
     RecordedRequest request = mockWebServerRule.getServer().takeRequest();
     assertThat(request.getTarget()).isEqualTo("/api/search/versions?g=" + groupId + "&a=" + artifactId + "&remote=0&repos=" + repositories + "&v=" + versionLayout);
+  }
+
+  @Test
+  public void downloadToFile_succeeds_and_cleans_temp_when_target_already_exists() throws Exception {
+    prepareDownload("freshly_downloaded_bytes");
+
+    Configuration configuration = newConfiguration().build();
+    Artifactory underTest = DefaultArtifactory.create(configuration);
+
+    File targetFile = new File(temp.newFolder(), "already_cached.jar");
+    Files.writeString(targetFile.toPath(), "previously_cached_bytes", StandardCharsets.UTF_8);
+
+    boolean found = underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+
+    assertThat(found).isTrue();
+    // Platform-dependent: ATOMIC_MOVE silently overwrites on POSIX (rename semantics) and fails on Windows,
+    // in which case we accept the existing target as a concurrent winner. Both outcomes are valid for the
+    // cache contract — neither raises an exception and the file holds valid content.
+    assertThat(Files.readString(targetFile.toPath()))
+      .isIn("freshly_downloaded_bytes", "previously_cached_bytes");
+    assertThat(configuration.fileSystem().getTempDir()).isEmptyDirectory();
+  }
+
+  @Test
+  public void downloadToFile_uses_unique_temp_file_so_concurrent_downloads_do_not_collide() throws Exception {
+    int concurrency = 4;
+    for (int i = 0; i < concurrency; i++) {
+      prepareDownload("artifact_bytes");
+    }
+
+    Configuration configuration = newConfiguration()
+      .setProperty("orchestrator.artifactory.apiKey", "")
+      .build();
+    Artifactory underTest = DefaultArtifactory.create(configuration);
+
+    File cacheDir = temp.newFolder();
+    File targetFile = new File(cacheDir, "sonar-java-4.5.jar");
+
+    ExecutorService executor = Executors.newFixedThreadPool(concurrency);
+    CountDownLatch startGate = new CountDownLatch(1);
+    try {
+      List<Future<Boolean>> futures = IntStream.range(0, concurrency)
+        .mapToObj(i -> executor.submit((Callable<Boolean>) () -> {
+          startGate.await();
+          return underTest.downloadToFile(SONAR_JAVA_4_5, targetFile);
+        }))
+        .toList();
+      startGate.countDown();
+      for (Future<Boolean> future : futures) {
+        assertThat(future.get(30, TimeUnit.SECONDS)).isTrue();
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+
+    assertThat(targetFile).exists().hasContent("artifact_bytes");
+    assertThat(configuration.fileSystem().getTempDir()).isEmptyDirectory();
   }
 
   private Configuration.Builder newConfiguration() throws IOException {

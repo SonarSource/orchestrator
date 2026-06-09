@@ -1,6 +1,6 @@
 /*
  * Orchestrator Locators
- * Copyright (C) 2011-2025 SonarSource Sàrl
+ * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -80,7 +80,7 @@ public class MavenArtifactoryTest {
 
     Artifactory underTest = getMavenArtifactory();
 
-    File targetFile = temp.newFile();
+    File targetFile = new File(temp.newFolder(), "downloaded.jar");
     boolean found = underTest.downloadToFile(SONAR_PLUGIN_API, targetFile);
 
     assertThat(found).isTrue();

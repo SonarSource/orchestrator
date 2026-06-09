@@ -1,6 +1,6 @@
 /*
  * Orchestrator Locators
- * Copyright (C) 2011-2025 SonarSource Sàrl
+ * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ import com.eclipsesource.json.JsonValue;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.http.HttpCall;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -42,7 +43,7 @@ public class DefaultArtifactory extends Artifactory {
   }
 
   protected static DefaultArtifactory create(Configuration configuration) {
-    File downloadTempDir = new File(configuration.fileSystem().workspace().toFile(), "temp-downloads");
+    File downloadTempDir = configuration.fileSystem().getTempDir().toFile();
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), "https://repox.jfrog.io/repox");
     String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
     String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
@@ -50,20 +51,13 @@ public class DefaultArtifactory extends Artifactory {
   }
 
   @Override
-  public boolean downloadToFile(MavenLocation location, File toFile) {
-    Optional<File> tempFile = this.downloadToDir(location, tempDir);
-    return tempFile.filter(file -> super.moveFile(file, toFile)).isPresent();
-  }
-
-  @Override
-  public Optional<File> downloadToDir(MavenLocation location, File toDir) {
+  protected boolean doDownload(MavenLocation location, Path destination) {
     for (String repository : asList("sonarsource", "sonarsource-qa")) {
-      Optional<File> optionalFile = super.downloadToDir(location, toDir, repository);
-      if (optionalFile.isPresent()) {
-        return optionalFile;
+      if (super.downloadFromRepository(location, destination, repository)) {
+        return true;
       }
     }
-    return Optional.empty();
+    return false;
   }
 
   @Override

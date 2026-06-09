@@ -1,6 +1,6 @@
 /*
  * Orchestrator Configuration
- * Copyright (C) 2011-2025 SonarSource Sàrl
+ * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ class FileSystemTest {
     verifySameDirs(underTest.workspace(), Path.of("target"));
     verifySameDirs(underTest.getOrchestratorHome(), homeDir);
     verifySameDirs(underTest.getCacheDir(), homeDir.resolve("cache"));
+    verifySameDirs(underTest.getTempDir(), homeDir.resolve("_tmp"));
     verifySameDirs(underTest.getSonarQubeZipsDir(), homeDir.resolve("zips"));
   }
 
