@@ -60,7 +60,8 @@ public class BuildRunnerTest {
       entry("sonar.host.url", "http://localhost:9000"),
       entry("language", "java"),
       entry("sonar.scm.disabled", "true"),
-      entry("sonar.branch.autoconfig.disabled", "true"));
+      entry("sonar.branch.autoconfig.disabled", "true"),
+      entry("sonar.scanner.internal.failOnDuplicateTelemetryKey", "true"));
   }
 
   @Test
@@ -81,7 +82,8 @@ public class BuildRunnerTest {
       entry("sonar.host.url", "http://localhost:9000"),
       entry("language", "java"),
       entry("sonar.scm.disabled", "true"),
-      entry("sonar.branch.autoconfig.disabled", "true"));
+      entry("sonar.branch.autoconfig.disabled", "true"),
+      entry("sonar.scanner.internal.failOnDuplicateTelemetryKey", "true"));
   }
 
   @Test
