@@ -168,7 +168,11 @@ public final class DefaultDatabase implements Database {
     if (started) {
       try {
         LOG.info("Open connection");
-        return databaseClient.openConnection();
+        Connection connection = databaseClient.openConnection();
+        if (connection == null) {
+          throw new IllegalStateException("Fail to open a JDBC connection: no connection returned");
+        }
+        return connection;
 
       } catch (SQLException e) {
         throw new IllegalStateException("Fail to open a JDBC connection", e);
