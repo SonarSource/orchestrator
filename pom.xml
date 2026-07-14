@@ -45,7 +45,7 @@
 
   <properties>
     <license.name>GNU LGPL v3</license.name>
-    <slf4j.version>2.0.17</slf4j.version>
+    <slf4j.version>2.0.18</slf4j.version>
     <okhttp.version>5.3.2</okhttp.version>
     <jacoco.version>0.8.13</jacoco.version>
     <sonar.exclusions>
@@ -56,7 +56,7 @@
     <gitRepositoryName>orchestrator</gitRepositoryName>
     <maven.compiler.release>17</maven.compiler.release>
     <sonarVersion>5.1</sonarVersion>
-    <okhttp.version>5.3.2</okhttp.version>
+    <okhttp.version>5.4.0</okhttp.version>
     <sonar.organization>sonarsource</sonar.organization>
     <sonar.projectKey>org.sonarsource.orchestrator:orchestrator-parent</sonar.projectKey>
   </properties>
@@ -66,7 +66,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.21.0</version>
+        <version>2.22.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -91,7 +91,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.21.0</version>
+        <version>1.22.0</version>
       </dependency>
       <dependency>
         <groupId>com.eclipsesource.minimal-json</groupId>
@@ -121,7 +121,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>6.0.3</version>
+        <version>6.1.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -133,12 +133,12 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>1.5.32</version>
+        <version>1.5.37</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.22.0</version>
+        <version>5.23.0</version>
       </dependency>
       <dependency>
         <groupId>org.wiremock</groupId>
