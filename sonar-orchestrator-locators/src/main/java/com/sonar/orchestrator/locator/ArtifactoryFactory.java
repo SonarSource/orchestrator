@@ -64,7 +64,16 @@ public class ArtifactoryFactory {
   }
 
   private static boolean isSonarSourceArtifactory(String baseUrl) {
-    return SONARSOURCE_ARTIFACTORY_PREFIXES.stream().anyMatch(baseUrl::startsWith);
+    okhttp3.HttpUrl url = okhttp3.HttpUrl.parse(baseUrl);
+    if (url == null) {
+      return false;
+    }
+
+    String host = url.host();
+    return SONARSOURCE_ARTIFACTORY_PREFIXES.stream()
+      .map(okhttp3.HttpUrl::parse)
+      .filter(java.util.Objects::nonNull)
+      .anyMatch(allowed -> allowed.host().equals(host));
   }
 
   private ArtifactoryFactory() {
