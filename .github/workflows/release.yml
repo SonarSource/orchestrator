@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   guard:
-    runs-on: ubuntu-latest
+    runs-on: sonar-xs
     steps:
       - name: Enforce eligible release branches
         run: |

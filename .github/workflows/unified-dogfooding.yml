@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: sonar-xs-public
+    runs-on: sonar-xs
     name: Build and run shadow scans
     permissions:
       id-token: write

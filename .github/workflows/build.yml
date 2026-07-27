@@ -14,7 +14,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
-    runs-on: sonar-xs-public
+    runs-on: warp-custom-ubuntu-24-04
     name: Build
     permissions:
       id-token: write
@@ -38,7 +38,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
-    runs-on: sonar-xs-public
+    runs-on: warp-custom-ubuntu-24-04
     name: Promote
     permissions:
       id-token: write

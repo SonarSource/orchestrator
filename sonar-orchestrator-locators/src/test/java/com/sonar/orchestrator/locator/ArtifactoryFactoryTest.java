@@ -33,6 +33,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class ArtifactoryFactoryTest {
 
   private static final String DEFAULT_REPOSITORY = "https://repox.jfrog.io/artifactory";
+  private static final String INTERNAL_REPOSITORY = "https://repox-internal.dev.sonar.build/artifactory";
   private static final String SOME_MAVEN_REPOSITORY = "https://localhost:9000/maven-repo";
   private static final String ACCESS_TOKEN = "access_token";
   private static final String API_KEY = "api_key";
@@ -64,6 +65,7 @@ class ArtifactoryFactoryTest {
       Arguments.of(new Parameters(null, DEFAULT_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
       Arguments.of(new Parameters("", DEFAULT_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
       Arguments.of(new Parameters(DEFAULT_REPOSITORY, DEFAULT_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
+      Arguments.of(new Parameters(INTERNAL_REPOSITORY, INTERNAL_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
       Arguments.of(new Parameters(SOME_MAVEN_REPOSITORY, SOME_MAVEN_REPOSITORY, API_KEY, null, ACCESS_TOKEN, null, MavenArtifactory.class))
     );
   }

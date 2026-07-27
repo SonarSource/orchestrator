@@ -79,7 +79,10 @@ public class DefaultArtifactory extends Artifactory {
       .addPathSegments("api/search/versions")
       .addQueryParameter("g", location.getGroupId())
       .addQueryParameter("a", location.getArtifactId())
-      .addQueryParameter("remote", "0")
+      // remote=1 is required for Edge (repox-internal): sonarsource-releases/builds are virtuals of
+      // Smart Remotes, and Artifactory skips remotes when remote=0 (returns 404 "Unable to find
+      // artifact versions"). SaaS still works with remote=1 because locals are always searched.
+      .addQueryParameter("remote", "1")
       .addQueryParameter("repos", repositories)
       .addQueryParameter("v", extractVersionFromAlias(location.getVersion()) + "*")
       .build();
