@@ -21,6 +21,7 @@ package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
 import java.io.File;
+import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
@@ -30,24 +31,49 @@ public class ArtifactoryFactory {
   private static final String DEFAULT_ARTIFACTORY_URL = DEFAULT_ARTIFACTORY_PREFIX + "/artifactory";
 
   /**
+   * Hosts that speak Artifactory REST APIs and require SonarSource credentials
+   * ({@code ARTIFACTORY_ACCESS_TOKEN} / {@code orchestrator.artifactory.accessToken}).
+   */
+  private static final List<String> SONARSOURCE_ARTIFACTORY_PREFIXES = List.of(
+    DEFAULT_ARTIFACTORY_PREFIX,
+    "https://repox-internal.dev.sonar.build"
+  );
+
+  /**
    * Two types of Artifactory are supported: Maven and Default.
    *
    * <p>
-   * Default repox artifactory is used if orchestrator.artifactory.url is empty or specifically set to <a href="https://repox.jfrog.io/repox">repox</a>.
-   * Otherwise, we assume the URL points to a maven repository.
+   * Authenticated {@link DefaultArtifactory} is used when {@code orchestrator.artifactory.url} is empty
+   * or points at a known SonarSource Artifactory host
+   * ({@code https://repox.jfrog.io} or {@code https://repox-internal.dev.sonar.build}).
+   * Otherwise, we assume the URL points to a plain Maven repository and use unauthenticated
+   * {@link MavenArtifactory}.
    * </p>
    */
   public static Artifactory createArtifactory(Configuration configuration) {
     File downloadTempDir = configuration.fileSystem().getTempDir().toFile();
     String baseUrl = defaultIfEmpty(configuration.getStringByKeys("orchestrator.artifactory.url", "ARTIFACTORY_URL"), DEFAULT_ARTIFACTORY_URL);
 
-    if (baseUrl.startsWith(DEFAULT_ARTIFACTORY_PREFIX)) {
+    if (isSonarSourceArtifactory(baseUrl)) {
       String accessToken = configuration.getStringByKeys("orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN");
       String apiKey = configuration.getStringByKeys("orchestrator.artifactory.apiKey", "ARTIFACTORY_API_KEY");
       return new DefaultArtifactory(downloadTempDir, baseUrl, accessToken, apiKey);
     } else {
       return new MavenArtifactory(downloadTempDir, baseUrl);
     }
+  }
+
+  private static boolean isSonarSourceArtifactory(String baseUrl) {
+    okhttp3.HttpUrl url = okhttp3.HttpUrl.parse(baseUrl);
+    if (url == null) {
+      return false;
+    }
+
+    String host = url.host();
+    return SONARSOURCE_ARTIFACTORY_PREFIXES.stream()
+      .map(okhttp3.HttpUrl::parse)
+      .filter(java.util.Objects::nonNull)
+      .anyMatch(allowed -> allowed.host().equals(host));
   }
 
   private ArtifactoryFactory() {

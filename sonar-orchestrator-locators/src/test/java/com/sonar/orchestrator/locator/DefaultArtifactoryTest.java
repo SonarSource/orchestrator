@@ -405,7 +405,7 @@ public class DefaultArtifactoryTest {
 
   private void verifyVersionsRequest(String groupId, String artifactId, String versionLayout, String repositories) throws InterruptedException {
     RecordedRequest request = mockWebServerRule.getServer().takeRequest();
-    assertThat(request.getTarget()).isEqualTo("/api/search/versions?g=" + groupId + "&a=" + artifactId + "&remote=0&repos=" + repositories + "&v=" + versionLayout);
+    assertThat(request.getTarget()).isEqualTo("/api/search/versions?g=" + groupId + "&a=" + artifactId + "&remote=1&repos=" + repositories + "&v=" + versionLayout);
   }
 
   @Test
