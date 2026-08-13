@@ -62,7 +62,8 @@ public class BuildRunnerTest {
       entry("sonar.scm.disabled", "true"),
       entry("sonar.branch.autoconfig.disabled", "true"),
       entry("sonar.scanner.internal.failOnDuplicateTelemetryKey", "true"),
-      entry("sonar.scanner.skipSystemTruststore", "true"));
+      entry("sonar.scanner.skipSystemTruststore", "true"),
+      entry("sonar.scanner.skipJvmSslConfig", "true"));
   }
 
   @Test
@@ -85,7 +86,8 @@ public class BuildRunnerTest {
       entry("sonar.scm.disabled", "true"),
       entry("sonar.branch.autoconfig.disabled", "true"),
       entry("sonar.scanner.internal.failOnDuplicateTelemetryKey", "true"),
-      entry("sonar.scanner.skipSystemTruststore", "true"));
+      entry("sonar.scanner.skipSystemTruststore", "true"),
+      entry("sonar.scanner.skipJvmSslConfig", "true"));
   }
 
   @Test
