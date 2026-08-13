@@ -30,6 +30,7 @@ public class BuildRunner {
   public static final String SONAR_HOST_URL = "sonar.host.url";
   private static final String FAIL_ON_DUPLICATE_TELEMETRY_KEY = "sonar.scanner.internal.failOnDuplicateTelemetryKey";
   private static final String SKIP_JRE_SYSTEM_TRUSTSTORE = "sonar.scanner.skipSystemTruststore";
+  private static final String SKIP_JVM_SSL_CONFIG = "sonar.scanner.skipJvmSslConfig";
   private final Configuration config;
   private final Locators locators;
 
@@ -60,6 +61,7 @@ public class BuildRunner {
       adjustedProperties.put("sonar.branch.autoconfig.disabled", "true");
       adjustedProperties.put(FAIL_ON_DUPLICATE_TELEMETRY_KEY, "true");
       adjustedProperties.put(SKIP_JRE_SYSTEM_TRUSTSTORE, "true");
+      adjustedProperties.put(SKIP_JVM_SSL_CONFIG, "true");
     }
     // build properties override predefined properties
     adjustedProperties.putAll(build.getProperties());
