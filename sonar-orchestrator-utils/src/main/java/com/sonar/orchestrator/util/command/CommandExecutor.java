@@ -47,14 +47,12 @@ public class CommandExecutor {
 
   private static final Logger LOG = LoggerFactory.getLogger(CommandExecutor.class);
 
-  private static final CommandExecutor INSTANCE = new CommandExecutor();
-
-  private CommandExecutor() {
+  CommandExecutor() {
   }
 
   public static CommandExecutor create() {
     // stateless object, so a single singleton can be shared
-    return INSTANCE;
+    return new CommandExecutor();
   }
 
   /**

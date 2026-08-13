@@ -48,7 +48,7 @@ public class HttpClient {
   }
 
   public static class Builder {
-    private SystemProperties system = SystemProperties.INSTANCE;
+    private SystemProperties system = new SystemProperties();
 
     Builder setSystemProperties(SystemProperties sp) {
       this.system = sp;
@@ -106,8 +106,6 @@ public class HttpClient {
   }
 
   static class SystemProperties {
-    private static final SystemProperties INSTANCE = new SystemProperties();
-
     public String getProperty(String key) {
       return System.getProperty(key);
     }

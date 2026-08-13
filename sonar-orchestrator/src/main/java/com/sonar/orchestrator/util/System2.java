@@ -22,7 +22,6 @@ package com.sonar.orchestrator.util;
 import java.util.Map;
 
 public class System2 {
-  public static final System2 INSTANCE = new System2();
 
   public Map<String, String> getenv() {
     return System.getenv();

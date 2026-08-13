@@ -44,6 +44,6 @@ public class ResourceLocationTest {
 
     assertThat(location.getFilename()).isEqualTo("foo.txt");
     assertThat(location.getPath()).isEqualTo("/com/sonar/orchestrator/locator/ResourceLocationTest/foo.txt");
-    assertThat(location.toString()).isEqualTo(location.getPath());
+    assertThat(location).hasToString(location.getPath());
   }
 }
