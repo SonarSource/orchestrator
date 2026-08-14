@@ -67,6 +67,51 @@ public class BuildRunnerTest {
   }
 
   @Test
+  public void dont_skip_jvm_ssl_config_when_build_overrides_host_url_to_https() {
+    Configuration config = Configuration.create();
+    Build build = mock(Build.class);
+    when(build.getProperties()).thenReturn(Map.of("sonar.host.url", "https://localhost:9443", "language", "java"));
+
+    BuildRunner runner = new BuildRunner(config, null);
+    // serverUrl is the orchestrator-managed (plain HTTP) server; the build itself targets a different HTTPS endpoint
+    runner.runQuietly("http://localhost:9000", build);
+
+    ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+
+    verify(build).execute(eq(config), isNull(), captor.capture());
+
+    assertThat(captor.getValue()).containsOnly(
+      entry("sonar.host.url", "https://localhost:9443"),
+      entry("language", "java"),
+      entry("sonar.scm.disabled", "true"),
+      entry("sonar.branch.autoconfig.disabled", "true"),
+      entry("sonar.scanner.internal.failOnDuplicateTelemetryKey", "true"),
+      entry("sonar.scanner.skipSystemTruststore", "true"));
+  }
+
+  @Test
+  public void skip_jvm_ssl_config_when_server_url_is_null() {
+    Configuration config = Configuration.create();
+    Build build = mock(Build.class);
+    when(build.getProperties()).thenReturn(Map.of("language", "java"));
+
+    BuildRunner runner = new BuildRunner(config, null);
+    runner.runQuietly(null, build);
+
+    ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+
+    verify(build).execute(eq(config), isNull(), captor.capture());
+
+    assertThat(captor.getValue()).containsOnly(
+      entry("language", "java"),
+      entry("sonar.scm.disabled", "true"),
+      entry("sonar.branch.autoconfig.disabled", "true"),
+      entry("sonar.scanner.internal.failOnDuplicateTelemetryKey", "true"),
+      entry("sonar.scanner.skipSystemTruststore", "true"),
+      entry("sonar.scanner.skipJvmSslConfig", "true"));
+  }
+
+  @Test
   public void inject_properties_for_msbuild_start() {
     Configuration config = Configuration.create();
     Build build = mock(ScannerForMSBuild.class);
