@@ -61,12 +61,25 @@ public class BuildRunner {
       adjustedProperties.put("sonar.branch.autoconfig.disabled", "true");
       adjustedProperties.put(FAIL_ON_DUPLICATE_TELEMETRY_KEY, "true");
       adjustedProperties.put(SKIP_JRE_SYSTEM_TRUSTSTORE, "true");
-      adjustedProperties.put(SKIP_JVM_SSL_CONFIG, "true");
+      if (isPlainHttpOrUnknown(build.getProperties().getOrDefault(SONAR_HOST_URL, serverUrl))) {
+        adjustedProperties.put(SKIP_JVM_SSL_CONFIG, "true");
+      }
     }
     // build properties override predefined properties
     adjustedProperties.putAll(build.getProperties());
 
     return adjustedProperties;
+  }
+
+  /**
+   * The JVM SSL config skip is only safe for endpoints we control: a null host means the
+   * default orchestrator-managed local server (plain HTTP), and an explicit {@code http://}
+   * URL cannot rely on the JVM's SSL properties in the first place. Any {@code https://}
+   * target may depend on {@code javax.net.ssl.trustStore}/{@code keyStore} for a custom
+   * CA or client certificate, which {@code sonar.scanner.skipJvmSslConfig=true} would drop.
+   */
+  private static boolean isPlainHttpOrUnknown(@Nullable String hostUrl) {
+    return hostUrl == null || hostUrl.startsWith("http://");
   }
 
 }
