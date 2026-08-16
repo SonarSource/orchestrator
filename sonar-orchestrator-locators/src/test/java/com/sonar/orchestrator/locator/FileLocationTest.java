@@ -77,8 +77,8 @@ public class FileLocationTest {
 
     FileLocation location = FileLocation.ofShared("abap/foo.txt");
     assertThat(location.getFile().isFile()).isTrue();
-    assertThat(location.getFile().exists()).isTrue();
-    assertThat(location.getFile().getName()).isEqualTo("foo.txt");
+    assertThat(location.getFile()).exists();
+    assertThat(location.getFile()).hasName("foo.txt");
   }
 
   @Test
@@ -86,9 +86,9 @@ public class FileLocationTest {
     URL url = getClass().getResource("/com/sonar/orchestrator/locator/FileLocationTest/index.txt");
     System.setProperty("orchestrator.it_sources", FilenameUtils.getFullPath(url.toURI().getPath()));
     FileLocation location = FileLocation.ofShared("abap/foo.txt");
-    assertThat(location.getFile().isFile()).isTrue();
-    assertThat(location.getFile().exists()).isTrue();
-    assertThat(location.getFile().getName()).isEqualTo("foo.txt");
+    assertThat(location.getFile()).isFile();
+    assertThat(location.getFile()).exists();
+    assertThat(location.getFile()).hasName("foo.txt");
   }
 
   @Test
