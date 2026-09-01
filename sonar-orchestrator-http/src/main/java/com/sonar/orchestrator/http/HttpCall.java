@@ -50,6 +50,7 @@ public class HttpCall {
   private static final String ADMIN_PASSWORD = "admin";
 
   private static final String DEFAULT_USER_AGENT = "Orchestrator";
+  private static final String CANNOT_CALL_FORMAT = CANNOT_CALL_FORMAT;
 
   private final OkHttpClient okClient;
   private final HttpUrl baseUrl;
@@ -141,9 +142,8 @@ public class HttpCall {
   public HttpCall setParams(String key1, @Nullable String value1, String... otherKeysAndNames) {
     checkArgument(otherKeysAndNames.length % 2 == 0, "Expecting even number of arguments: %s", Arrays.toString(otherKeysAndNames));
     parameters.put(key1, value1);
-    for (int i = 0; i < otherKeysAndNames.length; i++) {
+    for (int i = 0; i < otherKeysAndNames.length; i += 2) {
       parameters.put(otherKeysAndNames[i], otherKeysAndNames[i + 1]);
-      i++;
     }
     return this;
   }
@@ -196,10 +196,10 @@ public class HttpCall {
       try {
         doDownloadToFile(okRequest, file);
       } catch (IOException e2) {
-        throw new IllegalStateException(format("Can not call %s", okRequest.url()), e2);
+        throw new IllegalStateException(format(CANNOT_CALL_FORMAT, okRequest.url()), e2);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
+      throw new IllegalStateException(format(CANNOT_CALL_FORMAT, okRequest.url()), e);
     }
   }
 
@@ -221,10 +221,10 @@ public class HttpCall {
       try {
         return doDownloadToDirectory(dir, okRequest);
       } catch (IOException e2) {
-        throw new IllegalStateException(format("Can not call %s", okRequest.url()), e2);
+        throw new IllegalStateException(format(CANNOT_CALL_FORMAT, okRequest.url()), e2);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(format("Can not call %s", okRequest.url()), e);
+      throw new IllegalStateException(format(CANNOT_CALL_FORMAT, okRequest.url()), e);
     }
   }
 
