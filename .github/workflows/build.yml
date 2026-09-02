@@ -24,8 +24,8 @@ jobs:
       - uses: jdx/mise-action@dad1bfd3df957f44999b559dd69dc1671cb4e9ea # v4.2.1
         with:
           version: 2026.3.13
-      - uses: SonarSource/ci-github-actions/get-build-number@v1
-      - uses: SonarSource/ci-github-actions/build-maven@v1
+      - uses: SonarSource/ci-github-actions/get-build-number@v2
+      - uses: SonarSource/ci-github-actions/build-maven@v2
         with:
           deploy-pull-request: ${{ github.event_name != 'workflow_call' }}
           artifactory-reader-role: private-reader
@@ -49,7 +49,7 @@ jobs:
         with:
           cache_save: false
           version: 2026.3.13
-      - uses: SonarSource/ci-github-actions/get-build-number@v1
-      - uses: SonarSource/ci-github-actions/promote@v1
+      - uses: SonarSource/ci-github-actions/get-build-number@v2
+      - uses: SonarSource/ci-github-actions/promote@v2
         with:
           promote-pull-request: true
