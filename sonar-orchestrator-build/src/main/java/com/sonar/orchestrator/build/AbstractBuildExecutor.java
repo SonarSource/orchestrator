@@ -51,7 +51,7 @@ abstract class AbstractBuildExecutor<T extends Build<T>> {
         environmentVariables.put(optsVariableName, jaCoCoArgument);
       }
     }
-    if (environmentVariables.containsKey(optsVariableName)) {
+    if (LOG.isInfoEnabled() && environmentVariables.containsKey(optsVariableName)) {
       LOG.info("{}: {}", optsVariableName, environmentVariables.get(optsVariableName));
     }
   }
