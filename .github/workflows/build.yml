@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: jdx/mise-action@dad1bfd3df957f44999b559dd69dc1671cb4e9ea # v4.2.1
         with:
-          version: 2026.3.13
+          version: 2026.8.16
       - uses: SonarSource/ci-github-actions/get-build-number@v1
       - uses: SonarSource/ci-github-actions/build-maven@v1
         with:
@@ -48,7 +48,7 @@ jobs:
       - uses: jdx/mise-action@dad1bfd3df957f44999b559dd69dc1671cb4e9ea # v4.2.1
         with:
           cache_save: false
-          version: 2026.3.13
+          version: 2026.8.16
       - uses: SonarSource/ci-github-actions/get-build-number@v1
       - uses: SonarSource/ci-github-actions/promote@v1
         with:
