@@ -228,9 +228,11 @@ public class ServerInstaller {
     setIfNotPresent(properties, "sonar.jdbc.password", databaseClient.getPassword());
     properties.putAll(databaseClient.getAdditionalProperties());
     setIfNotPresent(properties, "sonar.log.console", "true");
+    setIfNotPresent(properties, "sonar.telemetry.enable", "false");
     setAndFailIfForbiddenValuePresent(properties, "sonar.telemetry.url", "https://telemetry-staging.test-sonarsource.com/sonarqube", "https://telemetry.sonarsource.com/sonarqube");
     setAndFailIfForbiddenValuePresent(properties, "sonar.telemetry.metrics.url", "https://telemetry-staging.test-sonarsource.com/sonarqube/metrics",
       "https://telemetry.sonarsource.com/sonarqube/metrics");
+    setAndFailIfForbiddenValuePresent(properties, "sonar.gessie.url", "", "https://telemetry.sonarsource.com/server");
     setAndFailIfForbiddenValuePresent(properties, "sonar.ai.suggestions.url", "", "https://api.sonarqube.io");
     InetAddress webHost = loadWebHost(properties, loopbackHost);
     configureSearchProperties(properties, loopbackHost);

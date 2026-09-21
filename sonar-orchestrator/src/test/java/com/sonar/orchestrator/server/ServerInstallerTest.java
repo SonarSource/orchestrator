@@ -413,6 +413,55 @@ public class ServerInstallerTest {
   }
 
   @Test
+  public void install_shouldDisableTelemetryByDefault() throws IOException {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution();
+
+    Server server = newInstaller().install(distribution);
+
+    assertThat(openPropertiesFile(server).getProperty("sonar.telemetry.enable")).isEqualTo("false");
+  }
+
+  @Test
+  public void install_whenTelemetryEnabledExplicitly_shouldKeepIt() throws IOException {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.telemetry.enable", "true");
+
+    Server server = newInstaller().install(distribution);
+
+    assertThat(openPropertiesFile(server).getProperty("sonar.telemetry.enable")).isEqualTo("true");
+  }
+
+  @Test
+  public void install_whenGessieUrlSetToProduction_shouldFail() {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.gessie.url", "https://telemetry.sonarsource.com/server");
+
+    ServerInstaller serverInstaller = newInstaller();
+    assertThrows(IllegalStateException.class, () -> serverInstaller.install(distribution));
+  }
+
+  @Test
+  public void install_shouldSetEmptyGessieUrlByDefault() throws IOException {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution();
+
+    Server server = newInstaller().install(distribution);
+
+    assertThat(openPropertiesFile(server).getProperty("sonar.gessie.url")).isEmpty();
+  }
+
+  @Test
+  public void install_whenGessieUrlSetExplicitly_shouldKeepIt() throws IOException {
+    prepareResolutionOfPackaging(Edition.COMMUNITY, Version.create(VERSION_9_9), SQ_LITE_ZIP);
+    SonarDistribution distribution = new SonarDistribution().setServerProperty("sonar.gessie.url", "http://localhost:9999/events");
+
+    Server server = newInstaller().install(distribution);
+
+    assertThat(openPropertiesFile(server).getProperty("sonar.gessie.url")).isEqualTo("http://localhost:9999/events");
+  }
+
+  @Test
   public void install_shouldSetEmptyAiCodeFixUrlByDefault() throws IOException {
     prepareResolutionOfPackaging(Edition.ENTERPRISE, Version.create(VERSION_9_9), SQ_LITE_ZIP);
     SonarDistribution distribution = new SonarDistribution();
