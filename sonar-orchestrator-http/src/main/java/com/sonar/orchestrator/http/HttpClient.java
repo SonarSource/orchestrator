@@ -29,6 +29,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
 
+import javax.annotation.Nullable;
+
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class HttpClient {
@@ -88,7 +90,7 @@ public class HttpClient {
     }
 
     @Override
-    public Request authenticate(Route route, Response response) {
+    public Request authenticate(@Nullable Route route, Response response) {
       if (HttpURLConnection.HTTP_PROXY_AUTH == response.code()) {
         String credential = Credentials.basic(login, password);
         return response.request().newBuilder().header("Proxy-Authorization", credential).build();
