@@ -90,7 +90,7 @@ class URLLocator implements Locator<URLLocation> {
   }
 
   private static HttpCall callHttpRequest(URLLocation location) {
-    LOG.info("Downloading: " + location.getURL());
+    LOG.info("Downloading: {}", location.getURL());
 
     return HttpClientFactory.create().newCall(HttpUrl.get(location.getURL()));
   }

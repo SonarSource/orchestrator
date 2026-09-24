@@ -21,6 +21,7 @@ package com.sonar.orchestrator.util;
 
 import java.io.IOException;
 import java.io.Writer;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public interface StreamConsumer {
@@ -28,6 +29,8 @@ public interface StreamConsumer {
   void consumeLine(String line);
 
   class Pipe implements StreamConsumer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Pipe.class);
 
     private final Writer writer;
 
@@ -38,11 +41,11 @@ public interface StreamConsumer {
     @Override
     public void consumeLine(String line) {
       try {
-        System.out.println(line);
+        LOG.info(line);
         writer.write(line);
         writer.write("\n");
       } catch (IOException e) {
-        LoggerFactory.getLogger(Pipe.class).error("Fail to write : " + line, e);
+        LOG.error("Fail to write : " + line, e);
       }
     }
   }
