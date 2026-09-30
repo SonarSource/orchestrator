@@ -37,6 +37,7 @@ import com.sonar.orchestrator.licenses.Licenses;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.Locators;
+import com.sonar.orchestrator.server.CeTaskFailureChecker;
 import com.sonar.orchestrator.server.Packaging;
 import com.sonar.orchestrator.server.PackagingResolver;
 import com.sonar.orchestrator.server.ServerCommandLineFactory;
@@ -310,6 +311,7 @@ public class Orchestrator {
       results[index] = buildRunner.run(server.getUrl(), builds[index]);
     }
     new SynchronousAnalyzer(server).waitForDone();
+    new CeTaskFailureChecker().failIfComputeEngineTaskFailed(server, results);
     return results;
   }
 
