@@ -56,7 +56,7 @@
     <gitRepositoryName>orchestrator</gitRepositoryName>
     <maven.compiler.release>17</maven.compiler.release>
     <sonarVersion>5.1</sonarVersion>
-    <okhttp.version>5.4.0</okhttp.version>
+    <okhttp.version>5.5.0</okhttp.version>
     <sonar.organization>sonarsource</sonar.organization>
     <sonar.projectKey>org.sonarsource.orchestrator:orchestrator-parent</sonar.projectKey>
   </properties>
