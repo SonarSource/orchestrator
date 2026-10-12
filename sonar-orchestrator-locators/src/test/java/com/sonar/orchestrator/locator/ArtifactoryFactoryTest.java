@@ -20,17 +20,23 @@
 package com.sonar.orchestrator.locator;
 
 import com.sonar.orchestrator.config.Configuration;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class ArtifactoryFactoryTest {
+
+  @TempDir
+  Path homeDir;
 
   private static final String DEFAULT_REPOSITORY = "https://repox.jfrog.io/artifactory";
   private static final String INTERNAL_REPOSITORY = "https://repox-internal.dev.sonar.build/artifactory";
@@ -49,14 +55,69 @@ class ArtifactoryFactoryTest {
     assertThat(result).isInstanceOf(parameters.getExpectedClass());
   }
 
-  private static Configuration getConfiguration(String url, String apiKey, String accessToken) {
+  @ParameterizedTest
+  @ValueSource(strings = {
+    "https://repox.jfrog.io",
+    "https://repox-internal.dev.sonar.build",
+    "https://repox-internal.sonar.build",
+    "https://repox-internal.sonar.build/artifactory",
+    "https://repox.sonar.build",
+    "https://repox.sonar.build/artifactory",
+    "https://REPOX-INTERNAL.SONAR.BUILD:443/artifactory"
+  })
+  void authenticated_hosts_preserve_credentials(String url) {
+    Artifactory result = ArtifactoryFactory.createArtifactory(getConfiguration(url, API_KEY, ACCESS_TOKEN));
+
+    assertThat(result).isInstanceOf(DefaultArtifactory.class);
+    assertThat(result.getBaseUrl()).isEqualTo(url);
+    assertThat(result.getAccessToken()).isEqualTo(ACCESS_TOKEN);
+    assertThat(result.getApiKey()).isEqualTo(API_KEY);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"orchestrator.artifactory.accessToken", "ARTIFACTORY_ACCESS_TOKEN"})
+  void production_edge_uses_configured_access_token(String tokenKey) {
+    Configuration configuration = Configuration.builder()
+      .setProperty("orchestrator.home", homeDir)
+      .setProperty("orchestrator.artifactory.url", "https://repox-internal.sonar.build")
+      .setProperty(tokenKey, ACCESS_TOKEN)
+      .build();
+
+    Artifactory result = ArtifactoryFactory.createArtifactory(configuration);
+
+    assertThat(result).isInstanceOf(DefaultArtifactory.class);
+    assertThat(result.getAccessToken()).isEqualTo(ACCESS_TOKEN);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+    "https://repox.jfrog.io.example.com/artifactory",
+    "https://prefix-repox.jfrog.io/artifactory",
+    "https://repox-internal.dev.sonar.build.example.com/artifactory",
+    "https://prefix-repox-internal.dev.sonar.build/artifactory",
+    "https://repox-internal.sonar.build.example.com/artifactory",
+    "https://prefix-repox-internal.sonar.build/artifactory",
+    "https://repox.sonar.build.example.com/artifactory",
+    "https://prefix-repox.sonar.build/artifactory",
+    "https://repox-internal.sonar.build@example.com/artifactory",
+    "https://example.com/repox-internal.sonar.build"
+  })
+  void unrelated_hosts_do_not_receive_credentials(String url) {
+    Artifactory result = ArtifactoryFactory.createArtifactory(getConfiguration(url, API_KEY, ACCESS_TOKEN));
+
+    assertThat(result).isInstanceOf(MavenArtifactory.class);
+    assertThat(result.getAccessToken()).isNull();
+    assertThat(result.getApiKey()).isNull();
+  }
+
+  private Configuration getConfiguration(String url, String apiKey, String accessToken) {
     HashMap<String, String> properties = new HashMap<>();
     properties.put("orchestrator.artifactory.url", url);
     properties.put("orchestrator.artifactory.apiKey", apiKey);
     properties.put("orchestrator.artifactory.accessToken", accessToken);
     return Configuration.builder()
       .addProperties(properties)
-      .addEnvVariables()
+      .setProperty("orchestrator.home", homeDir)
       .build();
   }
 
