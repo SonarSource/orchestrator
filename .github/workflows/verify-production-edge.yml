@@ -1,0 +1,45 @@
+name: Verify production Edge
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/verify-production-edge.yml
+      - sonar-orchestrator-locators/**
+      - sonar-orchestrator-config/**
+      - sonar-orchestrator-http/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: verify-production-edge-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  private-download:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: sonar-xs
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: jdx/mise-action@dad1bfd3df957f44999b559dd69dc1671cb4e9ea # v4.2.1
+        with:
+          version: 2026.3.13
+          cache_save: false
+      - name: Prepare isolated action working directory
+        run: mkdir -p .edge-validation
+      - uses: SonarSource/ci-github-actions/config-maven@c60fa5ce724d1d64173d852bfb0187d952ec6638
+        with:
+          working-directory: .edge-validation
+          repox-url: https://repox-internal.sonar.build
+          artifactory-reader-role: private-reader
+          disable-caching: 'true'
+      - name: Validate private download and release alias
+        env:
+          VERIFY_PRODUCTION_EDGE: 'true'
+        run: >-
+          mvn -Pcoverage -pl sonar-orchestrator-locators -am test
+          -Dtest=ProductionEdgeTest
+          -Dsurefire.failIfNoSpecifiedTests=false
