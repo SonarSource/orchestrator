@@ -22,10 +22,14 @@ package com.sonar.orchestrator.server;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import org.apache.commons.exec.LogOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
 
 class StartupLogListener extends LogOutputStream {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(StartupLogListener.class);
 
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final String logPrefix;
@@ -33,7 +37,7 @@ class StartupLogListener extends LogOutputStream {
 
   StartupLogListener(StartupLogWatcher watcher, @Nullable String logPrefix) {
     this.watcher = requireNonNull(watcher);
-    this.logPrefix = (logPrefix == null ? "> " : logPrefix + "> ");
+    this.logPrefix = (logPrefix == null ? "> " : (logPrefix + "> "));
   }
 
   @Override
@@ -41,7 +45,7 @@ class StartupLogListener extends LogOutputStream {
     if (watcher.isStarted(line)) {
       started.set(true);
     }
-    System.out.println(logPrefix + line);
+    LOGGER.info("{}{}", logPrefix, line);
   }
 
   boolean isStarted() {
