@@ -144,9 +144,8 @@ public class ServerInstaller {
   private static void removeBundledPlugins(File homeDir, Collection<String> bundledPluginNamePrefixesToKeep) {
     if (bundledPluginNamePrefixesToKeep.isEmpty()) {
       LOG.info("Remove bundled plugins");
-    } else {
-      LOG.info("Remove bundled plugins except: " + String.join(", ", bundledPluginNamePrefixesToKeep));
-
+    } else if (LOG.isInfoEnabled()) {
+      LOG.info("Remove bundled plugins except: {}", String.join(", ", bundledPluginNamePrefixesToKeep));
     }
     cleanDirectory(new File(homeDir, "lib/bundled-plugins"), bundledPluginNamePrefixesToKeep);
     // plugins are bundled in extensions/plugins since version 7.2
@@ -169,7 +168,7 @@ public class ServerInstaller {
               throw new IllegalStateException("Fail to delete file: " + file, e);
             }
           } else {
-            LOG.info("  Keeping: " + file.getFileName().toString());
+            LOG.info("  Keeping: {}", file.getFileName());
           }
         });
       }
