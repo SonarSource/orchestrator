@@ -165,10 +165,12 @@ public class OrchestratorBuilderTest {
     File dir = new File(orchestrator.getServer().getHome(), "lib/extensions");
     assertThat(dir).exists();
 
-    // SonarJava consists of two plug-ins since SQ 10.6!
-    // - sonar-java-plugin-<version>.jar
-    // - sonar-java-symbolic-execution-plugin-<version>.jar
-    assertThat(dir.listFiles()).hasSize(2);
+    // Only plug-ins matching the "sonar-java-" prefix are kept. The sonar-java-symbolic-execution
+    // plug-in is no longer bundled in Community Build (SONAR-33113), so only SonarJava itself remains.
+    assertThat(dir.listFiles())
+      .extracting(File::getName)
+      .allMatch(name -> name.startsWith("sonar-java-"))
+      .anyMatch(name -> name.startsWith("sonar-java-plugin-"));
   }
 
   @Test
