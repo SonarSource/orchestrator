@@ -31,16 +31,17 @@ import org.junit.rules.ExternalResource;
 public abstract class SingleStartExternalResource extends ExternalResource {
 
   private static final String ALREADY_STOPPED = "Already stopped...";
+  private final Object lock = new Object();
   private AtomicInteger nestedCount = new AtomicInteger(0);
   private boolean started = false;
   private boolean stopped = false;
 
   @Override
   protected final void before() throws Throwable {
-    synchronized (nestedCount) {
+    synchronized (lock) {
       nestedCount.incrementAndGet();
       if (stopped) {
-        throw new RuntimeException(ALREADY_STOPPED);
+        throw new IllegalStateException(ALREADY_STOPPED);
       }
       if (!started) {
         beforeAll();
@@ -53,10 +54,10 @@ public abstract class SingleStartExternalResource extends ExternalResource {
 
   @Override
   protected final void after() {
-    synchronized (nestedCount) {
+    synchronized (lock) {
       int value = nestedCount.decrementAndGet();
       if (stopped) {
-        throw new RuntimeException(ALREADY_STOPPED);
+        throw new IllegalStateException(ALREADY_STOPPED);
       }
       if (started && value == 0) {
         afterAll();
