@@ -32,10 +32,9 @@ final class PropertyUtils {
   static Map<String, String> toMap(String[] keyValues) {
     checkArgument(keyValues.length % 2 == 0, "Must be an even number of key/values");
     Map<String, String> map = new HashMap<>();
-    int index = 0;
-    while (index < keyValues.length) {
-      String key = keyValues[index++];
-      String value = keyValues[index++];
+    for (int index = 0; index < keyValues.length; index += 2) {
+      String key = keyValues[index];
+      String value = keyValues[index + 1];
       map.put(key, value);
     }
     return map;
