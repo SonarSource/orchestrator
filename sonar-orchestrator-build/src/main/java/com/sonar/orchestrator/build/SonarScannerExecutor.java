@@ -23,7 +23,7 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.command.Command;
 import com.sonar.orchestrator.util.command.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
+import com.sonar.orchestrator.util.StreamConsumerPipe;
 import java.io.File;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,7 @@ class SonarScannerExecutor extends AbstractBuildExecutor<SonarScanner> {
       appendCoverageArgumentToOpts(build.getEnvironmentVariables(), config, locators, SONAR_SCANNER_OPTS);
       Command command = createCommand(build, adjustedProperties, scannerScript);
       LoggerFactory.getLogger(SonarScanner.class).info("Execute: {}", command);
-      StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
+      StreamConsumerPipe writer = new StreamConsumerPipe(result.getLogsWriter());
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);
       return result;
