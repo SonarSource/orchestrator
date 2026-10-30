@@ -39,11 +39,11 @@ public abstract class DatabaseClient {
   private String url;
   private String schema;
   private String login;
-  private String password;
+  private final String password;
   private String rootUrl;
-  private String rootLogin;
-  private String rootPassword;
-  private Map<String, String> additionalProperties;
+  private final String rootLogin;
+  private final String rootPassword;
+  private final Map<String, String> additionalProperties;
   // jdbc metadata
   private int dbMajorVersion;
   private int dbMinorVersion;
@@ -227,7 +227,7 @@ public abstract class DatabaseClient {
     private String rootUrl;
     private String rootLogin;
     private String rootPassword;
-    private Map<String, String> additionalProperties = new HashMap<>();
+    private final Map<String, String> additionalProperties = new HashMap<>();
 
     protected Builder() {
     }
