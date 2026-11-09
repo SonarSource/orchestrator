@@ -23,4 +23,17 @@ public interface StreamConsumer {
 
   void consumeLine(String line);
 
+  /**
+   * Kept for backward compatibility of the published API.
+   *
+   * @deprecated since 6.4.4, use {@link StreamConsumerPipe}
+   */
+  @Deprecated(since = "6.4.4")
+  @SuppressWarnings({"java:S9398", "java:S1133"})
+  class Pipe extends StreamConsumerPipe {
+    public Pipe(java.io.Writer writer) {
+      super(writer);
+    }
+  }
+
 }
