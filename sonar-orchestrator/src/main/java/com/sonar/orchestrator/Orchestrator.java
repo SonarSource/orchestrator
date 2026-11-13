@@ -67,12 +67,13 @@ public class Orchestrator {
   private final SonarDistribution distribution;
   private final Licenses licenses;
   private final AtomicBoolean started = new AtomicBoolean(false);
+  @Nullable
+  private final StartupLogWatcher startupLogWatcher;
 
   private DefaultDatabase database;
   private Server server;
   private BuildRunner buildRunner;
   private ServerProcess process;
-  private StartupLogWatcher startupLogWatcher;
   private String adminToken;
   private Packaging packaging;
 

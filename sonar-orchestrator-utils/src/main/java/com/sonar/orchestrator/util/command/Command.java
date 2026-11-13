@@ -44,10 +44,10 @@ public class Command {
   private static final String DOUBLE_QUOTE = "\"";
 
   private final Os os;
-  private String executable;
-  private List<String> arguments = new ArrayList<>();
+  private final String executable;
+  private final List<String> arguments = new ArrayList<>();
   private File directory;
-  private Map<String, String> env = new HashMap<>(System.getenv());
+  private final Map<String, String> env = new HashMap<>(System.getenv());
 
   Command(String executable, Os os) {
     this.executable = executable;

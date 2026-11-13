@@ -34,13 +34,13 @@ import static com.sonar.orchestrator.util.Preconditions.checkArgument;
 public abstract class DatabaseClient {
 
   private boolean dropAndCreate;
-  private String driverClassName;
-  private File driverFile;
-  private String url;
-  private String schema;
-  private String login;
+  private final String driverClassName;
+  private final File driverFile;
+  private final String url;
+  private final String schema;
+  private final String login;
   private final String password;
-  private String rootUrl;
+  private final String rootUrl;
   private final String rootLogin;
   private final String rootPassword;
   private final Map<String, String> additionalProperties;
