@@ -30,8 +30,8 @@ import java.util.function.Predicate;
 public class BuildResult {
 
   // StringWriter does not need to be closed
-  private StringWriter logs = new StringWriter();
-  private List<Integer> statuses = new ArrayList<>();
+  private final StringWriter logs = new StringWriter();
+  private final List<Integer> statuses = new ArrayList<>();
 
   public Writer getLogsWriter() {
     return logs;

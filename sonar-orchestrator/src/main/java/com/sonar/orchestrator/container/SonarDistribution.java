@@ -44,7 +44,7 @@ public final class SonarDistribution {
   private boolean emptySonarProperties = false;
   private boolean keepBundledPlugins = false;
 
-  private Set<String> bundledPluginNamePrefixesToKeep = new HashSet<>();
+  private final Set<String> bundledPluginNamePrefixesToKeep = new HashSet<>();
   private boolean defaultForceAuthentication = false;
   private boolean forceDefaultAdminCredentialsRedirect = false;
   private boolean useDefaultAdminCredentialsForBuilds = false;

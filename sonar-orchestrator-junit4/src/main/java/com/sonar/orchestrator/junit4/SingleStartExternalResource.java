@@ -32,7 +32,7 @@ public abstract class SingleStartExternalResource extends ExternalResource {
 
   private static final String ALREADY_STOPPED = "Already stopped...";
   private final Object lock = new Object();
-  private AtomicInteger nestedCount = new AtomicInteger(0);
+  private final AtomicInteger nestedCount = new AtomicInteger(0);
   private boolean started = false;
   private boolean stopped = false;
 

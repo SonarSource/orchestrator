@@ -27,12 +27,12 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class MavenLocation implements Location {
 
-  private String groupId;
-  private String artifactId;
-  private String version;
+  private final String groupId;
+  private final String artifactId;
+  private final String version;
   private String filename;
-  private String packaging;
-  private String classifier;
+  private final String packaging;
+  private final String classifier;
 
   public MavenLocation(Builder builder) {
     this.groupId = builder.groupId;

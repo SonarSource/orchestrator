@@ -36,7 +36,7 @@ public abstract class Build<T extends Build<T>> {
 
   protected long timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
   protected Map<String, String> properties = new HashMap<>();
-  private Map<String, String> env = new HashMap<>();
+  private final Map<String, String> env = new HashMap<>();
   private List<String> additionalArguments = new ArrayList<>();
 
   /**
