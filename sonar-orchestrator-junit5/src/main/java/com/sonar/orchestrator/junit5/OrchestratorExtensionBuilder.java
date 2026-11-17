@@ -1,5 +1,5 @@
 /*
- * Orchestrator - JUnit 5
+ * Orchestrator - JUnit Jupiter
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
