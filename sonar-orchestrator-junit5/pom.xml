@@ -9,6 +9,7 @@
   </parent>
   <artifactId>sonar-orchestrator-junit5</artifactId>
   <name>Orchestrator - JUnit 5</name>
+  <description>JUnit 5 programming model (org.junit.jupiter), as opposed to sonar-orchestrator-junit4. JUnit 6 did not change that model the way JUnit 4 to 5 did, so this artifact id stays. The version follows junit-bom.</description>
 
   <dependencies>
     <dependency>

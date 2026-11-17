@@ -49,6 +49,8 @@ public class MyTest {
 
 ## JUnit 5 API
 
+Read this as junit5, not as "for JUnit 5". The name follows the JUnit 5 paradigm, not the current version number. The real break was JUnit 4 to 5. JUnit 6 did not change the model in a comparable way: same API (`org.junit.jupiter`), same extension model. The version follows `junit-bom`.
+
 An instance of class `com.sonar.orchestrator.junit5.OrchestratorExtension` can be used as `Extension`. It will represent a SonarQube server that will be started before tests, and stopped after:
 
 ```
