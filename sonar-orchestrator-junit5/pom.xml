@@ -9,11 +9,7 @@
   </parent>
   <artifactId>sonar-orchestrator-junit5</artifactId>
   <name>Orchestrator - JUnit Jupiter</name>
-  <description>
-    JUnit Jupiter extension for Orchestrator, currently using JUnit 6.
-    The artifact ID and Java package retain "junit5" for compatibility
-    with existing consumers.
-  </description>
+  <description>JUnit Jupiter extension for Orchestrator, currently using JUnit 6. The artifact ID and Java package retain "junit5" for compatibility with existing consumers.</description>
 
   <dependencies>
     <dependency>
