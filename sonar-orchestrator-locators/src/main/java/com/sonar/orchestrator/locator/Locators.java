@@ -69,7 +69,7 @@ public class Locators {
     return file;
   }
 
-  private IllegalArgumentException throwNotSupported(Location location) {
+  private static IllegalArgumentException throwNotSupported(Location location) {
     return new IllegalArgumentException("Unknown location type: " + location.getClass());
   }
 

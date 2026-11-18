@@ -16,6 +16,16 @@
     <appender-ref ref="CARGO" />
   </logger>
 
+  <appender name="BUILD_OUTPUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.sonar.orchestrator.BuildOutput" level="INFO" additivity="false">
+    <appender-ref ref="BUILD_OUTPUT" />
+  </logger>
+
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>

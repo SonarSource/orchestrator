@@ -19,33 +19,21 @@
  */
 package com.sonar.orchestrator.util;
 
-import java.io.IOException;
-import java.io.Writer;
-import org.slf4j.LoggerFactory;
-
 public interface StreamConsumer {
 
   void consumeLine(String line);
 
-  class Pipe implements StreamConsumer {
-
-    private final Writer writer;
-
-    public Pipe(Writer writer) {
-      this.writer = writer;
-    }
-
-    @Override
-    public void consumeLine(String line) {
-      try {
-        System.out.println(line);
-        writer.write(line);
-        writer.write("\n");
-      } catch (IOException e) {
-        LoggerFactory.getLogger(Pipe.class).error("Fail to write : " + line, e);
-      }
+  /**
+   * Kept for backward compatibility of the published API.
+   *
+   * @deprecated since 6.4.4, use {@link StreamConsumerPipe}
+   */
+  @Deprecated(since = "6.4.4")
+  @SuppressWarnings({"java:S9398", "java:S1133"})
+  class Pipe extends StreamConsumerPipe {
+    public Pipe(java.io.Writer writer) {
+      super(writer);
     }
   }
-
 
 }

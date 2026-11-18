@@ -29,7 +29,7 @@ public class StreamConsumerTest {
   @Test
   public void consumeLine() {
     StringWriter writer = new StringWriter();
-    StreamConsumer.Pipe pipe = new StreamConsumer.Pipe(writer);
+    StreamConsumerPipe pipe = new StreamConsumerPipe(writer);
 
     pipe.consumeLine("foo");
     pipe.consumeLine("bar");
