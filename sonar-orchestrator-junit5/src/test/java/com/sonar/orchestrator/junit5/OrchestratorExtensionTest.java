@@ -49,12 +49,14 @@ class OrchestratorExtensionTest {
   @Test
   void testShouldBeIncluded() {
     includedDidRun = true;
+    assertTrue(includedDidRun);
   }
 
   @OnlyOnSonarQube(from="999.0")
   @Test
   void testShouldBeSkipped() {
     excludedDidRun = true;
+    assertTrue(excludedDidRun);
   }
 
 }

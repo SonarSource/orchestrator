@@ -90,6 +90,8 @@ public class ServerProcessImplTest {
     // following stops do not fail
     underTest.stop();
     underTest.stop();
+
+    assertThat(underTest.isProcessAlive()).isFalse();
   }
 
   @Test
@@ -121,7 +123,7 @@ public class ServerProcessImplTest {
   }
 
   @Test
-  public void fail_if_server_version_is_older_than_6_2() throws Exception {
+  public void fail_if_server_version_is_older_than_6_2() {
     when(server.version()).thenReturn(Version.create("5.6"));
 
     expectedException.expect(IllegalStateException.class);
