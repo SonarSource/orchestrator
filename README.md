@@ -156,6 +156,25 @@ For running Orchestrator behind a corporate proxy, add Java properties :
     -Dhttp.proxyUser=foo
     -Dhttp.proxyPassword=bar
 
+## Logging
+
+SonarQube server process output (startup logs) is written to the SLF4J logger `SONARQUBE_PROCESS` at INFO level.
+The `logback.xml` bundled with Orchestrator prints it to the console with a plain `%msg%n` pattern.
+
+Projects that provide their own logback configuration (for example `logback-test.xml`) take precedence over the
+bundled one. They should declare this logger themselves, or the server output may be reformatted or suppressed.
+This output is useful when the server fails to start.
+
+    <appender name="SONARQUBE_PROCESS" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%msg%n</pattern>
+      </encoder>
+    </appender>
+
+    <logger name="SONARQUBE_PROCESS" level="INFO" additivity="false">
+      <appender-ref ref="SONARQUBE_PROCESS" />
+    </logger>
+
 ## License
 
 Copyright 2011-2025 SonarSource Sàrl.
