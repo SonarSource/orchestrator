@@ -19,6 +19,7 @@
  */
 package com.sonar.orchestrator.junit5;
 
+import com.sonar.orchestrator.util.Version;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -49,14 +50,15 @@ class OrchestratorExtensionTest {
   @Test
   void testShouldBeIncluded() {
     includedDidRun = true;
-    assertTrue(includedDidRun);
+    assertTrue(ORCHESTRATOR.getServer().version().compareTo(Version.create("1.0")) >= 0,
+      "Test should only run on SonarQube 1.0 or later");
   }
 
   @OnlyOnSonarQube(from="999.0")
   @Test
   void testShouldBeSkipped() {
     excludedDidRun = true;
-    assertTrue(excludedDidRun);
+    fail("Test should have been skipped by @OnlyOnSonarQube");
   }
 
 }
