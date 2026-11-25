@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 
 class StartupLogListener extends LogOutputStream {
 
-  private static final Logger LOG = LoggerFactory.getLogger(StartupLogListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger("SONARQUBE_PROCESS");
 
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final String logPrefix;
