@@ -126,7 +126,9 @@ public class ScannerForMSBuildInstaller {
     checkState(sonarScannerDirs.length > 0, "sonar-scanner folder not found");
     checkState(sonarScannerDirs.length == 1, "sonar-scanner folder is not unique");
     File binaries = new File(sonarScannerDirs[0], "bin");
-    for (File binary : binaries.listFiles()) {
+    File[] binaryFiles = binaries.listFiles();
+    checkState(binaryFiles != null, "Unable to list files in %s", binaries);
+    for (File binary : binaryFiles) {
       try {
         Files.setPosixFilePermissions(binary.toPath(), PosixFilePermissions.fromString("rwxrwxrwx"));
       } catch (IOException e) {

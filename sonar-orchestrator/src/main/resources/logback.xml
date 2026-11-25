@@ -16,6 +16,16 @@
     <appender-ref ref="CARGO" />
   </logger>
 
+  <appender name="SONARQUBE_PROCESS" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="SONARQUBE_PROCESS" level="INFO" additivity="false">
+    <appender-ref ref="SONARQUBE_PROCESS" />
+  </logger>
+
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>
