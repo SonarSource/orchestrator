@@ -23,7 +23,7 @@ import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.util.command.Command;
 import com.sonar.orchestrator.util.command.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
+import com.sonar.orchestrator.util.StreamConsumerPipe;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -91,7 +91,7 @@ class MavenBuildExecutor extends AbstractBuildExecutor<MavenBuild> {
       for (Map.Entry<String, String> entry : adjustedProperties.entrySet()) {
         command.addSystemArgument(entry.getKey(), entry.getValue());
       }
-      StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
+      StreamConsumerPipe writer = new StreamConsumerPipe(result.getLogsWriter());
       LoggerFactory.getLogger(getClass()).info("Execute: {}", command);
       int status = commandExecutor.execute(command, writer, build.getTimeoutSeconds() * 1000);
       result.addStatus(status);
