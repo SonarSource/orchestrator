@@ -212,7 +212,7 @@ public class DefaultArtifactoryTest {
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
       public void describeTo(Description description) {
-
+        // no description needed, this matcher is only used to assert the exception message in this test
       }
 
       @Override
@@ -392,6 +392,7 @@ public class DefaultArtifactoryTest {
     expectedException.expectMessage(new TypeSafeMatcher<String>() {
       @Override
       public void describeTo(Description description) {
+        // no description needed, this matcher is only used to assert the exception message in this test
       }
 
       @Override
