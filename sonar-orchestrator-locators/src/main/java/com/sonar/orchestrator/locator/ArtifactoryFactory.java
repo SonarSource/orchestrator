@@ -27,7 +27,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 public class ArtifactoryFactory {
 
-  private static final String DEFAULT_ARTIFACTORY_PREFIX = "https://repox.jfrog.io";
+  private static final String DEFAULT_ARTIFACTORY_PREFIX = "https://repox.sonar.build";
   private static final String DEFAULT_ARTIFACTORY_URL = DEFAULT_ARTIFACTORY_PREFIX + "/artifactory";
 
   /**
@@ -36,9 +36,7 @@ public class ArtifactoryFactory {
    */
   private static final List<String> SONARSOURCE_ARTIFACTORY_PREFIXES = List.of(
     DEFAULT_ARTIFACTORY_PREFIX,
-    "https://repox-internal.dev.sonar.build",
-    "https://repox-internal.sonar.build",
-    "https://repox.sonar.build"
+    "https://repox.jfrog.io"
   );
 
   /**
@@ -46,9 +44,8 @@ public class ArtifactoryFactory {
    *
    * <p>
    * Authenticated {@link DefaultArtifactory} is used when {@code orchestrator.artifactory.url} is empty
-   * or points at a known SonarSource Artifactory host
-   * ({@code https://repox.jfrog.io}, {@code https://repox-internal.dev.sonar.build}, {@code https://repox-internal.sonar.build}
-   * or {@code https://repox.sonar.build}).
+   * ({@code https://repox.sonar.build/artifactory}) or points at a known SonarSource Artifactory host
+   * ({@code https://repox.sonar.build} or {@code https://repox.jfrog.io}).
    * Otherwise, we assume the URL points to a plain Maven repository and use unauthenticated
    * {@link MavenArtifactory}.
    * </p>

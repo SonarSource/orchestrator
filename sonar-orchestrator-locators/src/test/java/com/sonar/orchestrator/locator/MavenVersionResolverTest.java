@@ -31,8 +31,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 class MavenVersionResolverTest {
 
@@ -40,7 +40,7 @@ class MavenVersionResolverTest {
   @MethodSource("params")
   void loadVersions(String input, String output) throws IOException {
     MavenVersionResolver versionResolver = spy(new MavenVersionResolver("https://repo1.maven.org/maven2", "org.sonarsource.sonarqube", "sonar-plugin-api"));
-    when(versionResolver.downloadVersions()).thenReturn(getMavenRepositoryVersion());
+    doReturn(getMavenRepositoryVersion()).when(versionResolver).downloadVersions();
     versionResolver.loadVersions();
 
     Optional<String> version = versionResolver.getLatestVersion(input);

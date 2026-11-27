@@ -87,8 +87,7 @@ Aliases can be used to define the versions of SonarQube and plugins to be instal
 The alias `LTS` is no more supported for SonarQube since Orchestrator 3.17. It should be replaced by `LATEST_RELEASE[6.7]`.
 
 Version aliases such as `DEV` and `LATEST_RELEASE` require a supported SonarSource Artifactory host:
-`https://repox.jfrog.io`, `https://repox-internal.dev.sonar.build`, `https://repox-internal.sonar.build` or
-`https://repox.sonar.build`. They will not work against a plain Maven repository URL (for example Maven Central).
+`https://repox.sonar.build` or `https://repox.jfrog.io`. They will not work against a plain Maven repository URL (for example Maven Central).
 Version alias resolution searches Artifactory with
 `remote=1` so Edge Smart Remotes under `sonarsource-releases` / `sonarsource-builds` are included.
 
@@ -126,9 +125,8 @@ The test environment is configured in the file `~/.sonar/orchestrator/orchestrat
     # Default is ~/.m2/repository
     #maven.localRepository=/path/to/maven/repository
 
-    # Instance of Artifactory. Default is SonarSource's instance (https://repox.jfrog.io/artifactory).
-    # Supported SonarSource hosts: repox.jfrog.io, repox-internal.dev.sonar.build,
-    # repox-internal.sonar.build and repox.sonar.build. These use authenticated
+    # Instance of Artifactory. Default is SonarSource's Edge (https://repox.sonar.build/artifactory).
+    # Supported SonarSource hosts: repox.sonar.build and repox.jfrog.io. These use authenticated
     # Artifactory REST APIs with orchestrator.artifactory.accessToken / ARTIFACTORY_ACCESS_TOKEN.
     # This property can be replaced by the environment variable ARTIFACTORY_URL.
     # To use maven central instead, use https://repo1.maven.org/maven2
@@ -136,9 +134,8 @@ The test environment is configured in the file `~/.sonar/orchestrator/orchestrat
     # (unauthenticated Maven layout client).
     #orchestrator.artifactory.url=https://repo1.maven.org/maven2
 
-For production Edge, configure `https://repox-internal.sonar.build/artifactory` for internal access or
-`https://repox.sonar.build/artifactory` for public access, using production Edge reader credentials.
-Choose the endpoint reachable from your runner. Existing dev Edge and SaaS endpoints remain supported.
+The default `https://repox.sonar.build/artifactory` needs production Edge reader credentials. To use SaaS,
+configure `https://repox.jfrog.io/artifactory` with a SaaS token.
 
 The path to configuration file can be overridden with the system property `orchestrator.configUrl`
 or the environment variable `ORCHESTRATOR_CONFIG_URL`.

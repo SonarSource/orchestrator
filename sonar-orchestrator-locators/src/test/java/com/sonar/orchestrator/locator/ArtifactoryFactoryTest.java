@@ -38,8 +38,8 @@ class ArtifactoryFactoryTest {
   @TempDir
   Path homeDir;
 
-  private static final String DEFAULT_REPOSITORY = "https://repox.jfrog.io/artifactory";
-  private static final String INTERNAL_REPOSITORY = "https://repox-internal.dev.sonar.build/artifactory";
+  private static final String DEFAULT_REPOSITORY = "https://repox.sonar.build/artifactory";
+  private static final String SAAS_REPOSITORY = "https://repox.jfrog.io/artifactory";
   private static final String SOME_MAVEN_REPOSITORY = "https://localhost:9000/maven-repo";
   private static final String ACCESS_TOKEN = "access_token";
   private static final String API_KEY = "api_key";
@@ -58,12 +58,10 @@ class ArtifactoryFactoryTest {
   @ParameterizedTest
   @ValueSource(strings = {
     "https://repox.jfrog.io",
-    "https://repox-internal.dev.sonar.build",
-    "https://repox-internal.sonar.build",
-    "https://repox-internal.sonar.build/artifactory",
+    "https://repox.jfrog.io/artifactory",
     "https://repox.sonar.build",
     "https://repox.sonar.build/artifactory",
-    "https://REPOX-INTERNAL.SONAR.BUILD:443/artifactory"
+    "https://REPOX.SONAR.BUILD:443/artifactory"
   })
   void authenticated_hosts_preserve_credentials(String url) {
     Artifactory result = ArtifactoryFactory.createArtifactory(getConfiguration(url, API_KEY, ACCESS_TOKEN));
@@ -79,7 +77,7 @@ class ArtifactoryFactoryTest {
   void production_edge_uses_configured_access_token(String tokenKey) {
     Configuration configuration = Configuration.builder()
       .setProperty("orchestrator.home", homeDir)
-      .setProperty("orchestrator.artifactory.url", "https://repox-internal.sonar.build")
+      .setProperty("orchestrator.artifactory.url", "https://repox.sonar.build")
       .setProperty(tokenKey, ACCESS_TOKEN)
       .build();
 
@@ -91,6 +89,8 @@ class ArtifactoryFactoryTest {
 
   @ParameterizedTest
   @ValueSource(strings = {
+    "https://repox-internal.sonar.build/artifactory",
+    "https://repox-internal.dev.sonar.build/artifactory",
     "https://repox.jfrog.io.example.com/artifactory",
     "https://prefix-repox.jfrog.io/artifactory",
     "https://repox-internal.dev.sonar.build.example.com/artifactory",
@@ -126,7 +126,7 @@ class ArtifactoryFactoryTest {
       Arguments.of(new Parameters(null, DEFAULT_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
       Arguments.of(new Parameters("", DEFAULT_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
       Arguments.of(new Parameters(DEFAULT_REPOSITORY, DEFAULT_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
-      Arguments.of(new Parameters(INTERNAL_REPOSITORY, INTERNAL_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
+      Arguments.of(new Parameters(SAAS_REPOSITORY, SAAS_REPOSITORY, API_KEY, API_KEY, ACCESS_TOKEN, ACCESS_TOKEN, DefaultArtifactory.class)),
       Arguments.of(new Parameters(SOME_MAVEN_REPOSITORY, SOME_MAVEN_REPOSITORY, API_KEY, null, ACCESS_TOKEN, null, MavenArtifactory.class))
     );
   }
